@@ -73,7 +73,10 @@ window.TvXAdapter = (function() {
                 if (first && top >= -50 && top < window.innerHeight) {
                     topRequested = false;
                     focusFirstVisibleArticle();
-                } else if (window.TvXReading) window.TvXReading.waiting("正在返回时间线顶部…");
+                } else {
+                    pageScroller().scrollTo({ top: 0, behavior: "instant" });
+                    if (window.TvXReading) window.TvXReading.waiting("正在返回时间线顶部…");
+                }
                 previousMode = mode;
                 return;
             }
