@@ -43,7 +43,8 @@ export async function mount(page, posts = [post()], extra = '', { styleDelay = 0
             }
         });
     });
-    for (const path of ['runtime/navigation-runtime.js', 'sites/x/reading.js', 'sites/x/adapter.js']) {
+    const manifest = JSON.parse(await readFile(new URL('manifest.json', extension), 'utf8'));
+    for (const path of manifest.content_scripts[0].js.filter(path => !['runtime/content.js', 'runtime/adapter-registry.js'].includes(path))) {
         await page.addScriptTag({ path: fileURLToPath(new URL(path, extension)) });
     }
     await page.evaluate(() => window.TvXAdapter.init());

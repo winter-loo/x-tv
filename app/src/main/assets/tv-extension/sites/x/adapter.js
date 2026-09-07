@@ -35,11 +35,23 @@ window.TvXAdapter = (function() {
         return window.location.pathname === "/home";
     }
 
+    function isPostDetail() {
+        return /^\/[^/]+\/status\/\d+(?:\/(?:photo|video)\/\d+)?$/.test(window.location.pathname);
+    }
+
     function handlePageMode() {
         updateTimelineLayout();
         const mode = isLoginMode() ? "login" : (isHome() ? "home" : "other");
         const articles = getArticles();
         if (window.TvXReading) window.TvXReading.update(mode === "home", articles, statusLink);
+        const detail = mode !== "login" && isPostDetail();
+        if (window.TvXDetail) window.TvXDetail.update(detail, statusLink);
+        if (detail && window.TvXDetail) {
+            unmountCustomTvLogin();
+            cancelPendingMove();
+            previousMode = "detail";
+            return;
+        }
         if (mode === "login") {
             mountCustomTvLogin();
         } else {
@@ -631,6 +643,11 @@ window.TvXAdapter = (function() {
             return;
         }
 
+        if (window.TvXDetail && isPostDetail()) {
+            window.TvXDetail.update(true, statusLink);
+            window.TvXDetail.move(direction);
+            return;
+        }
         movePost(direction);
     }
 
@@ -651,6 +668,7 @@ window.TvXAdapter = (function() {
             return;
         }
 
+        if (window.TvXDetail && isPostDetail()) return;
         const current = focusedArticle();
         const link = statusLink(current);
         if (link) {
@@ -690,6 +708,7 @@ window.TvXAdapter = (function() {
 
         const closeBtn = document.querySelector(
             '#tv-modal.active .close-btn, ' +
+            '[role="dialog"] [aria-label="Close"], [role="dialog"] [aria-label="关闭"], [role="dialog"] [data-testid="app-bar-close"], ' +
             'div[aria-labelledby="modal-header"] [aria-label="Close"], ' +
             'div[data-testid="app-bar-close"], ' +
             'div[aria-label="Close"]'
@@ -747,6 +766,7 @@ window.TvXAdapter = (function() {
         window.removeEventListener("keydown", handleLoginKeyDown, true);
         refreshPage = null;
         if (window.TvXReading) window.TvXReading.update(false, []);
+        if (window.TvXDetail) window.TvXDetail.update(false);
     }
 
     return {

@@ -94,7 +94,7 @@ test('Back waits for native home DOM and restores the selected post after list r
     await move(page, 'down');
     await activate(page);
     await expect(page).toHaveURL('https://x.com/fixture/status/103');
-    await page.getByRole('tablist').evaluate(node => node.remove());
+    await page.getByRole('tablist', { includeHidden: true }).evaluate(node => node.remove());
     await page.locator('#timeline').evaluate((node, html) => { node.innerHTML = html; }, post({ id: '103' }));
     await back(page);
     await expect(page).toHaveURL('https://x.com/home');
