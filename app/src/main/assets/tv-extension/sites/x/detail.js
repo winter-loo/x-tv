@@ -43,13 +43,23 @@ window.TvXDetail = window.TvXDetail || (function() {
         const reply = article.querySelector('[data-testid="reply"]');
         const cover = article.querySelector('[data-testid="article-cover-image"]');
         const media = article.querySelector('[data-testid="card.wrapper"], [data-testid="videoPlayer"], [data-testid="tweetPhoto"]');
+        const avatar = article.querySelector('[data-testid="Tweet-User-Avatar"]');
+        const name = article.querySelector('[data-testid="User-Name"]');
+        const text = article.querySelector('[data-testid="tweetText"]');
+        const engagement = reply?.closest('[role="group"]');
+        let attachment = cover || media;
+        // Retain the native media-only branch, including its aspect-ratio sizer.
+        // tweetPhoto's immediate parent is an absolute overlay on current X.
+        const boundaries = [avatar, name, text, engagement, permalink].filter(Boolean);
+        while (attachment?.parentElement && attachment.parentElement !== article &&
+            !boundaries.some(node => attachment.parentElement.contains(node))) attachment = attachment.parentElement;
         const parts = [
-            [article.querySelector('[data-testid="Tweet-User-Avatar"]'), 'avatar'],
-            [article.querySelector('[data-testid="User-Name"]'), 'name'],
-            [article.querySelector('[data-testid="tweetText"]'), 'text'],
+            [avatar, 'avatar'],
+            [name, 'name'],
+            [text, 'text'],
             [permalink && !permalink.closest('[data-testid="User-Name"]') ? permalink : null, 'time'],
-            [cover ? cover.parentElement : media?.parentElement, 'attachment'],
-            [reply?.closest('[role="group"]'), 'engagement']
+            [attachment, 'attachment'],
+            [engagement, 'engagement']
         ];
         for (const [node, kind] of parts) {
             if (!node) continue;
@@ -110,6 +120,17 @@ window.TvXDetail = window.TvXDetail || (function() {
             mark(container, 'composer');
         }
         for (const tab of primary?.querySelectorAll('[role="tablist"]') || []) mark(tab, 'composer');
+        // The native app bar has no stable test id; constrain the structural
+        // fallback to headings/back controls outside posts and a sticky ancestor.
+        for (const heading of primary?.querySelectorAll('h2, [data-testid="app-bar-back"]') || []) {
+            if (heading.closest('article')) continue;
+            for (let parent = heading.parentElement; parent && parent !== primary; parent = parent.parentElement) {
+                if (getComputedStyle(parent).position === 'sticky') {
+                    mark(parent, 'native-header');
+                    break;
+                }
+            }
+        }
         const avatar = chrome.querySelector('#tv-detail-entry img');
         const account = document.querySelector('[data-testid="SideNav_AccountSwitcher_Button"] img');
         const source = account?.getAttribute('src');

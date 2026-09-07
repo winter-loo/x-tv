@@ -30,7 +30,7 @@ and WebExtension boundary are simulated; production presentation code is loaded
 unchanged. These checks cannot prove live X selector compatibility or virtual
 list behavior on the projector.
 
-Verification run: `npm test` passed both login-state probes and all 15 Firefox
+Verification run: `npm test` passed both login-state probes and all 16 Firefox
 DOM tests. `./gradlew assembleDebug testDebugUnitTest lintDebug` passed; the Java
 unit-test task has no source tests, and lint reports 0 errors / 8 baseline warnings.
 
@@ -57,3 +57,14 @@ verifies the correct root geometry, readable timestamp, scrolling, and unavailab
 state without promoting the quoted post. A separate reinjection/unmount test
 checks preserved column/scroll state and cleanup. Fallback background injection
 now loads reading, shared identity, and detail scripts before the adapter.
+
+## Live layout correction
+
+A live projector screenshot showed native `main` flex growth expanding the
+comments column to 392 CSS px at the 980 px viewport, and the immediate photo
+parent was an absolute overlay. Detail now disables that flex growth and keeps
+the complete media-only native branch, including its aspect-ratio sizer, in the
+post grid. Native sticky app bars containing headings/back controls outside
+articles are hidden behind the TV header. The regression uses a flex parent,
+sticky native Post header, percentage aspect-ratio spacer, and absolute photo
+wrappers; it verifies a 343 CSS px comments column and a photo below body text.

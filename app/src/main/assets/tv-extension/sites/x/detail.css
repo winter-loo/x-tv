@@ -1,9 +1,9 @@
 /* Figma 31:2 / 97:2. Native reply document scrolling preserves X pagination. */
 body.tv-detail-active { --tv-u: calc(100vw / 1920); --tv-bg:#090d14; --tv-text:#e8ebed; --tv-muted:#9eadc2; height:auto !important; overflow:visible !important; }
 html:has(body.tv-detail-active) { height:auto !important; overflow-y:auto !important; }
-body.tv-detail-active main[role="main"] { display:block !important; width:calc(672 * var(--tv-u)) !important; max-width:none !important; margin:0 0 0 calc(1152 * var(--tv-u)) !important; padding:calc(228 * var(--tv-u)) 0 calc(248 * var(--tv-u)) !important; }
+body.tv-detail-active main[role="main"] { display:block !important; flex:none !important; width:calc(672 * var(--tv-u)) !important; max-width:none !important; margin:0 0 0 calc(1152 * var(--tv-u)) !important; padding:calc(228 * var(--tv-u)) 0 calc(248 * var(--tv-u)) !important; }
 body.tv-detail-active .tv-detail-post-ancestor { transform:none !important; contain:none !important; perspective:none !important; }
-body.tv-detail-active .tv-detail-composer { display:none !important; }
+body.tv-detail-active :is(.tv-detail-composer,.tv-detail-native-header) { display:none !important; }
 body.tv-detail-active article.tv-detail-post { position:fixed !important; top:calc(160 * var(--tv-u)) !important; left:calc(96 * var(--tv-u)) !important; width:calc(1008 * var(--tv-u)) !important; height:calc(716 * var(--tv-u)) !important; min-height:0 !important; display:grid !important; grid-template-columns:calc(72 * var(--tv-u)) minmax(0,1fr); grid-auto-rows:max-content; gap:calc(20 * var(--tv-u)) calc(24 * var(--tv-u)); overflow:auto !important; z-index:402; }
 body.tv-detail-active article:is(.tv-detail-post,.tv-detail-reply) { margin:0 !important; padding:0 !important; border:0 !important; border-radius:0 !important; background:var(--tv-bg) !important; box-shadow:none !important; outline:none !important; transform:none !important; transition:none !important; color:var(--tv-text) !important; font-family:Roboto,"Noto Sans SC",sans-serif !important; scrollbar-width:thin !important; }
 body.tv-detail-active .tv-detail-branch { display:contents !important; }
@@ -15,7 +15,7 @@ body.tv-detail-active .tv-detail-name :is(div,span,a,time) { font-size:calc(28 *
 body.tv-detail-active .tv-detail-name > :first-child :is(div,span,a) { font-size:calc(36 * var(--tv-u)) !important; font-weight:700 !important; color:var(--tv-text) !important; }
 body.tv-detail-active .tv-detail-text { grid-column:1/-1; white-space:pre-wrap !important; overflow-wrap:anywhere !important; }
 body.tv-detail-active .tv-detail-text, body.tv-detail-active .tv-detail-text :is(span,a) { font-size:calc(32 * var(--tv-u)) !important; line-height:calc(40 * var(--tv-u)) !important; }
-body.tv-detail-active .tv-detail-attachment { grid-column:1/-1; width:100% !important; margin:0 !important; border-radius:calc(16 * var(--tv-u)) !important; overflow:hidden !important; }
+body.tv-detail-active .tv-detail-attachment { grid-column:1/-1; position:relative !important; min-width:0 !important; width:100% !important; margin:0 !important; border-radius:calc(16 * var(--tv-u)) !important; overflow:hidden !important; }
 body.tv-detail-active .tv-detail-attachment :is(img,video) { max-width:100% !important; }
 body.tv-detail-active .tv-detail-attachment [dir="auto"] { font-size:calc(30 * var(--tv-u)) !important; line-height:calc(38 * var(--tv-u)) !important; -webkit-line-clamp:unset !important; }
 body.tv-detail-active .tv-detail-attachment [data-testid="article-cover-image"] { height:calc(400 * var(--tv-u)) !important; overflow:hidden !important; }
@@ -65,3 +65,5 @@ body.tv-detail-active .tv-detail-reply .tv-detail-engagement svg { width:calc(24
 #tv-detail-entry img[hidden] { display:none; }
 
 body.tv-detail-active .tv-detail-post .tv-detail-time { grid-column:1/-1; font-size:calc(28 * var(--tv-u)) !important; line-height:calc(36 * var(--tv-u)) !important; color:var(--tv-muted) !important; }
+
+body.tv-detail-active .tv-detail-attachment :is([data-testid="tweetPhoto"], [data-testid="videoPlayer"]) { margin-top:0 !important; max-height:none !important; }

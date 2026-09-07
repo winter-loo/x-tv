@@ -134,3 +134,30 @@ test('reinjection retains detail focus and scrolling, and unmount removes its ch
     await page.evaluate(()=>window.TvXAdapter.init());
     await expect(page.locator('#tv-detail-chrome')).toHaveCount(1);
 });
+
+test('native flex growth and absolute photo wrappers stay within the approved columns', async ({ page }) => {
+    await page.setViewportSize({width:980,height:551});
+    await openDetail(page,[post({id:'201'})]);
+    await page.evaluate(() => {
+        document.querySelector('#react-root').style.cssText='display:flex;flex-direction:row;width:100%';
+        const primary=document.querySelector('[data-testid="primaryColumn"]');
+        const header=document.createElement('div');
+        header.style.cssText='position:sticky;top:0';
+        header.innerHTML='<div><div><button data-testid="app-bar-back">Back</button><h2>Post</h2></div></div>';
+        primary.prepend(header);
+        const root=document.querySelector('[data-fixture-id="102"]');
+        root.querySelector('[data-testid="tweetText"]').textContent='Native photo post';
+        const previous=root.querySelector('[data-testid="article-cover-image"]').parentElement;
+        const media=document.createElement('div');
+        media.innerHTML='<a role="link" href="/fixture/status/102/photo/1"><div style="position:relative"><div style="padding-bottom:75%"></div><div style="position:absolute;inset:0"><div data-testid="tweetPhoto" style="position:absolute;inset:0"><img alt="Native fixture photo" style="position:absolute;inset:0;width:100%;height:100%"></div></div></div></a>';
+        media.querySelector('img').src=root.querySelector('[data-testid="Tweet-User-Avatar"] img').src;
+        previous.replaceWith(media);
+    });
+    await expect.poll(async ()=>(await rect(page.locator('[data-fixture-id="201"]'))).width).toBe(343);
+    await expect(page.getByRole('heading',{name:'Post',exact:true})).toBeHidden();
+    const text=page.locator('[data-fixture-id="102"] [data-testid="tweetText"]');
+    const photo=page.getByAltText('Native fixture photo');
+    await expect.poll(async ()=>(await rect(photo)).y).toBeGreaterThan((await rect(text)).y+(await rect(text)).height);
+    expect((await rect(photo)).width).toBe(515);
+    expect((await rect(photo)).height).toBeGreaterThan(300);
+});
