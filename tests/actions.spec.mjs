@@ -23,7 +23,7 @@ test('Menu traps remote focus, matches the approved overlay and returns to the s
     await expect(page).toHaveURL('https://x.com/fixture/status/102');
 });
 
-import { mountActions } from './fixtures/actions.mjs';
+import { mountActions, bootFreshActions } from './fixtures/actions.mjs';
 
 test('Like waits for the matching native response, suppresses duplicates and returns after 800 ms', async ({ page }) => {
     await mountActions(page);
@@ -101,7 +101,7 @@ test('Unknown responses never confirm or reverse an optimistic like, and recycle
     await expect.poll(() => page.evaluate(() => nativeRequests.length)).toBe(1);
     await page.evaluate(() => finishNative(0, { unknown: true }));
     await expect(page.getByRole('status').filter({ hasText: '尚未确认' })).toBeVisible();
-    await activate(page);
+    await expect(page.getByRole('button', { name: '重新载入帖子', exact: true })).toBeVisible();
     expect(await page.evaluate(() => nativeRequests.length)).toBe(1);
     await back(page);
     await move(page, 'down');
@@ -203,4 +203,66 @@ test('A native state change while arming cannot turn Like into an unintended Unl
     await activate(page);
     await expect(page.getByRole('status').filter({ hasText: '未能完成操作' })).toBeVisible();
     expect(await page.evaluate(() => nativeRequests.length)).toBe(0);
+});
+
+test('Comment on another post remains available while a like is pending', async ({ page }) => {
+    await mountActions(page);
+    await page.keyboard.press('m');
+    await move(page, 'down');
+    await activate(page);
+    await expect.poll(() => page.evaluate(() => nativeRequests.length)).toBe(1);
+    await back(page);
+    await move(page, 'down');
+    await page.keyboard.press('m');
+    await activate(page);
+    await expect(page).toHaveURL('https://x.com/fixture/status/102');
+    expect(await page.evaluate(() => nativeRequests.length)).toBe(1);
+});
+
+test('An unresolved like offers a full native reload instead of an inverse action', async ({ page }) => {
+    await mountActions(page);
+    await move(page, 'down');
+    await page.keyboard.press('m');
+    await move(page, 'down');
+    await activate(page);
+    await expect.poll(() => page.evaluate(() => nativeRequests.length)).toBe(1);
+    await page.evaluate(() => finishNative(0, { unknown: true }));
+    await back(page);
+    await page.keyboard.press('m');
+    await expect(page.getByRole('button', { name: '重新载入帖子', exact: true })).toBeVisible();
+    await move(page, 'down');
+    const navigation = page.waitForRequest(request => request.isNavigationRequest() && request.url() === 'https://x.com/fixture/status/102');
+    await activate(page);
+    await navigation;
+    await page.waitForLoadState();
+    // The external page supplies a fresh unliked post, rather than old optimism.
+    await expect(page.locator('article[data-fixture-id="102"] [data-testid="like"]')).toHaveText('203');
+    await page.locator('article[data-fixture-id="102"]').evaluate(article => {
+        // Native expanded detail puts its own timestamp outside User-Name.
+        article.append(article.querySelector('[data-testid="User-Name"] a'));
+    });
+    await bootFreshActions(page);
+    await page.keyboard.press('m');
+    await expect(page.getByRole('button', { name: '喜欢', exact: true })).toBeVisible();
+    await expect(page.getByLabel('帖子互动计数')).toHaveText('评论 17 · 喜欢 203');
+    await back(page);
+    await page.goBack();
+    await page.waitForLoadState();
+    // A fresh home document restores the selected anchor saved before recovery.
+    await bootFreshActions(page);
+    await expect(page.locator('article.tv-focused')).toHaveAttribute('data-fixture-id', '102');
+});
+
+test('Menu counts remain at the last known value while pending and synchronize after confirmation', async ({ page }) => {
+    await mountActions(page);
+    await page.keyboard.press('m');
+    const counts = page.getByLabel('帖子互动计数');
+    await expect(counts).toHaveText('评论 17 · 喜欢 203');
+    await move(page, 'down');
+    await activate(page);
+    await expect.poll(() => page.evaluate(() => nativeRequests.length)).toBe(1);
+    await expect(counts).toHaveText('评论 17 · 喜欢 203 · 待确认');
+    await page.evaluate(() => finishNative(0));
+    await expect(counts).toHaveText('评论 17 · 喜欢 204');
+    await expect(page.locator('article.tv-focused [data-testid="unlike"]')).toHaveText('204');
 });

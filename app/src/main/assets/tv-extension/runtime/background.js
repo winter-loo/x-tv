@@ -65,6 +65,7 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
 function injectContentScripts(tabId) {
     browser.tabs.executeScript(tabId, { file: "runtime/navigation-runtime.js" })
+        .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/post-identity.js" }))
         .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/reading.js" }))
         .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/post-identity.js" }))
         .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/detail.js" }))

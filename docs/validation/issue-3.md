@@ -29,10 +29,18 @@ The action suite exercises the production adapter and passive observer through t
 - Native keyboard shortcuts cannot escape the menu.
 - A native like-state change while arming cannot invert the intended action.
 
-`npm test` passed all 19 Firefox tests (10 actions, 9 reading), plus the login-state checks. `assembleDebug` and `lintDebug` passed; lint reports 0 errors and 8 existing warnings. `testDebugUnitTest` is NO-SOURCE. Runtime dispatcher syntax and `git diff --check` also passed.
+`npm test` passed all 22 Firefox tests (13 actions, 9 reading), plus the login-state checks. `assembleDebug` and `lintDebug` passed; lint reports 0 errors and 8 existing warnings. `testDebugUnitTest` is NO-SOURCE. Runtime dispatcher syntax and `git diff --check` also passed.
 
 The menu screenshot from the synthetic fixture was inspected against the Figma reference. Screenshots and build artifacts remain ignored locally.
 
 ## Remaining target-device acceptance
 
 The parent agent coordinates the shared projector. This branch has not installed an APK, navigated the live account, or liked/unliked a live post. Before closing #3, verify the native Menu bridge, actual GeckoView response-filter availability, current X response contract, successful like/unlike and count synchronization, cancellation/failure behavior, and focus restoration on the target device. Restore the original like state of the chosen test post.
+
+## Review fixes
+
+Comment routing is independent of another post's in-flight like. Mutations retain the single-request fence, with an explicit explanation when another post's request is still pending. A shared pending-state predicate and explicit `{ id, path }` post identity keep these decisions consistent. Uncertain results are retained per post rather than lost when another post is opened.
+
+A settled but unconfirmed optimistic toggle offers **重新载入帖子**. This performs a full-document navigation to the canonical native status URL, discarding X's in-memory optimistic state. It does not send an inverse mutation or claim the previous request succeeded. The fresh native detail supports the menu using the shared `TvXPostIdentity` lookup, including expanded timestamps outside User-Name while excluding quotes. The original home anchor and scroll position are saved for return; a recovered home document cannot reuse stale bfcache state. Actual in-flight requests keep their fence and are not offered this settled-result recovery path.
+
+The menu shows native comment and like counts. The like count remains at its previous known value with a pending indicator until the native response and control agree, then updates from X's actual count. Added regressions cover independent Comment, full-document recovery with fresh detail and home-anchor restoration, and pending/confirmed count synchronization. The parent's shared-projector investigation remains the source of live observer validation; these fixture results do not substitute for it.

@@ -5,6 +5,10 @@ import { fileURLToPath } from 'node:url';
 // observer and adapter run unchanged, exchanging messages across that boundary.
 export async function mountActions(page, posts = [post(), post({ id: '102' })]) {
     await mount(page, posts);
+    await attachActionHost(page);
+}
+
+export async function attachActionHost(page) {
     await page.evaluate(() => {
         const listeners = [];
         const events = {};
@@ -58,4 +62,17 @@ export async function mountActions(page, posts = [post(), post({ id: '102' })]) 
         };
     });
     await page.addScriptTag({ path: fileURLToPath(new URL('../../app/src/main/assets/tv-extension/sites/x/like-observer.js', import.meta.url)) });
+}
+
+// Reinstall extension scripts after an actual document navigation in the fixture.
+export async function bootFreshActions(page) {
+    await page.evaluate(() => {
+        window.browser = { runtime: { getURL: path => 'https://x.com/extension/' + path } };
+    });
+    await attachActionHost(page);
+    for (const file of ['runtime/navigation-runtime.js', 'sites/x/post-identity.js', 'sites/x/reading.js', 'sites/x/actions.js', 'sites/x/adapter.js']) {
+        await page.addScriptTag({ path: fileURLToPath(new URL('../../app/src/main/assets/tv-extension/' + file, import.meta.url)) });
+    }
+    await page.evaluate(() => TvXAdapter.init());
+    await page.locator('article.tv-focused').waitFor();
 }

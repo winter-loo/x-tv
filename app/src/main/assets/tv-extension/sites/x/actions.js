@@ -5,9 +5,18 @@ window.TvXActions = window.TvXActions || (function() {
     let context = null;
     let previousFocus = null;
     let transaction = null;
+    const transactions = new Map();
     let returnTimer = null;
     let listening = false;
     let originalPath = '';
+
+    function isPending(action) { return !!action && ['arming', 'pending', 'waiting'].includes(action.phase); }
+    function currentAction() { return context ? transactions.get(context.post.id) : null; }
+
+    function needsRecovery(action, button) {
+        return !!action?.sent && !isPending(action) && action.phase !== 'confirmed' &&
+            (action.phase === 'unconfirmed' || button.dataset.testid === (action.liked ? 'unlike' : 'like'));
+    }
 
     function control(article) {
         return article && Array.from(article.querySelectorAll('[data-testid="like"], [data-testid="unlike"]'))
@@ -31,15 +40,24 @@ window.TvXActions = window.TvXActions || (function() {
         const button = control(context.article());
         if (!button) { status('帖子暂不可用，请返回后重试'); return; }
         const liked = button.dataset.testid === 'unlike';
-        const action = transaction?.postId === context.postId ? transaction : null;
-        const pending = action && ['arming', 'pending', 'waiting'].includes(action.phase);
+        const action = currentAction();
+        const pending = isPending(action);
+        const synchronized = action?.phase === "confirmed" && liked === action.liked;
         const confirmed = action?.phase === 'confirmed' && !action.consumed && liked === action.liked;
-        const label = pending ? '正在确认…' : confirmed && action.liked ? '已喜欢' : liked ? '取消喜欢' : '喜欢';
+        const recovery = needsRecovery(action, button);
+        const label = recovery ? '重新载入帖子' : pending ? '正在确认…' : confirmed && action.liked ? '已喜欢' : liked ? '取消喜欢' : '喜欢';
         const target = buttons()[1];
+        const awaitingCount = pending || recovery || (action?.phase === 'confirmed' && !synchronized);
+        const count = awaitingCount ? action.previousCount : (button.textContent.trim() || '0');
+        const comments = context.article().querySelector('[data-testid="reply"]')?.textContent.trim() || '0';
+        const countText = '评论 ' + comments + ' · 喜欢 ' + count + (awaitingCount ? ' · 待确认' : '');
+        const counts = overlay.querySelector('#tv-action-counts');
+        if (counts.textContent !== countText) counts.textContent = countText;
         if (target.textContent !== label) target.textContent = label;
-        target.classList.toggle('tv-action-liked', liked && !pending);
+        target.classList.toggle('tv-action-liked', liked && !awaitingCount);
         target.setAttribute('aria-busy', String(!!pending));
-        if (pending) status(action.phase === 'waiting' ? 'X 仍未确认，请稍候或返回关闭' : '正在等待 X 确认…    返回 关闭');
+        if (recovery) status('尚未确认结果，确认重新载入帖子检查');
+        else if (pending) status(action.phase === 'waiting' ? 'X 仍未确认，请稍候或返回关闭' : '正在等待 X 确认…    返回 关闭');
         else if (confirmed) {
             status(action.liked ? '已喜欢，即将返回帖子' : '已取消喜欢');
             if (action.liked && !returnTimer) returnTimer = setTimeout(() => {
@@ -47,7 +65,7 @@ window.TvXActions = window.TvXActions || (function() {
                 if (transaction === action && action.phase === 'confirmed') close();
             }, 800);
         } else if (action?.phase === 'failed') status('未能完成操作，请确认重试');
-        else if (action && action.phase !== 'confirmed' && action.phase !== 'pending' && action.phase !== 'arming') status('尚未确认操作结果，请返回后检查，或稍后重试');
+        else if (action && action.phase !== 'confirmed' && !isPending(action)) status('尚未确认操作结果，请返回后检查，或稍后重试');
     }
     async function like() {
         const article = context.article();
@@ -55,15 +73,21 @@ window.TvXActions = window.TvXActions || (function() {
         if (!button || button.disabled || button.getAttribute('aria-disabled') === 'true') {
             status('喜欢按钮暂不可用，请稍后重试'); return;
         }
-        if (transaction && ['arming', 'pending', 'waiting'].includes(transaction.phase)) return;
-        const prior = transaction?.postId === context.postId ? transaction : null;
-        // An unknown response plus an optimistic toggle is unsafe to invert on retry.
-        if (prior?.sent && prior.phase !== 'confirmed' && button.dataset.testid === (prior.liked ? 'unlike' : 'like')) {
-            status('结果尚未确认，请返回并重新打开帖子检查'); return;
+        if (isPending(transaction)) {
+            if (!currentAction()) status('另一条帖子的操作仍在确认，请稍候');
+            return;
         }
-        const action = { postId: context.postId, liked: button.dataset.testid === 'like',
-            token: crypto.randomUUID(), phase: 'arming' };
+        const prior = currentAction();
+        if (needsRecovery(prior, button)) {
+            const reloadPost = context.reloadPost;
+            close();
+            reloadPost();
+            return;
+        }
+        const action = { postId: context.post.id, liked: button.dataset.testid === 'like',
+            token: crypto.randomUUID(), phase: 'arming', previousCount: button.textContent.trim() || '0' };
         transaction = action;
+        transactions.set(action.postId, action);
         update();
         let armed;
         try { armed = await browser.runtime.sendMessage({ event: 'tv_like_arm', postId: action.postId, liked: action.liked, token: action.token }); }
@@ -126,7 +150,7 @@ window.TvXActions = window.TvXActions || (function() {
         }
         overlay = document.createElement('div');
         overlay.id = 'tv-action-overlay';
-        overlay.innerHTML = '<section id="tv-action-menu" role="dialog" aria-modal="true" aria-labelledby="tv-action-title"><h2 id="tv-action-title">帖子操作</h2><button type="button">评论</button><button type="button">喜欢</button><p id="tv-action-status" role="status">↑↓ 选择    确认 执行    返回 关闭</p></section>';
+        overlay.innerHTML = '<section id="tv-action-menu" role="dialog" aria-modal="true" aria-labelledby="tv-action-title"><div id="tv-action-heading"><h2 id="tv-action-title">帖子操作</h2><span id="tv-action-counts" aria-label="帖子互动计数"></span></div><button type="button">评论</button><button type="button">喜欢</button><p id="tv-action-status" role="status">↑↓ 选择    确认 执行    返回 关闭</p></section>';
         document.body.appendChild(overlay);
         buttons().forEach((button, index) => button.addEventListener('click', () => { selected = index; activate(); }));
         selected = 0;
@@ -143,7 +167,7 @@ window.TvXActions = window.TvXActions || (function() {
     }
     function activate() {
         if (!overlay) return false;
-        if (returnTimer || (transaction && ['arming', 'pending', 'waiting'].includes(transaction.phase))) return true;
+        if (returnTimer) return true;
         if (selected === 1) { like(); return true; }
         if (selected === 0 && context.article()) {
             const openPost = context.openPost;

@@ -32,6 +32,7 @@
       "all_frames": false,
       "js": [
         "runtime/navigation-runtime.js",
+        "sites/x/post-identity.js",
         "sites/x/reading.js",
         "sites/x/post-identity.js",
         "sites/x/detail.js",

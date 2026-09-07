@@ -18,9 +18,24 @@ window.TvXAdapter = window.TvXAdapter || (function() {
     let topRequested = false;
     let refreshPage = null;
     let initialTimer = null;
+    let recoveryNavigation = false;
+    const recoveryHomeKey = "tv-x-recovery-home";
+    window.addEventListener("pageshow", event => {
+        if (event.persisted && recoveryNavigation) window.location.reload();
+    });
 
     function init() {
         console.log("[TvXAdapter] Initializing X adapter on:", window.location.href);
+        if (isHome()) {
+            try {
+                const saved = JSON.parse(sessionStorage.getItem(recoveryHomeKey));
+                if (saved && /^\/[^/]+\/status\/\d+$/.test(saved.anchor) && Number.isFinite(saved.scroll)) {
+                    homeAnchor = saved.anchor;
+                    homeScroll = saved.scroll;
+                }
+                sessionStorage.removeItem(recoveryHomeKey);
+            } catch (_) { /* Storage may be unavailable; native navigation still works. */ }
+        }
         injectTvStyles();
         setupObserver();
 
@@ -504,6 +519,7 @@ window.TvXAdapter = window.TvXAdapter || (function() {
 
     function statusLink(article) {
         if (!article) return null;
+        if (!isHome() && window.TvXPostIdentity) return window.TvXPostIdentity.statusLink(article);
         const name = article.querySelector('[data-testid="User-Name"]');
         const links = Array.from((name || article).querySelectorAll('a[href*="/status/"]'));
         return links.find(link => {
@@ -514,7 +530,7 @@ window.TvXAdapter = window.TvXAdapter || (function() {
 
     function extractArticleAnchor(article) {
         const link = statusLink(article);
-        return link ? link.getAttribute("href") : article.getAttribute("data-tweet-id");
+        return link ? new URL(link.getAttribute("href"), location.href).pathname : article.getAttribute("data-tweet-id");
     }
 
     function focusedArticle() {
@@ -639,13 +655,31 @@ window.TvXAdapter = window.TvXAdapter || (function() {
     }
 
     function menu() {
-        if (isLoginMode() || !isHome() || !window.TvXActions) return false;
-        const anchor = lastAnchorId;
+        if (isLoginMode() || !window.TvXActions) return false;
+        const detailPath = /^\/[^/]+\/status\/\d+$/.test(location.pathname) ? location.pathname : null;
+        if (!isHome() && !detailPath) return false;
+        const anchor = detailPath || lastAnchorId;
+        const match = anchor?.match(/^\/[^/]+\/status\/(\d+)$/);
+        if (!match) return false;
+        const post = { id: match[1], path: anchor };
         cancelPendingMove();
         const opened = window.TvXActions.open({
-            postId: anchor?.split("/").pop(),
+            post,
+            reloadPost: () => {
+                try {
+                    if (isHome()) sessionStorage.setItem(recoveryHomeKey, JSON.stringify({ anchor: post.path, scroll: pageScrollY() }));
+                } catch (_) { /* Reload remains available without storage. */ }
+                recoveryNavigation = true;
+                // Full-document native navigation discards X's optimistic JS state.
+                // Never reinterpret it as confirmation of the previous mutation.
+                location.assign(post.path);
+            },
             article: () => getArticles().find(article => extractArticleAnchor(article) === anchor),
-            openPost: () => { if (lastAnchorId === anchor) activate(); },
+            openPost: () => {
+                const article = getArticles().find(item => extractArticleAnchor(item) === post.path);
+                const link = statusLink(article);
+                if (link) { if (isHome()) homeScroll = pageScrollY(); link.click(); }
+            },
             restore: () => { verifyOrRestoreFocus(); reportState(); }
         });
         reportState();
