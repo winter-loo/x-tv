@@ -9,17 +9,19 @@ window.TvXReading = (function() {
 
     function mount() {
         if (header && header.isConnected) return;
-        if (!document.getElementById("tv-x-reading-styles")) {
-            const style = document.createElement("link");
+        let style = document.getElementById("tv-x-reading-styles");
+        if (!style) {
+            style = document.createElement("link");
             style.id = "tv-x-reading-styles";
             style.rel = "stylesheet";
             style.href = browser.runtime.getURL("sites/x/reading.css");
-            // CSS may finish after initial selection; its layout changes are not DOM mutations.
-            style.onload = () => {
-                if (active) focus(document.querySelector("article.tv-focused"));
-            };
             (document.head || document.documentElement).appendChild(style);
         }
+        // CSS may finish after initial selection; its layout changes are not DOM mutations.
+        if (!style.sheet) style.onload = () => {
+            style.onload = null;
+            if (active) focus(document.querySelector("article.tv-focused"));
+        };
         header = document.createElement("div");
         header.id = "tv-reading-header";
         header.innerHTML = '<div id="tv-reading-logo" aria-label="X"></div><div id="tv-reading-tabs"></div><img id="tv-reading-account" alt="当前账号" hidden>';
@@ -109,6 +111,8 @@ window.TvXReading = (function() {
         active = enabled;
         if (document.body.classList.contains("tv-reading-active") !== active) document.body.classList.toggle("tv-reading-active", active);
         if (!active) {
+            const style = document.getElementById("tv-x-reading-styles");
+            if (style) style.onload = null;
             if (header) header.remove();
             if (guidance) guidance.remove();
             if (status) status.remove();

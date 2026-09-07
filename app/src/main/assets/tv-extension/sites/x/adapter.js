@@ -104,10 +104,11 @@ window.TvXAdapter = (function() {
 
         // A pending /home response, empty timeline, or unrelated dialog is not a login form.
         if (document.querySelector('[data-testid="SideNav_AccountSwitcher_Button"], [data-testid="AppTabBar_Home_Link"], [data-testid="tweetTextarea_0"]')) return false;
+        // X's current signed-out landing page no longer has a #react-root wrapper.
+        if (path === "/" && document.querySelector('a[href^="/i/jf/onboarding/web?mode=login"]')) return true;
         return !!document.querySelector(
             '#react-root input[autocomplete="username"], #layers input[autocomplete="username"], ' +
-            '#react-root a[href="/i/flow/login"], #react-root a[href="/login"], ' +
-            '#react-root a[href^="/i/jf/onboarding/web?mode=login"]'
+            '#react-root a[href="/i/flow/login"], #react-root a[href="/login"]'
         );
     }
 

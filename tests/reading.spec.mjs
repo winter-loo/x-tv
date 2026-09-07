@@ -127,7 +127,9 @@ test('the current X sign-in link opens TV login while ordinary home stays readab
     await page.evaluate(() => {
         history.replaceState({}, '', '/');
         document.querySelector('header').remove();
-        document.querySelector('#react-root').innerHTML = '<a href="/i/jf/onboarding/web?mode=login&redirect_after_login=%2F">Sign in</a>';
+        const landing = document.createElement('div');
+        landing.innerHTML = '<a href="/i/jf/onboarding/web?mode=login&redirect_after_login=%2F">Sign in</a>';
+        document.querySelector('#react-root').replaceWith(landing);
     });
     await expect(page.locator('#tv-custom-login-stage')).toBeVisible();
     await expect(page.locator('#tv-stage-google-btn')).toBeVisible();
