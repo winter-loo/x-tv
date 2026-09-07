@@ -530,6 +530,7 @@ window.TvXAdapter = window.TvXAdapter || (function() {
 
     function extractArticleAnchor(article) {
         const link = statusLink(article);
+        if (link && !isHome() && window.TvXPostIdentity) return window.TvXPostIdentity.canonicalPath(link);
         return link ? new URL(link.getAttribute("href"), location.href).pathname : article.getAttribute("data-tweet-id");
     }
 
@@ -676,6 +677,8 @@ window.TvXAdapter = window.TvXAdapter || (function() {
             },
             article: () => getArticles().find(article => extractArticleAnchor(article) === anchor),
             openPost: () => {
+                // Already on the canonical detail: do not open its edit-history timestamp.
+                if (!isHome() && location.pathname === post.path) return;
                 const article = getArticles().find(item => extractArticleAnchor(item) === post.path);
                 const link = statusLink(article);
                 if (link) { if (isHome()) homeScroll = pageScrollY(); link.click(); }

@@ -29,7 +29,7 @@ The action suite exercises the production adapter and passive observer through t
 - Native keyboard shortcuts cannot escape the menu.
 - A native like-state change while arming cannot invert the intended action.
 
-`npm test` passed all 23 Firefox tests (14 actions, 9 reading), plus the login-state checks. `assembleDebug` and `lintDebug` passed; lint reports 0 errors and 8 existing warnings. `testDebugUnitTest` is NO-SOURCE. Runtime dispatcher syntax and `git diff --check` also passed.
+`npm test` passed all 24 Firefox tests (15 actions, 9 reading), plus the login-state checks. `assembleDebug` and `lintDebug` passed; lint reports 0 errors and 8 existing warnings. `testDebugUnitTest` is NO-SOURCE. Runtime dispatcher syntax and `git diff --check` also passed.
 
 The menu screenshot from the synthetic fixture was inspected against the Figma reference. Screenshots and build artifacts remain ignored locally.
 
@@ -52,3 +52,7 @@ The parent reproduced `ServiceWorker fallback redirection` from the response fil
 The observer now correlates the native request at `onBeforeRequest` but creates its filter only in blocking `onHeadersReceived`, after the fallback and before the response body. Mozilla exercises this attachment point in [test_filter_301](https://github.com/mozilla/gecko-dev/blob/master/toolkit/components/extensions/test/xpcshell/test_ext_webRequest_filterResponseData.js), and the [event documentation](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest/onHeadersReceived) describes the blocking header stage. The original bytes, selected-post correlation, duplicate fence, and strict confirmation predicate remain unchanged. No request or service-worker bypass is introduced.
 
 The regression reproduces detachment of any pre-response filter, repeats the native request event, verifies duplicate suppression, then delivers headers and the successful native response. It failed against the old observer and passes with the late attachment. This does not claim to solve [Mozilla bug 1817450](https://bugzilla.mozilla.org/show_bug.cgi?id=1817450), where a service worker can produce a separate request ID without usable tab correlation; such an uncorrelated response must not be treated as confirmation. The parent owns final live verification of this patch.
+
+## Edited native post timestamps
+
+The shared post-identity helper canonicalizes an own timestamp ending in `/status/<id>/history` to the original post path. Detail-menu selection uses that canonical identity and still excludes quoted timestamps. Comment on the already-open canonical detail stays on that post instead of following its history link. The regression supplies an edited root footer and a misleading quoted timestamp in a different article, verifies the Comment destination, and confirms that Like invokes only the root post's native control.

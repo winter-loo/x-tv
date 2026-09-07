@@ -283,3 +283,31 @@ test('Native service-worker fallback preserves confirmation and the in-flight fe
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(page.locator('article.tv-focused [data-testid="unlike"]')).toHaveText('204');
 });
+
+test('An edited detail menu identifies the canonical root instead of a quoted timestamp', async ({ page }) => {
+    await mountActions(page);
+    await page.evaluate(() => {
+        const other = document.querySelector('article[data-fixture-id="101"]');
+        other.querySelector('[data-testid="User-Name"] a').remove();
+        const quote = document.createElement('div');
+        quote.dataset.testid = 'quoteTweet';
+        quote.innerHTML = '<a href="/fixture/status/102"><time>Quoted timestamp</time></a>';
+        other.append(quote);
+        const root = document.querySelector('article[data-fixture-id="102"]');
+        const timestamp = root.querySelector('[data-testid="User-Name"] a');
+        timestamp.href = '/fixture/status/102/history';
+        root.append(timestamp);
+        history.pushState({}, '', '/fixture/status/102');
+        dispatchEvent(new PopStateEvent('popstate'));
+    });
+    await page.keyboard.press('m');
+    await expect(page.getByRole('dialog', { name: '帖子操作' })).toBeVisible();
+    await activate(page);
+    await expect(page).toHaveURL('https://x.com/fixture/status/102');
+    await page.keyboard.press('m');
+    await move(page, 'down');
+    await activate(page);
+    await expect.poll(() => page.evaluate(() => nativeRequests.map(request => request.id))).toEqual(['102']);
+    await page.evaluate(() => finishNative(0));
+    await expect(page.getByRole('status').filter({ hasText: '已喜欢，即将返回帖子' })).toBeVisible();
+});
