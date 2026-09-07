@@ -19,7 +19,7 @@ const context = {
     console: { log() {}, warn() {} },
     window: { location: { pathname: '/i/flow/login', href: 'https://x.com/i/flow/login' }, scrollY: 0, addEventListener() {} },
     document: {
-        body: { classList: { toggle() {} } },
+        body: { classList: { toggle() {}, contains() { return false; } } },
         getElementById: id => elements[id] || null,
         querySelectorAll: () => [],
         querySelector: selector => selector.includes('role="dialog"') ? dialog : null,

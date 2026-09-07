@@ -29,6 +29,7 @@
       "all_frames": false,
       "js": [
         "runtime/navigation-runtime.js",
+        "sites/x/reading.js",
         "sites/x/adapter.js",
         "runtime/adapter-registry.js",
         "runtime/content.js"
@@ -37,6 +38,8 @@
     }
   ],
   "web_accessible_resources": [
-    "sites/x/tv.css"
+    "sites/x/tv.css",
+    "sites/x/reading.css",
+    "sites/x/icons/*.svg"
   ]
 }

@@ -7,6 +7,12 @@ window.TvXAdapter = (function() {
     let currentLoginStep = "username"; // "username" | "password"
     let authHandoffActive = false;
     let usernameSubmissionPending = false;
+    let refreshTimer = null;
+    let pendingMove = null;
+    let pendingTimer = null;
+    let homeAnchor = null;
+    let previousMode = "";
+    let timelineTab = "";
 
     function init() {
         console.log("[TvXAdapter] Initializing X adapter on:", window.location.href);
@@ -18,14 +24,36 @@ window.TvXAdapter = (function() {
         }, 350);
     }
 
+    function isHome() {
+        return window.location.pathname === "/home";
+    }
+
     function handlePageMode() {
         updateTimelineLayout();
-        if (isLoginMode()) {
+        const mode = isLoginMode() ? "login" : (isHome() ? "home" : "other");
+        const articles = getArticles();
+        if (window.TvXReading) window.TvXReading.update(mode === "home", articles);
+        if (mode === "login") {
             mountCustomTvLogin();
         } else {
             unmountCustomTvLogin();
-            focusFirstVisibleArticle();
+            const selectedTab = document.querySelector('[data-testid="primaryColumn"] [role="tab"][aria-selected="true"]');
+            const tab = selectedTab ? selectedTab.textContent.trim() : "";
+            if (mode === "home" && tab && timelineTab && tab !== timelineTab) {
+                lastAnchorId = null;
+                homeAnchor = null;
+                cancelPendingMove();
+            }
+            if (mode === "home" && tab) timelineTab = tab;
+            if (mode === "home" && previousMode !== "home" && homeAnchor) lastAnchorId = homeAnchor;
+            if (mode !== previousMode && mode !== "home") lastAnchorId = null;
+            if (pendingMove) completePendingMove(articles);
+            if (!pendingMove) {
+                if (lastAnchorId) verifyOrRestoreFocus();
+                else if (articles.length) focusFirstVisibleArticle();
+            }
         }
+        previousMode = mode;
     }
 
     function isLoginMode() {
@@ -46,7 +74,7 @@ window.TvXAdapter = (function() {
         const main = document.querySelector('main[role="main"]');
         if (!document.body) return;
         const timeline = !!main && !isLoginMode();
-        document.body.classList.toggle("tv-timeline-active", timeline);
+        if (document.body.classList.contains("tv-timeline-active") !== timeline) document.body.classList.toggle("tv-timeline-active", timeline);
         if (!timeline) return;
         // X keeps width constraints on wrappers above and below main.
         for (let parent = main.parentElement; parent && parent !== document.body; parent = parent.parentElement) {
@@ -81,27 +109,24 @@ window.TvXAdapter = (function() {
 
     function setupObserver() {
         if (observer) return;
-        observer = new MutationObserver(() => {
-            updateTimelineLayout();
-            const hasArticles = document.querySelectorAll('article[data-testid="tweet"], .timeline-card').length > 0;
-
-            if (hasArticles) {
-                unmountCustomTvLogin();
-                verifyOrRestoreFocus();
-            } else if (isLoginMode()) {
-                if (!document.getElementById("tv-custom-login-stage")) {
-                    mountCustomTvLogin();
-                } else {
-                    checkNativeLoginProgression();
-                }
-            } else {
-                unmountCustomTvLogin();
-            }
-        });
+        const refresh = () => {
+            if (refreshTimer !== null) return;
+            refreshTimer = setTimeout(() => {
+                refreshTimer = null;
+                handlePageMode();
+                if (isLoginMode()) checkNativeLoginProgression();
+            }, 50);
+        };
+        observer = new MutationObserver(refresh);
         observer.observe(document.body || document.documentElement, {
             childList: true,
-            subtree: true
+            subtree: true,
+            characterData: true,
+            attributes: true,
+            attributeFilter: ["href", "src", "aria-selected", "data-testid"]
         });
+        window.addEventListener("popstate", refresh);
+        window.addEventListener("resize", refresh);
     }
 
     /* =========================================================================
@@ -165,7 +190,7 @@ window.TvXAdapter = (function() {
     }
 
     function unmountCustomTvLogin() {
-        document.body.classList.remove("tv-custom-login-active");
+        if (document.body.classList.contains("tv-custom-login-active")) document.body.classList.remove("tv-custom-login-active");
         const stage = document.getElementById("tv-custom-login-stage");
         if (stage) stage.remove();
     }
@@ -290,7 +315,7 @@ window.TvXAdapter = (function() {
         authHandoffActive = true;
         const stage = document.getElementById("tv-custom-login-stage");
         // Hand off to the real sign-in control so Google's own account chooser is visible.
-        document.body.classList.remove("tv-custom-login-active");
+        if (document.body.classList.contains("tv-custom-login-active")) document.body.classList.remove("tv-custom-login-active");
         if (stage) stage.style.setProperty("display", "none", "important");
         const scope = document.querySelector('div[role="dialog"]') || document;
         const target = scope.querySelector('iframe[src*="accounts.google.com/gsi/button"]');
@@ -417,61 +442,126 @@ window.TvXAdapter = (function() {
         });
     }
 
-    function extractArticleAnchor(article) {
+    function statusLink(article) {
         if (!article) return null;
-        const link = article.querySelector('a[href*="/status/"]');
-        if (link) {
-            const match = link.getAttribute("href").match(/\/status\/(\d+)/);
-            if (match) return match[1];
-        }
-        return article.getAttribute("data-tweet-id") || article.textContent.slice(0, 30);
+        const name = article.querySelector('[data-testid="User-Name"]');
+        const links = Array.from((name || article).querySelectorAll('a[href*="/status/"]'));
+        return links.find(link => {
+            const href = link.getAttribute("href") || "";
+            return /^\/[^/]+\/status\/\d+$/.test(href) && !!link.querySelector("time");
+        }) || null;
+    }
+
+    function extractArticleAnchor(article) {
+        const link = statusLink(article);
+        return link ? link.getAttribute("href") : article.getAttribute("data-tweet-id");
+    }
+
+    function focusedArticle() {
+        if (!lastAnchorId) return null;
+        return getArticles().find(article => extractArticleAnchor(article) === lastAnchorId) || null;
     }
 
     function focusFirstVisibleArticle() {
         const articles = getArticles();
-        console.log("[TvXAdapter] focusFirstVisibleArticle, found " + articles.length + " articles");
-        if (articles.length === 0) return;
-
-        let targetIndex = 0;
-        for (let i = 0; i < articles.length; i++) {
-            const r = articles[i].getBoundingClientRect();
-            if (r.top >= -50) {
-                targetIndex = i;
-                break;
-            }
-        }
-        focusArticleAtIndex(targetIndex);
+        const index = articles.findIndex(article => article.getBoundingClientRect().top >= -50 && extractArticleAnchor(article));
+        if (index >= 0) focusArticleAtIndex(index);
     }
 
     function focusArticleAtIndex(index) {
         const articles = getArticles();
-        if (articles.length === 0) return;
-
-        if (index < 0) index = 0;
-        if (index >= articles.length) index = articles.length - 1;
-
+        const target = articles[index];
+        if (!target || !extractArticleAnchor(target)) return;
+        const changed = lastAnchorId !== extractArticleAnchor(target);
         activeArticleIndex = index;
-        const target = articles[activeArticleIndex];
-        if (target) {
-            lastAnchorId = extractArticleAnchor(target);
-            console.log("[TvXAdapter] Focused article [" + activeArticleIndex + "] anchor=" + lastAnchorId);
-            TvNavigationRuntime.setFocus(target);
-            reportState();
+        lastAnchorId = extractArticleAnchor(target);
+        if (isHome()) homeAnchor = lastAnchorId;
+        for (const old of document.querySelectorAll(".tv-focused")) {
+            if (old !== target) old.classList.remove("tv-focused");
         }
+        if (!target.classList.contains("tv-focused")) target.classList.add("tv-focused");
+        if (isHome() && window.TvXReading) {
+            if (changed) {
+                const text = target.querySelector(".tv-reading-text");
+                if (text) text.scrollTop = 0;
+            }
+            window.TvXReading.focus(target);
+        } else if (changed) TvNavigationRuntime.setFocus(target);
+        if (changed) reportState();
     }
 
     function verifyOrRestoreFocus() {
-        const currentFocused = document.querySelector("." + TvNavigationRuntime.FOCUS_CLASS);
-        if (!currentFocused && lastAnchorId) {
-            const articles = getArticles();
-            for (let i = 0; i < articles.length; i++) {
-                if (extractArticleAnchor(articles[i]) === lastAnchorId) {
-                    activeArticleIndex = i;
-                    TvNavigationRuntime.setFocus(articles[i]);
-                    return;
-                }
+        const articles = getArticles();
+        const index = articles.findIndex(article => extractArticleAnchor(article) === lastAnchorId);
+        if (index >= 0) focusArticleAtIndex(index);
+        else {
+            // A recycled DOM node is not the same post, even if its CSS class survived.
+            document.querySelectorAll(".tv-focused").forEach(node => node.classList.remove("tv-focused"));
+        }
+    }
+
+    function cancelPendingMove() {
+        pendingMove = null;
+        clearTimeout(pendingTimer);
+        pendingTimer = null;
+    }
+
+    function completePendingMove(articles) {
+        const { direction, anchor, known } = pendingMove;
+        const index = articles.findIndex(article => extractArticleAnchor(article) === anchor);
+        const step = direction === "down" ? 1 : -1;
+        let target = index >= 0 ? index + step : -1;
+        if (index < 0) {
+            const candidates = articles.map((article, i) => ({ id: extractArticleAnchor(article), i }))
+                .filter(item => item.id && !known.includes(item.id));
+            target = (direction === "down" ? candidates[0] : candidates[candidates.length - 1])?.i ?? -1;
+        }
+        if (target >= 0 && target < articles.length && extractArticleAnchor(articles[target])) {
+            cancelPendingMove();
+            focusArticleAtIndex(target);
+        }
+    }
+
+    function pageScroller() {
+        const body = document.body;
+        return body && body.scrollHeight > body.clientHeight + 1 && /auto|scroll/.test(getComputedStyle(body).overflowY)
+            ? body : (document.scrollingElement || window);
+    }
+
+    function pageScrollY() {
+        const scroller = pageScroller();
+        return scroller === window ? window.scrollY : scroller.scrollTop;
+    }
+
+    function movePost(direction) {
+        if (direction !== "up" && direction !== "down") {
+            if (isHome() && window.TvXReading) window.TvXReading.scrollText(focusedArticle(), direction);
+            return;
+        }
+        if (pendingMove) return;
+        const articles = getArticles();
+        if (!articles.length) return;
+        const index = articles.findIndex(article => extractArticleAnchor(article) === lastAnchorId);
+        if (index < 0) {
+            focusFirstVisibleArticle();
+            return;
+        }
+        const step = direction === "down" ? 1 : -1;
+        for (let i = index + step; i >= 0 && i < articles.length; i += step) {
+            if (extractArticleAnchor(articles[i])) {
+                focusArticleAtIndex(i);
+                return;
             }
         }
+        pendingMove = { direction, anchor: lastAnchorId, known: articles.map(extractArticleAnchor) };
+        if (window.TvXReading && isHome()) window.TvXReading.waiting("正在加载更多帖子…");
+        // Instant scrolling triggers X's virtual list without queuing smooth animations.
+        pageScroller().scrollBy({ top: step * window.innerHeight * 0.75, behavior: "instant" });
+        pendingTimer = setTimeout(() => {
+            cancelPendingMove();
+            verifyOrRestoreFocus();
+            if (window.TvXReading && isHome()) window.TvXReading.waiting("未加载到更多帖子，按上下键重试     返回 回到顶部");
+        }, 2500);
     }
 
     /* =========================================================================
@@ -494,31 +584,7 @@ window.TvXAdapter = (function() {
             return;
         }
 
-        const articles = getArticles();
-        if (articles.length === 0) {
-            window.scrollBy({ top: direction === "down" ? 300 : -300, behavior: "smooth" });
-            return;
-        }
-
-        if (direction === "down") {
-            if (activeArticleIndex < articles.length - 1) {
-                focusArticleAtIndex(activeArticleIndex + 1);
-            } else {
-                window.scrollBy({ top: 400, behavior: "smooth" });
-                setTimeout(() => {
-                    const updated = getArticles();
-                    if (updated.length > articles.length) {
-                        focusArticleAtIndex(activeArticleIndex + 1);
-                    }
-                }, 350);
-            }
-        } else if (direction === "up") {
-            if (activeArticleIndex > 0) {
-                focusArticleAtIndex(activeArticleIndex - 1);
-            } else {
-                window.scrollBy({ top: -300, behavior: "smooth" });
-            }
-        }
+        movePost(direction);
     }
 
     function activate() {
@@ -538,22 +604,19 @@ window.TvXAdapter = (function() {
             return;
         }
 
-        const articles = getArticles();
-        if (articles.length === 0 || activeArticleIndex >= articles.length) return;
-
-        const current = articles[activeArticleIndex];
-        console.log("[TvXAdapter] Activating article at index:", activeArticleIndex);
-
-        const statusLink = current.querySelector('a[href*="/status/"]');
-        if (statusLink) {
-            statusLink.click();
-        } else {
+        const current = focusedArticle();
+        const link = statusLink(current);
+        if (link) {
+            cancelPendingMove();
+            link.click();
+        } else if (current && current.classList.contains("timeline-card")) {
             TvNavigationRuntime.clickElement(current);
         }
     }
 
     function handleBack() {
         console.log("[TvXAdapter] handleBack requested.");
+        cancelPendingMove();
         const stage = document.getElementById("tv-custom-login-stage");
         if (stage && stage.style.display === "none") {
             restoreCustomLogin();
@@ -592,8 +655,8 @@ window.TvXAdapter = (function() {
             return { event: "backResult", handled: true };
         }
 
-        if (window.scrollY > 300) {
-            window.scrollTo({ top: 0, behavior: "smooth" });
+        if (pageScrollY() > 300) {
+            pageScroller().scrollTo({ top: 0, behavior: "instant" });
             focusArticleAtIndex(0);
             return { event: "backResult", handled: true };
         }
@@ -608,7 +671,7 @@ window.TvXAdapter = (function() {
             event: "state",
             pageType: isLogin ? "login" : (isDetail ? "detail" : "timeline"),
             hasOverlay: isLogin,
-            canBack: isDetail || window.scrollY > 100 || (isLogin && currentLoginStep === "password"),
+            canBack: isDetail || pageScrollY() > 100 || (isLogin && currentLoginStep === "password"),
             focusedIndex: isLogin ? customLoginFocusIndex : activeArticleIndex
         };
         console.log("[TvXAdapter] reportState:", JSON.stringify(state));
