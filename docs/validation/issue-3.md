@@ -56,3 +56,7 @@ The regression reproduces detachment of any pre-response filter, repeats the nat
 ## Edited native post timestamps
 
 The shared post-identity helper canonicalizes an own timestamp ending in `/status/<id>/history` to the original post path. Detail-menu selection uses that canonical identity and still excludes quoted timestamps. Comment on the already-open canonical detail stays on that post instead of following its history link. The regression supplies an edited root footer and a misleading quoted timestamp in a different article, verifies the Comment destination, and confirms that Like invokes only the root post's native control.
+
+## Integrated follow-up
+
+See [the combined review and projector record](issues-2-3-review.md) for subsequent fixes, final combined checks, live observations, and remaining validation limits. Earlier pending-device notes above describe the standalone branch checkpoint.

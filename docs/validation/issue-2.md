@@ -77,3 +77,7 @@ path before matching the selected detail. Other suffixes, foreign origins, and
 quote-contained timestamps remain excluded. The native regression verifies an
 edited root, a preceding reply quoting its history link, scrolling, and root
 removal without promoting the quote.
+
+## Integrated follow-up
+
+See [the combined review and projector record](issues-2-3-review.md) for subsequent fixes, final combined checks, live observations, and remaining validation limits. Earlier pending-device notes above describe the standalone branch checkpoint.
