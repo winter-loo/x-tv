@@ -1,5 +1,5 @@
 // X (Twitter) Site Adapter for Android TV with 100% Custom Headless TV Login UI
-window.TvXAdapter = (function() {
+window.TvXAdapter = window.TvXAdapter || (function() {
     let activeArticleIndex = 0;
     let customLoginFocusIndex = 0;
     let lastAnchorId = null;
@@ -25,6 +25,7 @@ window.TvXAdapter = (function() {
         setupObserver();
 
         window.addEventListener("keydown", handleLoginKeyDown, true);
+        window.addEventListener("keydown", handleActionKeyDown, true);
         initialTimer = setTimeout(() => {
             initialTimer = null;
             handlePageMode();
@@ -40,6 +41,7 @@ window.TvXAdapter = (function() {
     }
 
     function handlePageMode() {
+        window.TvXActions?.update();
         updateTimelineLayout();
         const mode = isLoginMode() ? "login" : (isHome() ? "home" : "other");
         const articles = getArticles();
@@ -627,7 +629,31 @@ window.TvXAdapter = (function() {
        D-pad Movement & Action Dispatcher
        ========================================================================= */
 
+    function handleActionKeyDown(event) {
+        if (window.TvXActions?.key(event)) return;
+        if (!event.repeat && !event.ctrlKey && !event.altKey && !event.metaKey &&
+            (event.key.toLowerCase() === "m" || event.key === "ContextMenu") &&
+            !event.target.closest("input, textarea, [contenteditable=true]")) {
+            if (menu()) { event.preventDefault(); event.stopImmediatePropagation(); }
+        }
+    }
+
+    function menu() {
+        if (isLoginMode() || !isHome() || !window.TvXActions) return false;
+        const anchor = lastAnchorId;
+        cancelPendingMove();
+        const opened = window.TvXActions.open({
+            postId: anchor?.split("/").pop(),
+            article: () => getArticles().find(article => extractArticleAnchor(article) === anchor),
+            openPost: () => { if (lastAnchorId === anchor) activate(); },
+            restore: () => { verifyOrRestoreFocus(); reportState(); }
+        });
+        reportState();
+        return opened;
+    }
+
     function move(direction) {
+        if (window.TvXActions?.move(direction)) return;
         if (isLoginMode()) {
             const elements = getCustomInteractiveElements();
             if (elements.length === 0) return;
@@ -652,6 +678,7 @@ window.TvXAdapter = (function() {
     }
 
     function activate() {
+        if (window.TvXActions?.activate()) return;
         if (isLoginMode()) {
             const elements = getCustomInteractiveElements();
             if (elements.length === 0 || customLoginFocusIndex >= elements.length) return;
@@ -682,6 +709,7 @@ window.TvXAdapter = (function() {
 
     function handleBack() {
         console.log("[TvXAdapter] handleBack requested.");
+        if (window.TvXActions?.close()) return { event: "backResult", handled: true };
         restoringHome = false;
         cancelPendingMove();
         const stage = document.getElementById("tv-custom-login-stage");
@@ -742,7 +770,7 @@ window.TvXAdapter = (function() {
         const state = {
             event: "state",
             pageType: isLogin ? "login" : (isDetail ? "detail" : "timeline"),
-            hasOverlay: isLogin,
+            hasOverlay: isLogin || !!window.TvXActions?.isOpen(),
             canBack: isDetail || pageScrollY() > 100 || (isLogin && currentLoginStep === "password"),
             focusedIndex: isLogin ? customLoginFocusIndex : activeArticleIndex
         };
@@ -764,6 +792,8 @@ window.TvXAdapter = (function() {
         window.removeEventListener("popstate", refreshPage);
         window.removeEventListener("resize", refreshPage);
         window.removeEventListener("keydown", handleLoginKeyDown, true);
+        window.removeEventListener("keydown", handleActionKeyDown, true);
+        window.TvXActions?.close();
         refreshPage = null;
         if (window.TvXReading) window.TvXReading.update(false, []);
         if (window.TvXDetail) window.TvXDetail.update(false);
@@ -775,6 +805,7 @@ window.TvXAdapter = (function() {
         move,
         activate,
         handleBack,
+        menu,
         reportState,
         restoreLogin: restoreCustomLogin,
         googleAuth: handleCustomGoogleAuth

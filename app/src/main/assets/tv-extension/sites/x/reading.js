@@ -1,5 +1,5 @@
 // Presentation only: annotate native X nodes, never move/replace React-owned content.
-window.TvXReading = (function() {
+window.TvXReading = window.TvXReading || (function() {
     let header = null;
     let guidance = null;
     let status = null;
@@ -143,7 +143,7 @@ window.TvXReading = (function() {
         if (Math.abs(delta) > 1) article.scrollIntoView({ block: "start", inline: "nearest", behavior: "instant" });
         const overflow = Array.from(article.querySelectorAll(".tv-reading-text, .tv-reading-attachment"))
             .some(node => node.scrollHeight > node.clientHeight + 1);
-        const text = "↑↓ 切换帖子     确认 打开帖子" + (overflow ? "     ←→ 翻阅长内容" : "") + "     返回 回到顶部 / 退出";
+        const text = "↑↓ 切换帖子     确认 打开帖子" + (overflow ? "     ←→ 翻阅长内容" : "") + "     菜单 评论 / 喜欢     返回 回到顶部 / 退出";
         if (guidance.textContent !== text) guidance.textContent = text;
     }
 

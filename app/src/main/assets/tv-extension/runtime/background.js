@@ -65,6 +65,8 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
 function injectContentScripts(tabId) {
     browser.tabs.executeScript(tabId, { file: "runtime/navigation-runtime.js" })
+        .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/reading.js" }))
+        .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/actions.js" }))
         .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/adapter.js" }))
         .then(() => browser.tabs.executeScript(tabId, { file: "runtime/adapter-registry.js" }))
         .then(() => browser.tabs.executeScript(tabId, { file: "runtime/content.js" }))
@@ -107,6 +109,7 @@ function forwardToActiveTab(cmd) {
 
 // Listen for direct events from content scripts
 browser.runtime.onMessage.addListener((message, sender) => {
+    if (message.event === "tv_like_arm" || message.event === "tv_like_disarm") return;
     console.log("[TV-Extension] Received message from content script:", JSON.stringify(message));
     if (sender && sender.tab) {
         activeTabId = sender.tab.id;

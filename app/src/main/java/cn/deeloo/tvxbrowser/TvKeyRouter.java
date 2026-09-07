@@ -90,6 +90,11 @@ public class TvKeyRouter {
                 mBridge.sendActivate();
                 return true;
 
+            case KeyEvent.KEYCODE_MENU:
+                if (mBridge == null || !mBridge.isConnected()) return false;
+                if (event.getRepeatCount() == 0) mBridge.sendCommand("menu", null);
+                return true;
+
             case KeyEvent.KEYCODE_BACK:
                 handleBackKey();
                 return true;

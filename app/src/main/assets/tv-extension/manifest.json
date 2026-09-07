@@ -13,10 +13,13 @@
     "nativeMessaging",
     "nativeMessagingFromContent",
     "tabs",
-    "<all_urls>"
+    "<all_urls>",
+    "webRequest",
+    "webRequestBlocking"
   ],
   "background": {
     "scripts": [
+      "sites/x/like-observer.js",
       "runtime/background.js"
     ]
   },
@@ -31,6 +34,7 @@
         "runtime/navigation-runtime.js",
         "sites/x/reading.js",
         "sites/x/detail.js",
+        "sites/x/actions.js",
         "sites/x/adapter.js",
         "runtime/adapter-registry.js",
         "runtime/content.js"
@@ -42,6 +46,7 @@
     "sites/x/tv.css",
     "sites/x/reading.css",
     "sites/x/detail.css",
+    "sites/x/actions.css",
     "sites/x/icons/*.svg"
   ]
 }

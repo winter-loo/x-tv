@@ -64,6 +64,9 @@
         } else if (cmd === "activate") {
             adapter.activate();
             return Promise.resolve({ event: "ack", command: "activate" });
+        } else if (cmd === "menu") {
+            if (adapter.menu) adapter.menu();
+            return Promise.resolve({ event: "ack", command: "menu" });
         } else if (cmd === "back" || cmd === "dismissOverlay") {
             const backResult = adapter.handleBack();
             return Promise.resolve(backResult || { event: "backResult", handled: false });

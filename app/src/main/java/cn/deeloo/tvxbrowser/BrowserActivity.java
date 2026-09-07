@@ -276,8 +276,8 @@ public class BrowserActivity extends Activity {
                 return super.dispatchKeyEvent(event);
             }
 
-            // Menu key or F1 toggles between Mock Timeline and x.com/home
-            if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_F1) {
+            // F1 remains the developer shortcut for the mock timeline.
+            if (keyCode == KeyEvent.KEYCODE_F1) {
                 if (mShowingMock) {
                     loadXHome();
                 } else {

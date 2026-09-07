@@ -234,3 +234,7 @@ body.tv-reading-active .tv-reading-attachment :is([data-testid="tweetPhoto"], [d
     border-radius: 0 !important;
     max-height: none !important;
 }
+body.tv-reading-active .tv-reading-engagement [data-testid="unlike"] svg {
+    fill: transparent !important;
+    background-image: url("icons/liked.svg");
+}
