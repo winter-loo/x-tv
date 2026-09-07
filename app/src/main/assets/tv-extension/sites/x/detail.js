@@ -6,7 +6,16 @@ window.TvXDetail = window.TvXDetail || (function() {
     let root = null;
     let chrome = null;
     let savedPostScroll = 0;
+    let savedCommentsScroll = 0;
     const marked = new Set();
+
+    let overlay = null;
+    let selected = 0;
+    let isPending = false;
+    let savedDraft = '';
+    let sentTimer = null;
+    let domObserver = null;
+    let replySettled = false;
 
     function mark(node, kind) {
         if (!node) return;
@@ -35,6 +44,10 @@ window.TvXDetail = window.TvXDetail || (function() {
         chrome.id = 'tv-detail-chrome';
         chrome.innerHTML = '<div id="tv-detail-header">←　帖子详情</div><div id="tv-detail-comments-title">评论　　↓ 更多</div><div id="tv-detail-post-focus"></div><div id="tv-detail-comments-focus"></div><div id="tv-detail-status" role="status"></div><div id="tv-detail-reply-status" role="status"></div><div id="tv-detail-entry"><button disabled><img alt="" hidden>写评论…</button></div><div id="tv-detail-guidance">←→ 切换正文 / 评论　　↑↓ 滚动当前栏　　返回 回到时间线</div>';
         document.body.appendChild(chrome);
+        const entryBtn = chrome.querySelector('#tv-detail-entry button');
+        entryBtn.addEventListener('click', () => {
+            if (!entryBtn.disabled) openComposer();
+        });
     }
 
     const ownStatusLink = window.TvXPostIdentity.statusLink;
@@ -69,12 +82,402 @@ window.TvXDetail = window.TvXDetail || (function() {
         }
     }
 
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+    }
+
+    function getAccountIdentity() {
+        const switcher = document.querySelector('[data-testid="SideNav_AccountSwitcher_Button"]');
+        const img = switcher?.querySelector('img') || chrome?.querySelector('#tv-detail-entry img');
+        const src = img?.getAttribute('src') || '';
+        let name = '';
+        if (switcher) {
+            const spans = Array.from(switcher.querySelectorAll('span')).map(s => s.textContent.trim()).filter(Boolean);
+            const handle = spans.find(s => s.startsWith('@'));
+            name = spans.find(s => s !== handle && !s.startsWith('@')) || handle || '';
+        }
+        return {
+            avatar: src,
+            name: name || '当前账号'
+        };
+    }
+
+    function getReplyTarget() {
+        if (!root) return '回复 帖子';
+        const userNames = Array.from(root.querySelectorAll('[data-testid="User-Name"]'));
+        const userName = userNames.find(n => !n.closest('[role="link"]')) || userNames[0];
+        if (!userName) return '回复 帖子';
+        const spans = Array.from(userName.querySelectorAll('span')).map(s => s.textContent.trim()).filter(Boolean);
+        const handle = spans.find(s => s.startsWith('@'));
+        if (handle) return '回复 ' + handle;
+        const authorName = spans[0] || '';
+        return authorName ? '回复 ' + authorName : '回复 帖子';
+    }
+
+    function interactiveItems() {
+        return overlay ? [
+            overlay.querySelector('#tv-composer-input'),
+            overlay.querySelector('#tv-composer-submit'),
+            overlay.querySelector('#tv-composer-cancel')
+        ].filter(Boolean) : [];
+    }
+
+    function focusComposer() {
+        const items = interactiveItems();
+        if (!items.length) return;
+        if (selected < 0) selected = 0;
+        if (selected >= items.length) selected = items.length - 1;
+        items.forEach((item, index) => {
+            item.classList.toggle('tv-composer-focused', index === selected);
+        });
+        items[selected].focus();
+    }
+
+    function trapComposerFocus(event) {
+        if (!overlay || !overlay.isConnected) return;
+        if (!overlay.contains(event.target)) {
+            event.stopPropagation();
+            focusComposer();
+        }
+    }
+
+    function handleComposerKeyDown(e) {
+        if (!overlay || !overlay.isConnected) return;
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            closeComposer(false);
+            return;
+        }
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            move(e.shiftKey ? 'up' : 'down');
+            return;
+        }
+        if (selected !== 0) {
+            if (e.key === 'ArrowDown') { e.preventDefault(); e.stopImmediatePropagation(); move('down'); }
+            else if (e.key === 'ArrowUp') { e.preventDefault(); e.stopImmediatePropagation(); move('up'); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); e.stopImmediatePropagation(); move('left'); }
+            else if (e.key === 'ArrowRight') { e.preventDefault(); e.stopImmediatePropagation(); move('right'); }
+            else if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                activate();
+            }
+        }
+    }
+
+    function openComposer() {
+        if (overlay && overlay.isConnected) return;
+        savedCommentsScroll = window.scrollY;
+        if (root) savedPostScroll = root.scrollTop;
+
+        overlay = document.createElement('div');
+        overlay.id = 'tv-detail-composer-overlay';
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.setAttribute('aria-label', '写回复');
+
+        const identity = getAccountIdentity();
+        const targetText = getReplyTarget();
+
+        overlay.innerHTML = `
+            <div id="tv-detail-composer-dialog">
+                <div id="tv-composer-header">
+                    <div id="tv-composer-identity">
+                        <img id="tv-composer-avatar" alt="Author avatar" src="${escapeHtml(identity.avatar)}"${identity.avatar ? '' : ' style="display:none"'}>
+                        <div id="tv-composer-author-info">
+                            <span id="tv-composer-author-name">${escapeHtml(identity.name)}</span>
+                            <span id="tv-composer-target">${escapeHtml(targetText)}</span>
+                        </div>
+                    </div>
+                    <button id="tv-composer-cancel" type="button" aria-label="Close">取消</button>
+                </div>
+                <div id="tv-composer-body">
+                    <textarea id="tv-composer-input" placeholder="写下你的回复…" rows="4"></textarea>
+                </div>
+                <div id="tv-composer-footer">
+                    <div id="tv-composer-status-container">
+                        <div id="tv-composer-sent" role="status" hidden>
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            <span>已发送</span>
+                        </div>
+                        <div id="tv-composer-status" role="status"></div>
+                    </div>
+                    <div id="tv-composer-actions">
+                        <button id="tv-composer-submit" type="button" aria-disabled="true">回复</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        const input = overlay.querySelector('#tv-composer-input');
+        const submitBtn = overlay.querySelector('#tv-composer-submit');
+        const cancelBtn = overlay.querySelector('#tv-composer-cancel');
+
+        if (savedDraft) {
+            input.value = savedDraft;
+            const hasText = !!savedDraft.trim();
+            submitBtn.setAttribute('aria-disabled', String(!hasText));
+        } else {
+            submitBtn.setAttribute('aria-disabled', 'true');
+        }
+
+        input.addEventListener('input', () => {
+            savedDraft = input.value;
+            const hasText = !!input.value.trim();
+            submitBtn.setAttribute('aria-disabled', String(!hasText || isPending));
+            const status = overlay?.querySelector('#tv-composer-status');
+            if (status && status.classList.contains('tv-status-error')) {
+                status.textContent = '';
+                status.className = '';
+                submitBtn.textContent = '回复';
+            }
+        });
+
+        input.addEventListener('focus', () => { selected = 0; focusComposer(); });
+        submitBtn.addEventListener('focus', () => { selected = 1; focusComposer(); });
+        cancelBtn.addEventListener('focus', () => { selected = 2; focusComposer(); });
+
+        submitBtn.addEventListener('click', () => { selected = 1; submitReply(); });
+        cancelBtn.addEventListener('click', () => { selected = 2; closeComposer(false); });
+
+        selected = 0;
+        focusComposer();
+        document.addEventListener('focusin', trapComposerFocus, true);
+        window.addEventListener('keydown', handleComposerKeyDown, true);
+    }
+
+    function closeComposer(success) {
+        clearTimeout(sentTimer);
+        sentTimer = null;
+        if (domObserver) {
+            domObserver.disconnect();
+            domObserver = null;
+        }
+        if (overlay) {
+            document.removeEventListener('focusin', trapComposerFocus, true);
+            window.removeEventListener('keydown', handleComposerKeyDown, true);
+            overlay.remove();
+            overlay = null;
+        }
+        isPending = false;
+        column = 'comments';
+        document.body.setAttribute('data-tv-detail-column', 'comments');
+        if (root && savedPostScroll) root.scrollTop = savedPostScroll;
+        if (savedCommentsScroll) window.scrollTo({ top: savedCommentsScroll, behavior: 'instant' });
+        const entryBtn = chrome?.querySelector('#tv-detail-entry button');
+        if (entryBtn && !entryBtn.disabled) entryBtn.focus();
+    }
+
+    function submitReply() {
+        if (!overlay || isPending) return false;
+        const input = overlay.querySelector('#tv-composer-input');
+        const text = input ? input.value.trim() : '';
+        const submitBtn = overlay.querySelector('#tv-composer-submit');
+        if (!text || submitBtn?.getAttribute('aria-disabled') === 'true') return false;
+
+        isPending = true;
+        savedDraft = input.value;
+        const status = overlay.querySelector('#tv-composer-status');
+
+        input.disabled = true;
+        submitBtn.setAttribute('aria-disabled', 'true');
+        submitBtn.setAttribute('aria-busy', 'true');
+        status.textContent = '正在发送回复…';
+        status.className = 'tv-status-pending';
+
+        const primary = document.querySelector('[data-testid="primaryColumn"]');
+        const nativeInput = primary?.querySelector('[data-testid="tweetTextarea_0"]');
+        const nativeSubmit = primary?.querySelector('[data-testid="tweetButtonInline"]');
+
+        if (nativeInput) {
+            if ('value' in nativeInput) {
+                const proto = Object.getPrototypeOf(nativeInput);
+                const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
+                if (setter) setter.call(nativeInput, text);
+                else nativeInput.value = text;
+            } else {
+                nativeInput.textContent = text;
+            }
+            nativeInput.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: text }));
+            nativeInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        const prevCountText = root?.querySelector('[data-testid="reply"]')?.textContent.trim() || '0';
+        const prevCount = parseInt(prevCountText, 10) || 0;
+        const existingArticles = new Set(Array.from(primary?.querySelectorAll('article[data-testid="tweet"]') || []));
+
+        replySettled = false;
+        let timeoutTimer = null;
+
+        function cleanup() {
+            if (domObserver) {
+                domObserver.disconnect();
+                domObserver = null;
+            }
+            window.removeEventListener('tv_reply_result', onReplyResult);
+            clearTimeout(timeoutTimer);
+        }
+
+        function succeed() {
+            if (replySettled) return;
+            replySettled = true;
+            cleanup();
+            handleSuccess();
+        }
+
+        function fail(err) {
+            if (replySettled) return;
+            replySettled = true;
+            cleanup();
+            handleFailure(err);
+        }
+
+        function onReplyResult(e) {
+            const d = e.detail || {};
+            if (d.outcome === 'confirmed' || d.status === 'confirmed' || d.success) succeed();
+            else if (d.outcome === 'failed' || d.error) fail(d.error || '未能发送回复，请确认重试');
+        }
+        window.addEventListener('tv_reply_result', onReplyResult);
+
+        domObserver = new MutationObserver(() => {
+            if (replySettled) return;
+            const currentArticles = Array.from(primary?.querySelectorAll('article[data-testid="tweet"]') || []);
+            const hasNewArticle = currentArticles.some(a => a !== root && !existingArticles.has(a));
+            if (hasNewArticle) {
+                succeed();
+                return;
+            }
+            const currentCountText = root?.querySelector('[data-testid="reply"]')?.textContent.trim() || '0';
+            const currentCount = parseInt(currentCountText, 10) || 0;
+            if (currentCount > prevCount) {
+                succeed();
+                return;
+            }
+            if (nativeInput && (nativeInput.value === '' || nativeInput.textContent === '') && nativeSubmit?.getAttribute('aria-disabled') === 'true') {
+                succeed();
+                return;
+            }
+            const toast = document.querySelector('[data-testid="toast"], [role="alert"]');
+            if (toast && /error|failed|失败|错误/i.test(toast.textContent)) {
+                fail('未能发送回复，请确认重试');
+                return;
+            }
+        });
+        domObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
+
+        timeoutTimer = setTimeout(() => {
+            if (!replySettled) {
+                fail('发送超时，请确认重试');
+            }
+        }, 15000);
+
+        if (nativeSubmit && !nativeSubmit.disabled && nativeSubmit.getAttribute('aria-disabled') !== 'true') {
+            nativeSubmit.click();
+        }
+        return true;
+    }
+
+    function handleSuccess() {
+        isPending = false;
+        savedDraft = '';
+        if (!overlay) return;
+
+        const status = overlay.querySelector('#tv-composer-status');
+        const submitBtn = overlay.querySelector('#tv-composer-submit');
+        const sentBadge = overlay.querySelector('#tv-composer-sent');
+
+        if (status) {
+            status.textContent = '已发送，即将返回评论';
+            status.className = 'tv-status-success';
+        }
+        if (sentBadge) sentBadge.hidden = false;
+        if (submitBtn) {
+            submitBtn.setAttribute('aria-disabled', 'true');
+            submitBtn.removeAttribute('aria-busy');
+            submitBtn.textContent = '已发送';
+        }
+        overlay.classList.add('tv-composer-success');
+
+        sentTimer = setTimeout(() => {
+            sentTimer = null;
+            closeComposer(true);
+            column = 'comments';
+            document.body.setAttribute('data-tv-detail-column', 'comments');
+            update(true, ownStatusLink);
+            if (root && savedPostScroll) root.scrollTop = savedPostScroll;
+            if (savedCommentsScroll) window.scrollTo({ top: savedCommentsScroll, behavior: 'instant' });
+        }, 600);
+    }
+
+    function handleFailure(err) {
+        isPending = false;
+        if (!overlay) return;
+
+        const status = overlay.querySelector('#tv-composer-status');
+        const submitBtn = overlay.querySelector('#tv-composer-submit');
+        const input = overlay.querySelector('#tv-composer-input');
+
+        if (input) {
+            input.disabled = false;
+            input.value = savedDraft;
+        }
+        if (status) {
+            status.textContent = typeof err === 'string' ? err : '发送失败，请重试';
+            status.className = 'tv-status-error';
+        }
+        if (submitBtn) {
+            submitBtn.setAttribute('aria-disabled', 'false');
+            submitBtn.removeAttribute('aria-busy');
+            submitBtn.textContent = '重试';
+        }
+        selected = 1;
+        focusComposer();
+    }
+
+    function hookAdapter() {
+        if (!window.TvXAdapter || window.TvXAdapter._detailHooked) return;
+        window.TvXAdapter._detailHooked = true;
+        const origActivate = window.TvXAdapter.activate;
+        window.TvXAdapter.activate = function() {
+            if (route && window.TvXDetail?.activate?.()) return true;
+            return origActivate ? origActivate.apply(this, arguments) : undefined;
+        };
+        const origHandleBack = window.TvXAdapter.handleBack;
+        window.TvXAdapter.handleBack = function() {
+            if (route && window.TvXDetail?.isOpen?.()) {
+                window.TvXDetail.closeComposer(false);
+                return { event: "backResult", handled: true };
+            }
+            return origHandleBack ? origHandleBack.apply(this, arguments) : { event: "backResult", handled: false };
+        };
+    }
+    hookAdapter();
+    let adapterVal = window.TvXAdapter;
+    try {
+        Object.defineProperty(window, 'TvXAdapter', {
+            configurable: true,
+            enumerable: true,
+            get() { return adapterVal; },
+            set(val) {
+                adapterVal = val;
+                hookAdapter();
+            }
+        });
+    } catch (_) {}
+
     function update(enabled, findStatusLink) {
+        hookAdapter();
         if (!enabled) {
             if (!route) return;
             route = null;
             root = null;
             clearMarks();
+            closeComposer(false);
             document.body.classList.remove('tv-detail-active');
             document.body.removeAttribute('data-tv-detail-column');
             if (chrome) chrome.remove();
@@ -84,10 +487,13 @@ window.TvXDetail = window.TvXDetail || (function() {
         const nextRoute = location.pathname.match(/^\/[^/]+\/status\/\d+/)?.[0];
         if (route !== nextRoute) {
             clearMarks();
+            closeComposer(false);
             route = nextRoute;
             root = null;
             column = 'post';
             savedPostScroll = 0;
+            savedCommentsScroll = 0;
+            savedDraft = '';
             window.scrollTo({top:0,behavior:'instant'});
         }
         if (!chrome || !chrome.isConnected) mount();
@@ -96,10 +502,10 @@ window.TvXDetail = window.TvXDetail || (function() {
         const primary = document.querySelector('[data-testid="primaryColumn"]');
         const articles = Array.from(primary?.querySelectorAll('article[data-testid="tweet"]') || []);
         const id = route.match(/\/status\/(\d+)/)?.[1];
-        const selected = articles.find(article => window.TvXPostIdentity.canonicalPath(ownStatusLink(article, findStatusLink))?.match(/\/status\/(\d+)$/)?.[1] === id);
-        if (root && root !== selected) savedPostScroll = root.scrollTop;
+        const selectedPost = articles.find(article => window.TvXPostIdentity.canonicalPath(ownStatusLink(article, findStatusLink))?.match(/\/status\/(\d+)$/)?.[1] === id);
+        if (root && root !== selectedPost) savedPostScroll = root.scrollTop;
         clearMarks();
-        root = selected || null;
+        root = selectedPost || null;
         if (root) {
             mark(root, 'post');
             root.classList.remove('tv-focused');
@@ -136,6 +542,18 @@ window.TvXDetail = window.TvXDetail || (function() {
         const source = account?.getAttribute('src');
         if (source && avatar.getAttribute('src') !== source) avatar.src = source;
         avatar.hidden = !source;
+
+        const entryBtn = chrome.querySelector('#tv-detail-entry button');
+        if (entryBtn) {
+            entryBtn.disabled = !root;
+            if (!entryBtn._hasReplyListener) {
+                entryBtn._hasReplyListener = true;
+                entryBtn.addEventListener('click', () => {
+                    if (!entryBtn.disabled) openComposer();
+                });
+            }
+        }
+
         const count = root?.querySelector('[data-testid="reply"]')?.textContent.trim() || '';
         const title = chrome.querySelector('#tv-detail-comments-title');
         const titleText = '评论 ' + count + '　　↓ 更多';
@@ -151,6 +569,24 @@ window.TvXDetail = window.TvXDetail || (function() {
 
     function move(direction) {
         if (!route) return false;
+        if (overlay && overlay.isConnected) {
+            const items = interactiveItems();
+            if (!items.length) return true;
+            if (direction === 'down') {
+                if (selected === 0) selected = 1;
+                else if (selected === 1) selected = 2;
+                else if (selected === 2) selected = 0;
+            } else if (direction === 'up') {
+                if (selected === 0) selected = 2;
+                else if (selected === 1) selected = 0;
+                else if (selected === 2) selected = 1;
+            } else if (direction === 'right' || direction === 'left') {
+                if (selected === 1) selected = 2;
+                else if (selected === 2) selected = 1;
+            }
+            focusComposer();
+            return true;
+        }
         if (direction === 'left' || direction === 'right') {
             column = direction === 'left' ? 'post' : 'comments';
             document.body.setAttribute('data-tv-detail-column', column);
@@ -159,10 +595,51 @@ window.TvXDetail = window.TvXDetail || (function() {
             if (column === 'post' && root) {
                 root.scrollBy({top:step,behavior:'instant'});
                 savedPostScroll = root.scrollTop;
-            } else if (column === 'comments') window.scrollBy({top:step,behavior:'instant'});
+            } else if (column === 'comments') {
+                window.scrollBy({top:step,behavior:'instant'});
+                savedCommentsScroll = window.scrollY;
+            }
         }
         return true;
     }
 
-    return { update, move, statusLink: ownStatusLink };
+    function activate() {
+        if (!route) return false;
+        if (overlay && overlay.isConnected) {
+            if (selected === 0) {
+                const input = overlay.querySelector('#tv-composer-input');
+                input?.focus();
+                return true;
+            }
+            if (selected === 1) {
+                submitReply();
+                return true;
+            }
+            if (selected === 2) {
+                closeComposer(false);
+                return true;
+            }
+            return true;
+        }
+        if (column === 'comments') {
+            const entryBtn = chrome?.querySelector('#tv-detail-entry button');
+            if (entryBtn && !entryBtn.disabled) {
+                openComposer();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    return {
+        update,
+        move,
+        activate,
+        statusLink: ownStatusLink,
+        openComposer,
+        closeComposer,
+        submitReply,
+        isOpen: () => !!overlay && overlay.isConnected,
+        isPending: () => isPending
+    };
 })();
