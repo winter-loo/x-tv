@@ -30,7 +30,7 @@ and WebExtension boundary are simulated; production presentation code is loaded
 unchanged. These checks cannot prove live X selector compatibility or virtual
 list behavior on the projector.
 
-Verification run: `npm test` passed both login-state probes and all 16 Firefox
+Verification run: `npm test` passed both login-state probes and all 17 Firefox
 DOM tests. `./gradlew assembleDebug testDebugUnitTest lintDebug` passed; the Java
 unit-test task has no source tests, and lint reports 0 errors / 8 baseline warnings.
 
@@ -68,3 +68,12 @@ post grid. Native sticky app bars containing headings/back controls outside
 articles are hidden behind the TV header. The regression uses a flex parent,
 sticky native Post header, percentage aspect-ratio spacer, and absolute photo
 wrappers; it verifies a 343 CSS px comments column and a photo below body text.
+
+## Edited-post identity
+
+Live edited posts use `/user/status/id/history` for their own timestamp link.
+The shared identity helper canonicalizes that exact suffix to the base status
+path before matching the selected detail. Other suffixes, foreign origins, and
+quote-contained timestamps remain excluded. The native regression verifies an
+edited root, a preceding reply quoting its history link, scrolling, and root
+removal without promoting the quote.

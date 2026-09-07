@@ -161,3 +161,25 @@ test('native flex growth and absolute photo wrappers stay within the approved co
     expect((await rect(photo)).width).toBe(515);
     expect((await rect(photo)).height).toBeGreaterThan(300);
 });
+
+test('edited post history timestamps identify the root without adopting a quoted edit history', async ({ page }) => {
+    await openDetail(page,[post({id:'201'})]);
+    await page.evaluate(() => {
+        const root=document.querySelector('[data-fixture-id="102"]');
+        const timestamp=root.querySelector('[data-testid="User-Name"] a');
+        timestamp.href='/fixture/status/102/history';
+        root.querySelector('[role="group"]').before(timestamp);
+        const reply=document.querySelector('[data-fixture-id="201"]');
+        reply.insertAdjacentHTML('beforeend','<div role="link"><a href="/fixture/status/102/history"><time>Quoted edited timestamp</time></a></div>');
+        root.parentElement.before(reply.parentElement);
+    });
+    await move(page,'down');
+    const root=page.locator('[data-fixture-id="102"]');
+    await expect.poll(()=>rect(root)).toEqual({x:96,y:160,width:1008,height:716});
+    expect(await root.evaluate(node=>node.scrollTop)).toBeGreaterThan(400);
+    await expect(page.locator('#tv-detail-status')).toHaveText('');
+    await root.evaluate(node=>node.remove());
+    await move(page,'up');
+    await expect(page.locator('#tv-detail-status')).toContainText('暂不可用');
+    await expect(page.locator('[data-fixture-id="201"]')).not.toHaveClass(/tv-detail-post/);
+});

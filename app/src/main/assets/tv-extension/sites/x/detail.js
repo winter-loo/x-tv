@@ -96,7 +96,7 @@ window.TvXDetail = window.TvXDetail || (function() {
         const primary = document.querySelector('[data-testid="primaryColumn"]');
         const articles = Array.from(primary?.querySelectorAll('article[data-testid="tweet"]') || []);
         const id = route.match(/\/status\/(\d+)/)?.[1];
-        const selected = articles.find(article => ownStatusLink(article, findStatusLink)?.getAttribute('href')?.match(/\/status\/(\d+)$/)?.[1] === id);
+        const selected = articles.find(article => window.TvXPostIdentity.canonicalPath(ownStatusLink(article, findStatusLink))?.match(/\/status\/(\d+)$/)?.[1] === id);
         if (root && root !== selected) savedPostScroll = root.scrollTop;
         clearMarks();
         root = selected || null;
