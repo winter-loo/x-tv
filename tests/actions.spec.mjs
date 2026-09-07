@@ -20,7 +20,9 @@ test('Menu traps remote focus, matches the approved overlay and returns to the s
     await expect(page.locator('article.tv-focused')).toHaveAttribute('data-fixture-id', '102');
     await page.keyboard.press('m');
     await activate(page);
-    await expect(page).toHaveURL('https://x.com/fixture/status/102');
+    const composer = page.locator('#tv-composer-dialog');
+    await expect(composer).toBeVisible();
+    expect((await rect(composer)).width).toBe(880);
 });
 
 import { mountActions, bootFreshActions } from './fixtures/actions.mjs';
@@ -215,7 +217,7 @@ test('Comment on another post remains available while a like is pending', async 
     await move(page, 'down');
     await page.keyboard.press('m');
     await activate(page);
-    await expect(page).toHaveURL('https://x.com/fixture/status/102');
+    await expect(page.locator('#tv-composer-dialog')).toBeVisible();
     expect(await page.evaluate(() => nativeRequests.length)).toBe(1);
 });
 
@@ -310,4 +312,287 @@ test('An edited detail menu identifies the canonical root instead of a quoted ti
     await expect.poll(() => page.evaluate(() => nativeRequests.map(request => request.id))).toEqual(['102']);
     await page.evaluate(() => finishNative(0));
     await expect(page.getByRole('status').filter({ hasText: '已喜欢，即将返回帖子' })).toBeVisible();
+});
+
+test('home inline composer opens with account identity and reply target, showing empty, draft-ready, and liked-post variants', async ({ page }) => {
+    await mount(page, [post(), post({ id: '102' })]);
+    await move(page, 'down');
+    await page.keyboard.press('m');
+    await activate(page);
+
+    const dialog = page.locator('#tv-composer-dialog');
+    await expect(dialog).toBeVisible();
+    expect((await rect(dialog)).width).toBe(880);
+
+    // Account identity and reply target
+    const avatar = page.locator('#tv-composer-avatar');
+    await expect(avatar).toBeVisible();
+    await expect(page.locator('#tv-composer-target')).toHaveText('回复 @fixture');
+
+    // Empty state
+    const input = page.locator('#tv-composer-input');
+    const submit = page.locator('#tv-composer-submit');
+    await expect(input).toHaveValue('');
+    await expect(submit).toHaveAttribute('aria-disabled', 'true');
+    await expect(submit).toHaveText('回复');
+
+    // Draft-ready state
+    await input.fill('Home inline reply draft text');
+    await expect(submit).toHaveAttribute('aria-disabled', 'false');
+
+    // Whitespace only disables submit
+    await input.fill('     ');
+    await expect(submit).toHaveAttribute('aria-disabled', 'true');
+
+    // Preserve draft on Back cancel
+    await input.fill('Preserved draft on home post');
+    await back(page);
+    await expect(dialog).toHaveCount(0);
+    await expect(page.locator('article.tv-focused')).toHaveAttribute('data-fixture-id', '102');
+
+    // Reopening restores draft
+    await page.keyboard.press('m');
+    await activate(page);
+    await expect(input).toHaveValue('Preserved draft on home post');
+    await expect(submit).toHaveAttribute('aria-disabled', 'false');
+    await back(page);
+
+    // Liked post variant
+    await page.locator('article[data-fixture-id="102"] [data-testid="like"]').evaluate(button => {
+        button.dataset.testid = 'unlike';
+        button.querySelector('span').textContent = '204';
+    });
+    await page.keyboard.press('m');
+    await expect(page.getByRole('button', { name: '取消喜欢', exact: true })).toBeVisible();
+    await activate(page);
+    await expect(dialog).toBeVisible();
+    await back(page);
+    await expect(page.locator('article.tv-focused [data-testid="unlike"]')).toBeVisible();
+});
+
+test('home inline composer supports remote navigation, focus cycling without trapping, and suppresses empty submission', async ({ page }) => {
+    await mount(page, [post(), post({ id: '102' })]);
+    await move(page, 'down');
+    await page.keyboard.press('m');
+    await activate(page);
+
+    const input = page.locator('#tv-composer-input');
+    const submit = page.locator('#tv-composer-submit');
+    const cancel = page.locator('#tv-composer-cancel');
+
+    // Initial remote focus on input
+    await expect(input).toBeFocused();
+
+    // Move down to submit
+    await move(page, 'down');
+    await expect(submit).toBeFocused();
+
+    // Activating submit while empty does not submit or dismiss
+    await activate(page);
+    await expect(page.locator('#tv-composer-dialog')).toBeVisible();
+
+    // Move right to cancel
+    await move(page, 'right');
+    await expect(cancel).toBeFocused();
+
+    // Move left back to submit
+    await move(page, 'left');
+    await expect(submit).toBeFocused();
+
+    // Move up back to input
+    await move(page, 'up');
+    await expect(input).toBeFocused();
+
+    // Remote Confirm on input allows entering editing via installed TV IME
+    await activate(page);
+    await expect(input).toBeFocused();
+
+    // D-pad moves out of text editing to available composer actions without trapping
+    await move(page, 'down');
+    await expect(submit).toBeFocused();
+
+    // Tab key cycling
+    await page.keyboard.press('Tab');
+    await expect(cancel).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(input).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(submit).toBeFocused();
+
+    // Activating cancel returns to home post
+    await move(page, 'right');
+    await activate(page);
+    await expect(page.locator('#tv-composer-dialog')).toHaveCount(0);
+    await expect(page.locator('article.tv-focused')).toHaveAttribute('data-fixture-id', '102');
+});
+
+test('real X reply flow from home: submits to native composer, enters pending, suppresses duplicates, confirms success with sent simulation, and reconciles count', async ({ page }) => {
+    await mountActions(page);
+    await page.evaluate(() => {
+        window.submittedReplies = [];
+        const article = document.querySelector('article[data-fixture-id="102"]');
+        article.querySelector('[data-testid="reply"]').onclick = () => {
+            if (!document.querySelector('[data-testid="tweetTextarea_0"]')) {
+                const comp = document.createElement('div');
+                comp.innerHTML = `
+                    <textarea data-testid="tweetTextarea_0"></textarea>
+                    <button data-testid="tweetButtonInline">Reply</button>
+                `;
+                document.body.appendChild(comp);
+                comp.querySelector('[data-testid="tweetButtonInline"]').onclick = () => {
+                    const inp = comp.querySelector('[data-testid="tweetTextarea_0"]');
+                    window.submittedReplies.push(inp.value || inp.textContent);
+                };
+            }
+        };
+    });
+
+    await move(page, 'down');
+    await page.keyboard.press('m');
+    await activate(page);
+
+    const input = page.locator('#tv-composer-input');
+    await input.fill('Confirmed reply from home TV');
+    await move(page, 'down');
+    await activate(page);
+
+    // Verified text delivered to native X composer
+    expect(await page.evaluate(() => window.submittedReplies)).toEqual(['Confirmed reply from home TV']);
+
+    // Pending state
+    const submit = page.locator('#tv-composer-submit');
+    const status = page.locator('#tv-composer-status');
+    await expect(status).toHaveText('正在发送回复…');
+    await expect(submit).toHaveAttribute('aria-disabled', 'true');
+    await expect(submit).toHaveAttribute('aria-busy', 'true');
+
+    // Duplicate submission suppressed while request pending
+    await activate(page);
+    expect(await page.evaluate(() => window.submittedReplies.length)).toBe(1);
+
+    // Observable successful submission from X
+    await page.evaluate(replyHtml => {
+        const nativeInput = document.querySelector('[data-testid="tweetTextarea_0"]');
+        if (nativeInput) nativeInput.value = '';
+        const replyBtn = document.querySelector('article[data-fixture-id="102"] [data-testid="reply"] span');
+        if (replyBtn) replyBtn.textContent = '18';
+        document.querySelector('#timeline').insertAdjacentHTML('beforeend', replyHtml);
+    }, post({ id: '205', text: 'Confirmed reply from home TV' }));
+
+    // Sent simulation
+    await expect(page.locator('#tv-composer-sent')).toBeVisible();
+    await expect(status).toHaveText('已发送，即将返回帖子');
+
+    // Auto-return to home post
+    await expect(page.locator('#tv-composer-dialog')).toHaveCount(0);
+    await expect(page.locator('article.tv-focused')).toHaveAttribute('data-fixture-id', '102');
+    await expect(page.locator('article[data-fixture-id="102"] [data-testid="reply"] span')).toHaveText('18');
+    await expect(page.locator('article[data-fixture-id="102"] [data-testid="like"] span')).toHaveText('203');
+});
+
+test('failed submission preserves draft, displays error, and provides retry path that succeeds', async ({ page }) => {
+    await mountActions(page);
+    await page.evaluate(() => {
+        let attempts = 0;
+        const comp = document.createElement('div');
+        comp.innerHTML = `
+            <textarea data-testid="tweetTextarea_0"></textarea>
+            <button data-testid="tweetButtonInline">Reply</button>
+        `;
+        document.body.appendChild(comp);
+        comp.querySelector('[data-testid="tweetButtonInline"]').onclick = () => {
+            attempts++;
+            if (attempts === 1) {
+                const toast = document.createElement('div');
+                toast.setAttribute('data-testid', 'toast');
+                toast.textContent = 'Server rejection: failed to reply';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 1000);
+            } else {
+                const replyBtn = document.querySelector('article[data-fixture-id="102"] [data-testid="reply"] span');
+                if (replyBtn) replyBtn.textContent = '18';
+                window.dispatchEvent(new CustomEvent('tv_reply_result', { detail: { outcome: 'confirmed' } }));
+            }
+        };
+    });
+
+    await move(page, 'down');
+    await page.keyboard.press('m');
+    await activate(page);
+
+    const input = page.locator('#tv-composer-input');
+    await input.fill('Draft to retry on home failure');
+    await move(page, 'down');
+    await activate(page);
+
+    // Failure state
+    const status = page.locator('#tv-composer-status');
+    const submit = page.locator('#tv-composer-submit');
+    await expect(status).toHaveText('未能发送回复，请确认重试');
+    await expect(input).toHaveValue('Draft to retry on home failure');
+    await expect(submit).toHaveAttribute('aria-disabled', 'false');
+    await expect(submit).toHaveText('重试');
+    await expect(submit).toBeFocused();
+
+    // Activating retry path succeeds
+    await activate(page);
+    await expect(page.locator('#tv-composer-sent')).toBeVisible();
+    await expect(page.locator('#tv-composer-dialog')).toHaveCount(0);
+    await expect(page.locator('article.tv-focused')).toHaveAttribute('data-fixture-id', '102');
+    await expect(page.locator('article[data-fixture-id="102"] [data-testid="reply"] span')).toHaveText('18');
+});
+
+test('liked post preserves like state throughout reply flow and clears draft on success', async ({ page }) => {
+    await mountActions(page);
+    await move(page, 'down');
+    await page.keyboard.press('m');
+    await move(page, 'down');
+    await activate(page);
+    await expect.poll(() => page.evaluate(() => nativeRequests.length)).toBe(1);
+    await page.evaluate(() => finishNative(0));
+    await expect(page.locator('#tv-action-overlay')).toHaveCount(0);
+    await expect(page.locator('article.tv-focused [data-testid="unlike"]')).toHaveText('204');
+
+    // Open composer on liked post
+    await page.keyboard.press('m');
+    await expect(page.getByRole('button', { name: '取消喜欢', exact: true })).toBeVisible();
+    await activate(page);
+    const input = page.locator('#tv-composer-input');
+    await input.fill('Draft on liked post');
+    await back(page);
+
+    // Liked state preserved after cancel
+    await expect(page.locator('article.tv-focused [data-testid="unlike"]')).toHaveText('204');
+
+    // Reopen and complete reply
+    await page.keyboard.press('m');
+    await activate(page);
+    await expect(input).toHaveValue('Draft on liked post');
+
+    await page.evaluate(() => {
+        const comp = document.createElement('div');
+        comp.innerHTML = `<textarea data-testid="tweetTextarea_0"></textarea><button data-testid="tweetButtonInline">Reply</button>`;
+        document.body.appendChild(comp);
+        comp.querySelector('[data-testid="tweetButtonInline"]').onclick = () => {
+            const replyBtn = document.querySelector('article[data-fixture-id="102"] [data-testid="reply"] span');
+            if (replyBtn) replyBtn.textContent = '18';
+            window.dispatchEvent(new CustomEvent('tv_reply_result', { detail: { outcome: 'confirmed' } }));
+        };
+    });
+
+    await move(page, 'down');
+    await activate(page);
+    await expect(page.locator('#tv-composer-sent')).toBeVisible();
+    await expect(page.locator('#tv-action-overlay')).toHaveCount(0);
+
+    // Liked state and updated reply count preserved on return
+    await expect(page.locator('article.tv-focused')).toHaveAttribute('data-fixture-id', '102');
+    await expect(page.locator('article.tv-focused [data-testid="unlike"]')).toHaveText('204');
+    await expect(page.locator('article.tv-focused [data-testid="reply"] span')).toHaveText('18');
+
+    // Reopening menu confirms draft was cleared on success
+    await page.keyboard.press('m');
+    await activate(page);
+    await expect(page.locator('#tv-composer-input')).toHaveValue('');
+    await back(page);
 });

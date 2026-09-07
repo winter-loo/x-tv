@@ -10,6 +10,12 @@ window.TvXActions = window.TvXActions || (function() {
     let listening = false;
     let originalPath = '';
 
+    let mode = 'menu'; // 'menu' | 'composer'
+    let composerSelected = 0; // 0: input, 1: submit, 2: cancel
+    let isReplyPending = false;
+    const savedDrafts = new Map(); // postId -> string
+    let cleanupReplyObserver = null;
+
     function isPending(action) { return !!action && ['arming', 'pending', 'waiting'].includes(action.phase); }
     function currentAction() { return context ? transactions.get(context.post.id) : null; }
 
@@ -37,6 +43,7 @@ window.TvXActions = window.TvXActions || (function() {
     function update() {
         if (!overlay) return;
         if (location.pathname !== originalPath) { close(); return; }
+        if (mode !== 'menu') return;
         const button = control(context.article());
         if (!button) { status('帖子暂不可用，请返回后重试'); return; }
         const liked = button.dataset.testid === 'unlike';
@@ -52,10 +59,12 @@ window.TvXActions = window.TvXActions || (function() {
         const comments = context.article().querySelector('[data-testid="reply"]')?.textContent.trim() || '0';
         const countText = '评论 ' + comments + ' · 喜欢 ' + count + (awaitingCount ? ' · 待确认' : '');
         const counts = overlay.querySelector('#tv-action-counts');
-        if (counts.textContent !== countText) counts.textContent = countText;
-        if (target.textContent !== label) target.textContent = label;
-        target.classList.toggle('tv-action-liked', liked && !awaitingCount);
-        target.setAttribute('aria-busy', String(!!pending));
+        if (counts && counts.textContent !== countText) counts.textContent = countText;
+        if (target && target.textContent !== label) target.textContent = label;
+        if (target) {
+            target.classList.toggle('tv-action-liked', liked && !awaitingCount);
+            target.setAttribute('aria-busy', String(!!pending));
+        }
         if (recovery) status('尚未确认结果，确认重新载入帖子检查');
         else if (pending) status(action.phase === 'waiting' ? 'X 仍未确认，请稍候或返回关闭' : '正在等待 X 确认…    返回 关闭');
         else if (confirmed) {
@@ -108,11 +117,323 @@ window.TvXActions = window.TvXActions || (function() {
         update();
     }
 
-    function buttons() { return overlay ? Array.from(overlay.querySelectorAll('button')) : []; }
+    function buttons() { return overlay ? Array.from(overlay.querySelectorAll('#tv-action-menu button')) : []; }
     function focus() {
+        if (mode !== 'menu') return;
         buttons().forEach((button, index) => button.classList.toggle('tv-action-focused', index === selected));
         buttons()[selected]?.focus({ preventScroll: true });
     }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+    }
+
+    function getAccountIdentity() {
+        const switcher = document.querySelector('[data-testid="SideNav_AccountSwitcher_Button"]');
+        const img = switcher?.querySelector('img');
+        const src = img?.getAttribute('src') || '';
+        let name = '';
+        if (switcher) {
+            const spans = Array.from(switcher.querySelectorAll('span')).map(s => s.textContent.trim()).filter(Boolean);
+            const handle = spans.find(s => s.startsWith('@'));
+            name = spans.find(s => s !== handle && !s.startsWith('@')) || handle || '';
+        }
+        return {
+            avatar: src,
+            name: name || '当前账号'
+        };
+    }
+
+    function getReplyTarget() {
+        const article = context?.article?.();
+        if (!article) return '回复 帖子';
+        const userNames = Array.from(article.querySelectorAll('[data-testid="User-Name"]'));
+        const userName = userNames.find(n => !n.closest('[role="link"]')) || userNames[0];
+        if (!userName) return '回复 帖子';
+        const spans = Array.from(userName.querySelectorAll('span')).map(s => s.textContent.trim()).filter(Boolean);
+        const handle = spans.find(s => s.startsWith('@'));
+        if (handle) return '回复 ' + handle;
+        const authorName = spans[0] || '';
+        return authorName ? '回复 ' + authorName : '回复 帖子';
+    }
+
+    function composerItems() {
+        return overlay ? [
+            overlay.querySelector('#tv-composer-input'),
+            overlay.querySelector('#tv-composer-submit'),
+            overlay.querySelector('#tv-composer-cancel')
+        ].filter(Boolean) : [];
+    }
+
+    function focusComposer() {
+        const items = composerItems();
+        if (!items.length) return;
+        if (composerSelected < 0) composerSelected = 0;
+        if (composerSelected >= items.length) composerSelected = items.length - 1;
+        items.forEach((item, index) => {
+            item.classList.toggle('tv-composer-focused', index === composerSelected);
+        });
+        items[composerSelected]?.focus({ preventScroll: true });
+    }
+
+    function openComposer() {
+        if (!overlay || !context?.article?.()) return false;
+        mode = 'composer';
+        overlay.classList.add('tv-composer-mode');
+
+        const menuNode = overlay.querySelector('#tv-action-menu');
+        if (menuNode) menuNode.remove();
+
+        const identity = getAccountIdentity();
+        const targetText = getReplyTarget();
+        const existingDraft = (context?.post?.id && savedDrafts.get(context.post.id)) || '';
+
+        const dialog = document.createElement('div');
+        dialog.id = 'tv-composer-dialog';
+        dialog.setAttribute('role', 'dialog');
+        dialog.setAttribute('aria-modal', 'true');
+        dialog.setAttribute('aria-label', '写回复');
+        dialog.innerHTML = `
+            <div id="tv-composer-header">
+                <div id="tv-composer-identity">
+                    <img id="tv-composer-avatar" alt="Author avatar" src="${escapeHtml(identity.avatar)}"${identity.avatar ? '' : ' style="display:none"'}>
+                    <div id="tv-composer-author-info">
+                        <span id="tv-composer-author-name">${escapeHtml(identity.name)}</span>
+                        <span id="tv-composer-target">${escapeHtml(targetText)}</span>
+                    </div>
+                </div>
+                <button id="tv-composer-cancel" type="button" aria-label="Close">取消</button>
+            </div>
+            <div id="tv-composer-body">
+                <textarea id="tv-composer-input" placeholder="写下你的回复…" rows="4"></textarea>
+            </div>
+            <div id="tv-composer-footer">
+                <div id="tv-composer-status-container">
+                    <div id="tv-composer-sent" role="status" hidden>
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                        <span>已发送</span>
+                    </div>
+                    <div id="tv-composer-status" role="status"></div>
+                </div>
+                <div id="tv-composer-actions">
+                    <button id="tv-composer-submit" type="button" aria-disabled="true">回复</button>
+                </div>
+            </div>
+        `;
+        overlay.appendChild(dialog);
+
+        const input = dialog.querySelector('#tv-composer-input');
+        const submitBtn = dialog.querySelector('#tv-composer-submit');
+        const cancelBtn = dialog.querySelector('#tv-composer-cancel');
+
+        if (existingDraft) {
+            input.value = existingDraft;
+            const hasText = !!existingDraft.trim();
+            submitBtn.setAttribute('aria-disabled', String(!hasText));
+        } else {
+            submitBtn.setAttribute('aria-disabled', 'true');
+        }
+
+        input.addEventListener('input', () => {
+            if (context?.post?.id) savedDrafts.set(context.post.id, input.value);
+            const hasText = !!input.value.trim();
+            submitBtn.setAttribute('aria-disabled', String(!hasText || isReplyPending));
+            const status = overlay?.querySelector('#tv-composer-status');
+            if (status && status.classList.contains('tv-status-error')) {
+                status.textContent = '';
+                status.className = '';
+                submitBtn.textContent = '回复';
+            }
+        });
+
+        input.addEventListener('focus', () => { composerSelected = 0; focusComposer(); });
+        submitBtn.addEventListener('focus', () => { composerSelected = 1; focusComposer(); });
+        cancelBtn.addEventListener('focus', () => { composerSelected = 2; focusComposer(); });
+
+        submitBtn.addEventListener('click', () => { composerSelected = 1; submitReply(); });
+        cancelBtn.addEventListener('click', () => { composerSelected = 2; close(); });
+
+        composerSelected = 0;
+        focusComposer();
+        return true;
+    }
+
+    function submitReply() {
+        if (!overlay || mode !== 'composer' || isReplyPending) return false;
+        const input = overlay.querySelector('#tv-composer-input');
+        const text = input ? input.value.trim() : '';
+        const submitBtn = overlay.querySelector('#tv-composer-submit');
+        if (!text || submitBtn?.getAttribute('aria-disabled') === 'true') return false;
+
+        isReplyPending = true;
+        if (context?.post?.id) savedDrafts.set(context.post.id, input.value);
+        const status = overlay.querySelector('#tv-composer-status');
+
+        input.disabled = true;
+        submitBtn.setAttribute('aria-disabled', 'true');
+        submitBtn.setAttribute('aria-busy', 'true');
+        if (status) {
+            status.textContent = '正在发送回复…';
+            status.className = 'tv-status-pending';
+        }
+
+        const article = context.article();
+
+        let nativeInput = document.querySelector('[data-testid="tweetTextarea_0"]');
+        if (!nativeInput && article) {
+            const nativeReplyBtn = article.querySelector('[data-testid="reply"]');
+            if (nativeReplyBtn) nativeReplyBtn.click();
+        }
+
+        nativeInput = document.querySelector('[data-testid="tweetTextarea_0"]');
+        const nativeSubmit = document.querySelector('[data-testid="tweetButtonInline"], [data-testid="tweetButton"]');
+
+        if (nativeInput) {
+            if ('value' in nativeInput) {
+                const proto = Object.getPrototypeOf(nativeInput);
+                const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
+                if (setter) setter.call(nativeInput, text);
+                else nativeInput.value = text;
+            } else {
+                nativeInput.textContent = text;
+            }
+            nativeInput.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: text }));
+            nativeInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        const prevCountText = article?.querySelector('[data-testid="reply"]')?.textContent.trim() || '0';
+        const prevCount = parseInt(prevCountText, 10) || 0;
+        const existingArticles = new Set(Array.from(document.querySelectorAll('article[data-testid="tweet"]')));
+
+        let replySettled = false;
+        let timeoutTimer = null;
+        let domObserver = null;
+
+        function cleanup() {
+            if (domObserver) {
+                domObserver.disconnect();
+                domObserver = null;
+            }
+            window.removeEventListener('tv_reply_result', onReplyResult);
+            clearTimeout(timeoutTimer);
+            cleanupReplyObserver = null;
+        }
+        cleanupReplyObserver = cleanup;
+
+        function succeed() {
+            if (replySettled) return;
+            replySettled = true;
+            cleanup();
+            handleSuccess();
+        }
+
+        function fail(err) {
+            if (replySettled) return;
+            replySettled = true;
+            cleanup();
+            handleFailure(err);
+        }
+
+        function onReplyResult(e) {
+            const d = e.detail || {};
+            if (d.outcome === 'confirmed' || d.status === 'confirmed' || d.success) succeed();
+            else if (d.outcome === 'failed' || d.error) fail(d.error || '未能发送回复，请确认重试');
+        }
+        window.addEventListener('tv_reply_result', onReplyResult);
+
+        domObserver = new MutationObserver(() => {
+            if (replySettled) return;
+            const currentArticles = Array.from(document.querySelectorAll('article[data-testid="tweet"]'));
+            const hasNewArticle = currentArticles.some(a => !existingArticles.has(a));
+            if (hasNewArticle) {
+                succeed();
+                return;
+            }
+            const currentCountText = article?.querySelector('[data-testid="reply"]')?.textContent.trim() || '0';
+            const currentCount = parseInt(currentCountText, 10) || 0;
+            if (currentCount > prevCount) {
+                succeed();
+                return;
+            }
+            const curInput = document.querySelector('[data-testid="tweetTextarea_0"]');
+            const curSubmit = document.querySelector('[data-testid="tweetButtonInline"], [data-testid="tweetButton"]');
+            if (curInput && (curInput.value === '' || curInput.textContent === '') && curSubmit?.getAttribute('aria-disabled') === 'true') {
+                succeed();
+                return;
+            }
+            const toast = document.querySelector('[data-testid="toast"], [role="alert"]');
+            if (toast && /error|failed|失败|错误/i.test(toast.textContent)) {
+                fail('未能发送回复，请确认重试');
+                return;
+            }
+        });
+        domObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
+
+        timeoutTimer = setTimeout(() => {
+            if (!replySettled) {
+                fail('发送超时，请确认重试');
+            }
+        }, 15000);
+
+        if (nativeSubmit && !nativeSubmit.disabled && nativeSubmit.getAttribute('aria-disabled') !== 'true') {
+            nativeSubmit.click();
+        }
+        return true;
+    }
+
+    function handleSuccess() {
+        isReplyPending = false;
+        if (context?.post?.id) savedDrafts.delete(context.post.id);
+        if (!overlay || mode !== 'composer') return;
+
+        const status = overlay.querySelector('#tv-composer-status');
+        const submitBtn = overlay.querySelector('#tv-composer-submit');
+        const sentBadge = overlay.querySelector('#tv-composer-sent');
+
+        if (status) {
+            status.textContent = '已发送，即将返回帖子';
+            status.className = 'tv-status-success';
+        }
+        if (sentBadge) sentBadge.hidden = false;
+        if (submitBtn) {
+            submitBtn.setAttribute('aria-disabled', 'true');
+            submitBtn.removeAttribute('aria-busy');
+            submitBtn.textContent = '已发送';
+        }
+        overlay.classList.add('tv-composer-success');
+
+        returnTimer = setTimeout(() => {
+            returnTimer = null;
+            close();
+        }, 600);
+    }
+
+    function handleFailure(err) {
+        isReplyPending = false;
+        if (!overlay || mode !== 'composer') return;
+
+        const status = overlay.querySelector('#tv-composer-status');
+        const submitBtn = overlay.querySelector('#tv-composer-submit');
+        const input = overlay.querySelector('#tv-composer-input');
+
+        if (input) {
+            input.disabled = false;
+            input.value = (context?.post?.id && savedDrafts.get(context.post.id)) || '';
+        }
+        if (status) {
+            status.textContent = typeof err === 'string' ? err : '未能发送回复，请确认重试';
+            status.className = 'tv-status-error';
+        }
+        if (submitBtn) {
+            submitBtn.setAttribute('aria-disabled', 'false');
+            submitBtn.removeAttribute('aria-busy');
+            submitBtn.textContent = '重试';
+        }
+        composerSelected = 1;
+        focusComposer();
+    }
+
     function close() {
         if (!overlay) return false;
         if (transaction?.phase === 'arming') {
@@ -122,6 +443,12 @@ window.TvXActions = window.TvXActions || (function() {
         if (transaction?.phase === "confirmed") transaction.consumed = true;
         clearTimeout(returnTimer);
         returnTimer = null;
+        if (cleanupReplyObserver) {
+            cleanupReplyObserver();
+            cleanupReplyObserver = null;
+        }
+        isReplyPending = false;
+        mode = 'menu';
         overlay.remove();
         overlay = null;
         document.removeEventListener('focusin', trap, true);
@@ -130,12 +457,24 @@ window.TvXActions = window.TvXActions || (function() {
         context = null;
         return true;
     }
-    function trap(event) { if (overlay && !overlay.contains(event.target)) focus(); }
+
+    function trap(event) {
+        if (!overlay) return;
+        if (!overlay.contains(event.target)) {
+            if (mode === 'composer') focusComposer();
+            else focus();
+        }
+    }
+
     function open(options) {
         if (overlay) return true;
         if (!options.article()) return false;
         context = options;
         originalPath = location.pathname;
+        mode = 'menu';
+        selected = 0;
+        composerSelected = 0;
+        isReplyPending = false;
         if (!listening && browser.runtime.onMessage) {
             browser.runtime.onMessage.addListener(result);
             listening = true;
@@ -159,25 +498,104 @@ window.TvXActions = window.TvXActions || (function() {
         update();
         return true;
     }
+
     function move(direction) {
         if (!overlay) return false;
-        if (direction === 'up' || direction === 'down') selected = 1 - selected;
-        focus();
-        return true;
+        if (mode === 'menu') {
+            if (direction === 'up' || direction === 'down') selected = 1 - selected;
+            focus();
+            return true;
+        }
+        if (mode === 'composer') {
+            const items = composerItems();
+            if (!items.length) return true;
+            if (direction === 'down') {
+                if (composerSelected === 0) composerSelected = 1;
+                else if (composerSelected === 1) composerSelected = 2;
+                else if (composerSelected === 2) composerSelected = 0;
+            } else if (direction === 'up') {
+                if (composerSelected === 0) composerSelected = 2;
+                else if (composerSelected === 1) composerSelected = 0;
+                else if (composerSelected === 2) composerSelected = 1;
+            } else if (direction === 'right' || direction === 'left') {
+                if (composerSelected === 1) composerSelected = 2;
+                else if (composerSelected === 2) composerSelected = 1;
+            }
+            focusComposer();
+            return true;
+        }
+        return false;
     }
+
     function activate() {
         if (!overlay) return false;
         if (returnTimer) return true;
-        if (selected === 1) { like(); return true; }
-        if (selected === 0 && context.article()) {
-            const openPost = context.openPost;
-            close();
-            openPost();
+        if (mode === 'menu') {
+            if (selected === 1) { like(); return true; }
+            if (selected === 0 && context.article()) {
+                if (location.pathname === '/home' || originalPath === '/home') {
+                    openComposer();
+                    return true;
+                }
+                const openPost = context.openPost;
+                close();
+                openPost();
+                return true;
+            }
+            return true;
+        }
+        if (mode === 'composer') {
+            if (composerSelected === 0) {
+                const input = overlay.querySelector('#tv-composer-input');
+                input?.focus();
+                return true;
+            }
+            if (composerSelected === 1) {
+                submitReply();
+                return true;
+            }
+            if (composerSelected === 2) {
+                close();
+                return true;
+            }
+            return true;
         }
         return true;
     }
+
     function key(event) {
         if (!overlay) return false;
+        if (mode === 'composer') {
+            if (event.key === 'Escape') {
+                close();
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                return true;
+            }
+            if (event.key === 'Tab') {
+                move(event.shiftKey ? 'up' : 'down');
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                return true;
+            }
+            if (composerSelected !== 0) {
+                if (event.key === 'ArrowDown') { move('down'); event.preventDefault(); event.stopImmediatePropagation(); return true; }
+                if (event.key === 'ArrowUp') { move('up'); event.preventDefault(); event.stopImmediatePropagation(); return true; }
+                if (event.key === 'ArrowLeft') { move('left'); event.preventDefault(); event.stopImmediatePropagation(); return true; }
+                if (event.key === 'ArrowRight') { move('right'); event.preventDefault(); event.stopImmediatePropagation(); return true; }
+                if (event.key === 'Enter' || event.key === ' ') { activate(); event.preventDefault(); event.stopImmediatePropagation(); return true; }
+                event.preventDefault();
+                event.stopImmediatePropagation();
+            } else {
+                if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+                    submitReply();
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    return true;
+                }
+            }
+            return true;
+        }
         if (event.key === 'Tab') move(event.shiftKey ? 'up' : 'down');
         else if (event.key.startsWith('Arrow')) move(event.key.slice(5).toLowerCase());
         else if (event.key === 'Enter' || event.key === ' ') activate();
@@ -187,5 +605,19 @@ window.TvXActions = window.TvXActions || (function() {
         event.stopImmediatePropagation();
         return true;
     }
-    return { open, close, move, activate, key, update, isOpen: () => !!overlay };
+
+    return {
+        open,
+        close,
+        move,
+        activate,
+        key,
+        update,
+        isOpen: () => !!overlay,
+        isComposerOpen: () => !!overlay && mode === 'composer',
+        isReplyPending: () => isReplyPending,
+        openComposer,
+        submitReply,
+        closeComposer: () => close()
+    };
 })();
