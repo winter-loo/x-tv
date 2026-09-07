@@ -14,6 +14,10 @@ window.TvXReading = (function() {
             style.id = "tv-x-reading-styles";
             style.rel = "stylesheet";
             style.href = browser.runtime.getURL("sites/x/reading.css");
+            // CSS may finish after initial selection; its layout changes are not DOM mutations.
+            style.onload = () => {
+                if (active) focus(document.querySelector("article.tv-focused"));
+            };
             (document.head || document.documentElement).appendChild(style);
         }
         header = document.createElement("div");

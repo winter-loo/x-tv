@@ -1,0 +1,12 @@
+{
+  "name": "x-tv-browser-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node scripts/check-login-state.mjs && playwright test",
+    "test:reading": "playwright test tests/reading.spec.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}

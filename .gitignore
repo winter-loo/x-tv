@@ -22,3 +22,8 @@ keystore.properties
 captures/
 .externalNativeBuild/
 .cxx/
+
+# Browser regression tooling
+node_modules/
+test-results/
+playwright-report/

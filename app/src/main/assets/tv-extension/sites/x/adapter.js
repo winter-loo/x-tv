@@ -96,15 +96,18 @@ window.TvXAdapter = (function() {
 
     function isLoginMode() {
         const path = window.location.pathname;
+        // An explicit login route can retain the previous timeline behind its dialog.
+        if (path === "/i/flow/login" || path === "/login" ||
+            (path === "/i/jf/onboarding/web" && new URL(window.location.href).searchParams.get("mode") === "login")) return true;
         const hasArticles = document.querySelectorAll('article[data-testid="tweet"], .timeline-card').length > 0;
         if (hasArticles) return false;
 
-        if (path === "/i/flow/login" || path === "/login") return true;
         // A pending /home response, empty timeline, or unrelated dialog is not a login form.
         if (document.querySelector('[data-testid="SideNav_AccountSwitcher_Button"], [data-testid="AppTabBar_Home_Link"], [data-testid="tweetTextarea_0"]')) return false;
         return !!document.querySelector(
             '#react-root input[autocomplete="username"], #layers input[autocomplete="username"], ' +
-            '#react-root a[href="/i/flow/login"], #react-root a[href="/login"]'
+            '#react-root a[href="/i/flow/login"], #react-root a[href="/login"], ' +
+            '#react-root a[href^="/i/jf/onboarding/web?mode=login"]'
         );
     }
 
