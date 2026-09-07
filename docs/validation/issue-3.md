@@ -29,7 +29,7 @@ The action suite exercises the production adapter and passive observer through t
 - Native keyboard shortcuts cannot escape the menu.
 - A native like-state change while arming cannot invert the intended action.
 
-`npm test` passed all 22 Firefox tests (13 actions, 9 reading), plus the login-state checks. `assembleDebug` and `lintDebug` passed; lint reports 0 errors and 8 existing warnings. `testDebugUnitTest` is NO-SOURCE. Runtime dispatcher syntax and `git diff --check` also passed.
+`npm test` passed all 23 Firefox tests (14 actions, 9 reading), plus the login-state checks. `assembleDebug` and `lintDebug` passed; lint reports 0 errors and 8 existing warnings. `testDebugUnitTest` is NO-SOURCE. Runtime dispatcher syntax and `git diff --check` also passed.
 
 The menu screenshot from the synthetic fixture was inspected against the Figma reference. Screenshots and build artifacts remain ignored locally.
 
@@ -44,3 +44,11 @@ Comment routing is independent of another post's in-flight like. Mutations retai
 A settled but unconfirmed optimistic toggle offers **重新载入帖子**. This performs a full-document navigation to the canonical native status URL, discarding X's in-memory optimistic state. It does not send an inverse mutation or claim the previous request succeeded. The fresh native detail supports the menu using the shared `TvXPostIdentity` lookup, including expanded timestamps outside User-Name while excluding quotes. The original home anchor and scroll position are saved for return; a recovered home document cannot reuse stale bfcache state. Actual in-flight requests keep their fence and are not offered this settled-result recovery path.
 
 The menu shows native comment and like counts. The like count remains at its previous known value with a pending indicator until the native response and control agree, then updates from X's actual count. Added regressions cover independent Comment, full-document recovery with fresh detail and home-anchor restoration, and pending/confirmed count synchronization. The parent's shared-projector investigation remains the source of live observer validation; these fixture results do not substitute for it.
+
+## Service-worker fallback lifecycle fix
+
+The parent reproduced `ServiceWorker fallback redirection` from the response filter on the projector. Mozilla's [HttpChannelChild source](https://github.com/mozilla/gecko-dev/blob/master/netwerk/protocol/http/HttpChannelChild.cpp) explicitly detaches existing filters during this fallback; [StreamFilterParent](https://github.com/mozilla/gecko-dev/blob/master/toolkit/components/extensions/webrequest/StreamFilterParent.cpp) forwards the disconnect reason as an error. It is not a rejection from X.
+
+The observer now correlates the native request at `onBeforeRequest` but creates its filter only in blocking `onHeadersReceived`, after the fallback and before the response body. Mozilla exercises this attachment point in [test_filter_301](https://github.com/mozilla/gecko-dev/blob/master/toolkit/components/extensions/test/xpcshell/test_ext_webRequest_filterResponseData.js), and the [event documentation](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest/onHeadersReceived) describes the blocking header stage. The original bytes, selected-post correlation, duplicate fence, and strict confirmation predicate remain unchanged. No request or service-worker bypass is introduced.
+
+The regression reproduces detachment of any pre-response filter, repeats the native request event, verifies duplicate suppression, then delivers headers and the successful native response. It failed against the old observer and passes with the late attachment. This does not claim to solve [Mozilla bug 1817450](https://bugzilla.mozilla.org/show_bug.cgi?id=1817450), where a service worker can produce a separate request ID without usable tab correlation; such an uncorrelated response must not be treated as confirmation. The parent owns final live verification of this patch.

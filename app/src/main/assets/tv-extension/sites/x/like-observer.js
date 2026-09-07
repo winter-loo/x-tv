@@ -67,6 +67,16 @@
         if (!action) return;
         action.requestId = details.requestId;
         requests.set(details.requestId, action);
+    }, { urls, types: ['xmlhttprequest'] }, ['blocking', 'requestBody']);
+
+    browser.webRequest.onHeadersReceived.addListener(details => {
+        const action = requests.get(details.requestId);
+        if (!action || action.filterAttached) return;
+        action.statusCode = details.statusCode;
+        const liked = action.liked;
+        // Attach after native service-worker fallback, before response data starts.
+        // A pre-request StreamFilter is detached by HttpChannelChild on fallback.
+        action.filterAttached = true;
         let filter;
         try { filter = browser.webRequest.filterResponseData(details.requestId); }
         catch (_) { finish(action, 'unconfirmed'); return; }
@@ -94,12 +104,7 @@
             finish(action, outcome);
         };
         filter.onerror = () => { body = ''; finish(action, 'unconfirmed'); };
-    }, { urls, types: ['xmlhttprequest'] }, ['blocking', 'requestBody']);
-
-    browser.webRequest.onHeadersReceived.addListener(details => {
-        const action = requests.get(details.requestId);
-        if (action) action.statusCode = details.statusCode;
-    }, { urls, types: ['xmlhttprequest'] });
+    }, { urls, types: ['xmlhttprequest'] }, ['blocking']);
     browser.webRequest.onErrorOccurred.addListener(details => {
         const action = requests.get(details.requestId);
         if (action) finish(action, 'failed');

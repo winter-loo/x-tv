@@ -46,6 +46,17 @@ export async function attachActionHost(page) {
             button.dataset.testid = liked ? 'unlike' : 'like';
             button.querySelector('span').textContent = String(Number(request.previousCount) + (liked ? 1 : -1));
         });
+        window.serviceWorkerFallback = index => {
+            const request = nativeRequests[index];
+            const filter = filters.get(request.requestId);
+            // HttpChannelChild::OnDetachStreamFilters drops pre-response filters.
+            if (filter) {
+                filter.error = 'ServiceWorker fallback redirection';
+                filter.onerror();
+                filters.delete(request.requestId);
+            }
+            emit('onBeforeRequest', request);
+        };
         window.finishNative = (index, { status = 200, error = false, unknown = false } = {}) => {
             const request = nativeRequests[index];
             if (error || status !== 200) {

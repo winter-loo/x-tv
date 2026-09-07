@@ -266,3 +266,20 @@ test('Menu counts remain at the last known value while pending and synchronize a
     await expect(counts).toHaveText('评论 17 · 喜欢 204');
     await expect(page.locator('article.tv-focused [data-testid="unlike"]')).toHaveText('204');
 });
+
+
+test('Native service-worker fallback preserves confirmation and the in-flight fence', async ({ page }) => {
+    await mountActions(page);
+    await page.keyboard.press('m');
+    await move(page, 'down');
+    await activate(page);
+    await expect.poll(() => page.evaluate(() => nativeRequests.length)).toBe(1);
+    await page.evaluate(() => serviceWorkerFallback(0));
+    await activate(page);
+    expect(await page.evaluate(() => nativeRequests.length)).toBe(1);
+    const bytes = await page.evaluate(() => finishNative(0));
+    expect(bytes.delivered).toBe(bytes.original);
+    await expect(page.getByRole('status').filter({ hasText: '已喜欢，即将返回帖子' })).toBeVisible();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(page.locator('article.tv-focused [data-testid="unlike"]')).toHaveText('204');
+});
