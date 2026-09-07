@@ -36,9 +36,8 @@ window.TvXReading = (function() {
         }
     }
 
-    function formatArticle(article) {
+    function formatArticle(article, ownLink) {
         const name = article.querySelector('[data-testid="User-Name"]');
-        const ownLink = name && Array.from(name.querySelectorAll('a[href*="/status/"]')).find(a => a.querySelector("time"));
         const cover = article.querySelector('[data-testid="article-cover-image"]');
         const attachment = cover ? cover.parentElement : article.querySelector('[data-testid="card.wrapper"], [data-testid="videoPlayer"], [data-testid="tweetPhoto"]')?.parentElement;
         const reply = article.querySelector('[data-testid="reply"]');
@@ -102,7 +101,7 @@ window.TvXReading = (function() {
         }
     }
 
-    function update(enabled, articles) {
+    function update(enabled, articles, findStatusLink) {
         active = enabled;
         if (document.body.classList.contains("tv-reading-active") !== active) document.body.classList.toggle("tv-reading-active", active);
         if (!active) {
@@ -112,7 +111,7 @@ window.TvXReading = (function() {
             return;
         }
         mount();
-        articles.forEach(formatArticle);
+        articles.forEach(article => formatArticle(article, findStatusLink(article)));
         syncHeader();
         const column = document.querySelector('[data-testid="primaryColumn"]');
         const input = column && column.querySelector('[data-testid="tweetTextarea_0"]');
@@ -134,15 +133,17 @@ window.TvXReading = (function() {
         const u = window.innerWidth / 1920;
         const delta = article.getBoundingClientRect().top - 192 * u;
         if (Math.abs(delta) > 1) article.scrollIntoView({ block: "start", inline: "nearest", behavior: "instant" });
-        const longText = article.querySelector(".tv-reading-text");
-        const overflow = longText && longText.scrollHeight > longText.clientHeight + 1;
-        const text = "↑↓ 切换帖子     确认 打开帖子" + (overflow ? "     ←→ 翻阅正文" : "") + "     返回 回到顶部 / 退出";
+        const overflow = Array.from(article.querySelectorAll(".tv-reading-text, .tv-reading-attachment"))
+            .some(node => node.scrollHeight > node.clientHeight + 1);
+        const text = "↑↓ 切换帖子     确认 打开帖子" + (overflow ? "     ←→ 翻阅长内容" : "") + "     返回 回到顶部 / 退出";
         if (guidance.textContent !== text) guidance.textContent = text;
     }
 
     function scrollText(article, direction) {
-        const text = article && article.querySelector(".tv-reading-text");
-        if (text) text.scrollBy({ top: (direction === "right" ? 1 : -1) * text.clientHeight * 0.8, behavior: "instant" });
+        if (!article) return;
+        for (const node of article.querySelectorAll(".tv-reading-text, .tv-reading-attachment")) {
+            node.scrollBy({ top: (direction === "right" ? 1 : -1) * node.clientHeight * 0.8, behavior: "instant" });
+        }
     }
 
     function waiting(message) {

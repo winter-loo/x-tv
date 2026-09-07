@@ -225,3 +225,12 @@ body.tv-reading-active .tv-reading-card .tv-reading-engagement a span { color: i
 html:has(body.tv-reading-active) { height: auto !important; overflow-y: auto !important; }
 body.tv-reading-active { height: auto !important; overflow: visible !important; }
 body.tv-reading-active .tv-reading-timeline-ancestor { border: 0 !important; }
+body.tv-reading-active .tv-reading-avatar [data-testid^="UserAvatar-Container-"] {
+    width: calc(88 * var(--tv-u)) !important;
+    height: calc(88 * var(--tv-u)) !important;
+}
+body.tv-reading-active .tv-reading-attachment :is([data-testid="tweetPhoto"], [data-testid="videoPlayer"]) {
+    margin-top: 0 !important;
+    border-radius: 0 !important;
+    max-height: none !important;
+}

@@ -27,6 +27,13 @@
     // Initial check
     ensureAdapter();
 
+    window.addEventListener("pagehide", () => {
+        if (activeAdapter && activeAdapter.unmount) activeAdapter.unmount();
+    });
+    window.addEventListener("pageshow", event => {
+        if (event.persisted && activeAdapter && activeAdapter.init) activeAdapter.init();
+    });
+
     // Announce readiness to background script
     try {
         browser.runtime.sendMessage({
