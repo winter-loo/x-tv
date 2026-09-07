@@ -64,6 +64,11 @@ window.TvXAdapter = (function() {
                 cancelPendingMove();
             }
             if (mode === "home" && restoringHome) {
+                // The URL can change before React replaces the outgoing detail DOM.
+                if (!selectedTab) {
+                    previousMode = mode;
+                    return;
+                }
                 if (focusedArticle()) restoringHome = false;
                 else pageScroller().scrollTo({ top: homeScroll, behavior: "instant" });
             }
