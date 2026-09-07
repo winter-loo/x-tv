@@ -11,6 +11,8 @@ window.TvXAdapter = (function() {
     let pendingMove = null;
     let pendingTimer = null;
     let homeAnchor = null;
+    let homeScroll = 0;
+    let restoringHome = false;
     let previousMode = "";
     let timelineTab = "";
     let topRequested = false;
@@ -47,14 +49,23 @@ window.TvXAdapter = (function() {
             if (mode === "home" && tab && timelineTab && tab !== timelineTab) {
                 lastAnchorId = null;
                 homeAnchor = null;
+                restoringHome = false;
                 cancelPendingMove();
             }
             if (mode === "home" && tab) timelineTab = tab;
-            if (mode === "home" && previousMode !== "home" && homeAnchor) lastAnchorId = homeAnchor;
+            if (mode === "home" && previousMode !== "home" && homeAnchor) {
+                lastAnchorId = homeAnchor;
+                restoringHome = true;
+            }
             if (mode !== previousMode && mode !== "home") {
                 lastAnchorId = null;
+                restoringHome = false;
                 topRequested = false;
                 cancelPendingMove();
+            }
+            if (mode === "home" && restoringHome) {
+                if (focusedArticle()) restoringHome = false;
+                else pageScroller().scrollTo({ top: homeScroll, behavior: "instant" });
             }
             if (topRequested) {
                 const first = articles[0];
@@ -557,6 +568,7 @@ window.TvXAdapter = (function() {
     }
 
     function movePost(direction) {
+        restoringHome = false;
         if (direction !== "up" && direction !== "down") {
             if (isHome() && window.TvXReading) window.TvXReading.scrollText(focusedArticle(), direction);
             return;
@@ -631,6 +643,7 @@ window.TvXAdapter = (function() {
         const link = statusLink(current);
         if (link) {
             cancelPendingMove();
+            if (isHome()) homeScroll = pageScrollY();
             link.click();
         } else if (current && current.classList.contains("timeline-card")) {
             TvNavigationRuntime.clickElement(current);
@@ -639,6 +652,7 @@ window.TvXAdapter = (function() {
 
     function handleBack() {
         console.log("[TvXAdapter] handleBack requested.");
+        restoringHome = false;
         cancelPendingMove();
         const stage = document.getElementById("tv-custom-login-stage");
         if (stage && stage.style.display === "none") {
@@ -708,6 +722,7 @@ window.TvXAdapter = (function() {
     }
 
     function unmount() {
+        restoringHome = false;
         if (observer) observer.disconnect();
         observer = null;
         clearTimeout(initialTimer);
