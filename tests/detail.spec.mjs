@@ -84,3 +84,53 @@ test('Back dismisses a native overlay then restores the original home post after
     await expect.poll(async () => (await rect(page.locator('[data-fixture-id="102"]'))).y).toBe(192);
     await expect(page.locator('#tv-detail-chrome')).toHaveCount(0);
 });
+
+test('detail identifies its own footer timestamp without mistaking a quoted post for the root', async ({ page }) => {
+    await openDetail(page,[post({id:'201'})]);
+    await page.evaluate(() => {
+        const selected=document.querySelector('[data-fixture-id="102"]');
+        const time=selected.querySelector('[data-testid="User-Name"] a');
+        time.querySelector('time').textContent='10:42 AM · Sep 7, 2026';
+        selected.querySelector('[role="group"]').before(time);
+        const reply=document.querySelector('[data-fixture-id="201"]');
+        // A preceding reply quotes the current root, including its own nested identity.
+        const quote=document.createElement('div');
+        quote.setAttribute('role','link');
+        quote.innerHTML='<div data-testid="User-Name"><a href="/fixture/status/102"><time>Quoted timestamp</time></a></div>';
+        reply.appendChild(quote);
+        selected.parentElement.before(reply.parentElement);
+    });
+    const selected=page.locator('[data-fixture-id="102"]');
+    await expect.poll(() => rect(selected)).toEqual({x:96,y:160,width:1008,height:716});
+    await expect(page.locator('[data-fixture-id="201"]')).not.toHaveClass(/tv-detail-post/);
+    await expect(page.locator('#tv-detail-status')).toHaveText('');
+    // The native footer metadata remains readable rather than being flattened away.
+    await expect(selected.getByText('10:42 AM · Sep 7, 2026')).toBeVisible();
+    await move(page,'down');
+    expect(await selected.evaluate(node=>node.scrollTop)).toBeGreaterThan(400);
+    // If the real root disappears, the quoted timestamp must never take its place.
+    await selected.evaluate(node=>node.remove());
+    await expect(page.locator('#tv-detail-status')).toContainText('暂不可用');
+    await page.locator('[data-fixture-id="201"] [data-testid="User-Name"] a').first().evaluate(node=>node.remove());
+    await move(page,'up');
+    await expect(page.locator('[data-fixture-id="201"]')).not.toHaveClass(/tv-detail-post/);
+});
+
+test('reinjection retains detail focus and scrolling, and unmount removes its chrome', async ({ page }) => {
+    await openDetail(page,[post({id:'201',text:'Reply text. '.repeat(150)})]);
+    await move(page,'down');
+    const selected=page.locator('[data-fixture-id="102"]');
+    const before=await selected.evaluate(node=>node.scrollTop);
+    await move(page,'right');
+    const {fileURLToPath}=await import('node:url');
+    await page.addScriptTag({path:fileURLToPath(new URL('../app/src/main/assets/tv-extension/sites/x/detail.js',import.meta.url))});
+    await move(page,'down');
+    await expect(page.locator('body')).toHaveAttribute('data-tv-detail-column','comments');
+    expect(await selected.evaluate(node=>node.scrollTop)).toBe(before);
+    await expect(page.locator('#tv-detail-chrome')).toHaveCount(1);
+    await page.evaluate(()=>window.TvXAdapter.unmount());
+    await expect(page.locator('#tv-detail-chrome')).toHaveCount(0);
+    await expect(page.locator('.tv-detail-post')).toHaveCount(0);
+    await page.evaluate(()=>window.TvXAdapter.init());
+    await expect(page.locator('#tv-detail-chrome')).toHaveCount(1);
+});

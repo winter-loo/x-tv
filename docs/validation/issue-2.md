@@ -30,7 +30,7 @@ and WebExtension boundary are simulated; production presentation code is loaded
 unchanged. These checks cannot prove live X selector compatibility or virtual
 list behavior on the projector.
 
-Verification run: `npm test` passed both login-state probes and all 13 Firefox
+Verification run: `npm test` passed both login-state probes and all 15 Firefox
 DOM tests. `./gradlew assembleDebug testDebugUnitTest lintDebug` passed; the Java
 unit-test task has no source tests, and lint reports 0 errors / 8 baseline warnings.
 
@@ -42,3 +42,18 @@ pagination, switch columns repeatedly, and return to the originating home post.
 Inspect native detail identity/time and engagement DOM, long post/media geometry,
 loading/unavailable behavior, and the persistent native root during reply
 virtualization. No physical-remote acceptance has been claimed by this branch.
+
+## Review correction: expanded native identity
+
+The projector exposed a detail-specific DOM difference: its canonical timestamp
+link sits outside `User-Name`. The expanded-post lookup now accepts that native
+footer link while rejecting timestamps in quote cards, article text, nested
+articles, and external/noncanonical destinations. The home selector is unchanged.
+The selected native footer date remains in the post scroll viewport.
+
+A native-shaped regression moves the timestamp outside the author block, puts a
+reply quoting that post before the root, and then removes the real root. It
+verifies the correct root geometry, readable timestamp, scrolling, and unavailable
+state without promoting the quoted post. A separate reinjection/unmount test
+checks preserved column/scroll state and cleanup. Fallback background injection
+now loads reading, shared identity, and detail scripts before the adapter.

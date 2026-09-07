@@ -1,6 +1,6 @@
 // Native X owns every post/reply node. The document remains the reply scroller
 // so its virtual list and pagination continue receiving actual scroll events.
-window.TvXDetail = (function() {
+window.TvXDetail = window.TvXDetail || (function() {
     let route = null;
     let column = 'post';
     let root = null;
@@ -37,7 +37,9 @@ window.TvXDetail = (function() {
         document.body.appendChild(chrome);
     }
 
-    function formatArticle(article) {
+    const ownStatusLink = window.TvXPostIdentity.statusLink;
+
+    function formatArticle(article, permalink) {
         const reply = article.querySelector('[data-testid="reply"]');
         const cover = article.querySelector('[data-testid="article-cover-image"]');
         const media = article.querySelector('[data-testid="card.wrapper"], [data-testid="videoPlayer"], [data-testid="tweetPhoto"]');
@@ -45,6 +47,7 @@ window.TvXDetail = (function() {
             [article.querySelector('[data-testid="Tweet-User-Avatar"]'), 'avatar'],
             [article.querySelector('[data-testid="User-Name"]'), 'name'],
             [article.querySelector('[data-testid="tweetText"]'), 'text'],
+            [permalink && !permalink.closest('[data-testid="User-Name"]') ? permalink : null, 'time'],
             [cover ? cover.parentElement : media?.parentElement, 'attachment'],
             [reply?.closest('[role="group"]'), 'engagement']
         ];
@@ -83,7 +86,7 @@ window.TvXDetail = (function() {
         const primary = document.querySelector('[data-testid="primaryColumn"]');
         const articles = Array.from(primary?.querySelectorAll('article[data-testid="tweet"]') || []);
         const id = route.match(/\/status\/(\d+)/)?.[1];
-        const selected = articles.find(article => findStatusLink(article)?.getAttribute('href')?.match(/\/status\/(\d+)$/)?.[1] === id);
+        const selected = articles.find(article => ownStatusLink(article, findStatusLink)?.getAttribute('href')?.match(/\/status\/(\d+)$/)?.[1] === id);
         if (root && root !== selected) savedPostScroll = root.scrollTop;
         clearMarks();
         root = selected || null;
@@ -91,7 +94,7 @@ window.TvXDetail = (function() {
             mark(root, 'post');
             root.classList.remove('tv-focused');
             for (let parent = root.parentElement; parent && parent !== primary; parent = parent.parentElement) mark(parent, 'post-ancestor');
-            formatArticle(root);
+            formatArticle(root, ownStatusLink(root, findStatusLink));
             if (savedPostScroll) root.scrollTop = savedPostScroll;
         }
         for (const article of articles) {
@@ -140,5 +143,5 @@ window.TvXDetail = (function() {
         return true;
     }
 
-    return { update, move };
+    return { update, move, statusLink: ownStatusLink };
 })();

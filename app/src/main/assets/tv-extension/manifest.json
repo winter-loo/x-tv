@@ -33,6 +33,7 @@
       "js": [
         "runtime/navigation-runtime.js",
         "sites/x/reading.js",
+        "sites/x/post-identity.js",
         "sites/x/detail.js",
         "sites/x/actions.js",
         "sites/x/adapter.js",

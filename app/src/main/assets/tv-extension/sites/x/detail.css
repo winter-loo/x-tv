@@ -63,3 +63,5 @@ body.tv-detail-active .tv-detail-reply .tv-detail-engagement svg { width:calc(24
 #tv-detail-entry button { display:flex; align-items:center; gap:calc(16 * var(--tv-u)); }
 #tv-detail-entry img { width:calc(52 * var(--tv-u)); height:calc(52 * var(--tv-u)); object-fit:cover; border-radius:50%; }
 #tv-detail-entry img[hidden] { display:none; }
+
+body.tv-detail-active .tv-detail-post .tv-detail-time { grid-column:1/-1; font-size:calc(28 * var(--tv-u)) !important; line-height:calc(36 * var(--tv-u)) !important; color:var(--tv-muted) !important; }
