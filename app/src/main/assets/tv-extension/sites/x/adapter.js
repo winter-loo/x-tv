@@ -136,13 +136,17 @@ window.TvXAdapter = (function() {
                 if (isLoginMode()) checkNativeLoginProgression();
             }, 50);
         };
-        observer = new MutationObserver(refreshPage);
+        observer = new MutationObserver(records => {
+            // X positions virtual rows with inline styles after measuring their media.
+            if (!records || records.some(record => record.type !== "attributes" || record.attributeName !== "style" ||
+                record.target.getAttribute("data-testid") === "cellInnerDiv")) refreshPage();
+        });
         observer.observe(document.body || document.documentElement, {
             childList: true,
             subtree: true,
             characterData: true,
             attributes: true,
-            attributeFilter: ["href", "src", "aria-selected", "data-testid"]
+            attributeFilter: ["href", "src", "aria-selected", "data-testid", "style"]
         });
         window.addEventListener("popstate", refreshPage);
         window.addEventListener("resize", refreshPage);
