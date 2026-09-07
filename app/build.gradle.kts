@@ -1,0 +1,45 @@
+plugins {
+    id("com.android.application")
+}
+
+android {
+    namespace = "cn.deeloo.tvxbrowser"
+    compileSdk = 36
+
+    defaultConfig {
+        applicationId = "cn.deeloo.tvxbrowser"
+        minSdk = 28
+        targetSdk = 28
+        versionCode = 1
+        versionName = "0.1.0"
+
+        ndk {
+            abiFilters.addAll(listOf("armeabi-v7a"))
+        }
+    }
+
+    buildFeatures {
+        buildConfig = true
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    lint {
+        disable += "ExpiredTargetSdkVersion"
+    }
+}
+
+dependencies {
+    implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("androidx.core:core:1.13.1")
+    implementation("org.mozilla.geckoview:geckoview-omni-armeabi-v7a:155.0.20260826195058")
+}
+
+afterEvaluate {
+    tasks.matching { it.name.contains("AarMetadata") }.configureEach {
+        enabled = false
+    }
+}

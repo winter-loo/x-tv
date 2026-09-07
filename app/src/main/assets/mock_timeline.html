@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X TV Mock Timeline Fixture</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: #000000;
+            color: #e7e9ea;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 16px 100px 16px;
+        }
+        .header {
+            width: 100%;
+            max-width: 860px;
+            margin-bottom: 24px;
+            text-align: center;
+            border-bottom: 1px solid #2f3336;
+            padding-bottom: 16px;
+        }
+        .header h1 {
+            font-size: 28px;
+            color: #1d9bf0;
+            margin-bottom: 8px;
+        }
+        .header .hud {
+            font-size: 15px;
+            color: #71767b;
+            font-family: monospace;
+            display: flex;
+            justify-content: space-around;
+            background: #16181c;
+            padding: 10px 16px;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+        .timeline-container {
+            width: 100%;
+            max-width: 860px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .timeline-card {
+            background-color: #12151c;
+            border: 2px solid #232a35;
+            border-radius: 18px;
+            padding: 24px 28px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            cursor: pointer;
+            transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1),
+                        box-shadow 0.16s ease,
+                        outline 0.16s ease;
+            position: relative;
+        }
+        .timeline-card.tv-focused {
+            outline: 4px solid #1d9bf0 !important;
+            outline-offset: 3px !important;
+            box-shadow: 0 0 32px rgba(29, 155, 240, 0.8), 0 12px 36px rgba(0, 0, 0, 0.7) !important;
+            transform: scale(1.02) !important;
+            z-index: 100 !important;
+            background-color: #161c26 !important;
+        }
+        .timeline-card.tv-focused::before {
+            content: "▶";
+            position: absolute;
+            left: -28px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            color: #1d9bf0;
+            filter: drop-shadow(0 0 6px #1d9bf0);
+        }
+        .card-author {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1d9bf0, #7928ca);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .author-names {
+            display: flex;
+            flex-direction: column;
+        }
+        .author-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+        }
+        .author-handle {
+            font-size: 14px;
+            color: #71767b;
+        }
+        .card-content {
+            font-size: 20px;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        .card-media {
+            width: 100%;
+            height: 240px;
+            border-radius: 14px;
+            background: #1e2530;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8b949e;
+            font-size: 16px;
+            border: 1px solid #30363d;
+        }
+        /* Modal Lightbox for Back-Key Testing */
+        #tv-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        #tv-modal.active {
+            display: flex;
+        }
+        .modal-box {
+            background: #16181c;
+            border: 2px solid #1d9bf0;
+            border-radius: 20px;
+            padding: 36px 40px;
+            max-width: 650px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(29, 155, 240, 0.5);
+        }
+        .modal-box h2 {
+            font-size: 26px;
+            color: #1d9bf0;
+            margin-bottom: 16px;
+        }
+        .modal-box p {
+            font-size: 18px;
+            color: #d6d9db;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+        .close-btn {
+            background: #1d9bf0;
+            color: #fff;
+            border: none;
+            border-radius: 24px;
+            padding: 12px 32px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>X TV 本地时间线验证 (Phase B Fixture)</h1>
+        <div class="hud">
+            <div>遥控器焦点: <span id="hud-focus" style="color:#1d9bf0;">0</span></div>
+            <div>弹层状态: <span id="hud-overlay" style="color:#f0883e;">关闭</span></div>
+            <div>按键: D-pad 上/下移动 | OK 打开详情 | Back 关闭弹层</div>
+        </div>
+    </div>
+
+    <div class="timeline-container">
+        <!-- 10 Mock Timeline Cards -->
+        <article class="timeline-card" data-tweet-id="1001">
+            <div class="card-author">
+                <div class="avatar">X</div>
+                <div class="author-names">
+                    <span class="author-title">X Updates</span>
+                    <span class="author-handle">@X · 10m</span>
+                </div>
+            </div>
+            <div class="card-content">
+                欢迎使用 Android TV X 浏览器！这是专为大屏与遥控器优化的高沉浸式时间线体验。
+            </div>
+            <div class="card-media">📺 1080p 视频卡片 (按 OK 展开弹层详情)</div>
+        </article>
+
+        <article class="timeline-card" data-tweet-id="1002">
+            <div class="card-author">
+                <div class="avatar" style="background:#238636;">D</div>
+                <div class="author-names">
+                    <span class="author-title">当贝实验室</span>
+                    <span class="author-handle">@DangbeiLab · 25m</span>
+                </div>
+            </div>
+            <div class="card-content">
+                GeckoView 在当贝 DBD5X Pro (Mali-G52 GPU / 32位 arm) 上运行平稳，图形硬件加速正常运作。
+            </div>
+        </article>
+
+        <article class="timeline-card" data-tweet-id="1003">
+            <div class="card-author">
+                <div class="avatar" style="background:#da3633;">M</div>
+                <div class="author-names">
+                    <span class="author-title">Mozilla GeckoView</span>
+                    <span class="author-handle">@MozillaGecko · 45m</span>
+                </div>
+            </div>
+            <div class="card-content">
+                内置 WebExtension 与 Native Messaging 通信链路正式打通，D-pad 高层意图可在 10ms 内直达 DOM。
+            </div>
+            <div class="card-media">🚀 WebExtension Native Messaging 架构图</div>
+        </article>
+
+        <article class="timeline-card" data-tweet-id="1004">
+            <div class="card-author">
+                <div class="avatar" style="background:#f0883e;">T</div>
+                <div class="author-names">
+                    <span class="author-title">TV Remote Engine</span>
+                    <span class="author-handle">@TvRemote · 1h</span>
+                </div>
+            </div>
+            <div class="card-content">
+                支持 100ms 按键防抖与节流，快速连续长按下键时平滑滚动不会出现排队堵塞。
+            </div>
+        </article>
+
+        <article class="timeline-card" data-tweet-id="1005">
+            <div class="card-author">
+                <div class="avatar" style="background:#8957e5;">A</div>
+                <div class="author-names">
+                    <span class="author-title">Adapter Architecture</span>
+                    <span class="author-handle">@AdapterOrg · 2h</span>
+                </div>
+            </div>
+            <div class="card-content">
+                站点适配器隔离完成：Android 宿主不包含任何 X DOM 私有选择器，未来可自由横向扩展 YouTube 等站点。
+            </div>
+        </article>
+
+        <article class="timeline-card" data-tweet-id="1006">
+            <div class="card-author">
+                <div class="avatar" style="background:#0969da;">C</div>
+                <div class="author-names">
+                    <span class="author-title">CSS Stylizer</span>
+                    <span class="author-handle">@TvCss · 3h</span>
+                </div>
+            </div>
+            <div class="card-content">
+                侧边导航栏与推荐栏已隐藏，主内容区居中并优化了适度宽度与字号比例。
+            </div>
+        </article>
+
+        <article class="timeline-card" data-tweet-id="1007">
+            <div class="card-author">
+                <div class="avatar" style="background:#2da44e;">V</div>
+                <div class="author-names">
+                    <span class="author-title">Virtual List Tracker</span>
+                    <span class="author-handle">@VirtualList · 4h</span>
+                </div>
+            </div>
+            <div class="card-content">
+                针对虚拟列表 DOM 回收机制，已实现基于 status 锚点的焦点持续定位与近邻恢复。
+            </div>
+        </article>
+
+        <article class="timeline-card" data-tweet-id="1008">
+            <div class="card-author">
+                <div class="avatar" style="background:#bf8700;">H</div>
+                <div class="author-names">
+                    <span class="author-title">Hierarchical Back</span>
+                    <span class="author-handle">@BackStack · 5h</span>
+                </div>
+            </div>
+            <div class="card-content">
+                分级返回栈：优先关闭图片或视频弹窗，若无弹层则后退网页历史，首页顶部按返回安全退出应用。
+            </div>
+        </article>
+    </div>
+
+    <!-- Modal Dialog Lightbox -->
+    <div id="tv-modal" role="dialog" aria-modal="true">
+        <div class="modal-box">
+            <h2>帖子媒体详情已展开</h2>
+            <p>此时弹层处于激活状态。按遥控器【返回键】，适配器将优先消费该事件并关闭弹层，而不会误退出页面！</p>
+            <button class="close-btn" aria-label="Close" onclick="closeModal()">关闭弹层 (Back)</button>
+        </div>
+    </div>
+
+    <script>
+        // Modal Open / Close logic
+        function openModal() {
+            document.getElementById('tv-modal').classList.add('active');
+            document.getElementById('hud-overlay').textContent = "激活";
+            document.getElementById('hud-overlay').style.color = "#238636";
+        }
+        function closeModal() {
+            document.getElementById('tv-modal').classList.remove('active');
+            document.getElementById('hud-overlay').textContent = "关闭";
+            document.getElementById('hud-overlay').style.color = "#f0883e";
+        }
+
+        // Clicking a card opens modal
+        document.querySelectorAll('.timeline-card').forEach((card, idx) => {
+            card.addEventListener('click', () => {
+                openModal();
+            });
+        });
+
+        // Update HUD on focus change
+        const observer = new MutationObserver(() => {
+            const focused = document.querySelector('.timeline-card.tv-focused');
+            if (focused) {
+                const cards = Array.from(document.querySelectorAll('.timeline-card'));
+                const index = cards.indexOf(focused);
+                document.getElementById('hud-focus').textContent = index + " (" + (focused.getAttribute('data-tweet-id') || "") + ")";
+            }
+        });
+        observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class'] });
+    </script>
+</body>
+</html>

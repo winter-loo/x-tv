@@ -1,0 +1,59 @@
+# TV X Browser
+
+当贝投影仪上的 X 浏览器原型：GeckoView + 内置 WebExtension，提供大屏登录界面和遥控器时间线导航。
+
+## 当前进度（2026-09-06）
+
+Google 登录链路已完成本次真机验收：手机两步验证后进入真实 X 首页；强制停止应用进程并重新启动，仍保持 X 登录，无需再次输入账号或验证。
+
+- 大屏登录界面、用户名/密码代理输入、Google/Apple 入口已有实现；Apple 未验收。
+- Google 官方登录页已在 DBD5X Pro（Android 9、1920×1080）打开，显示“继续前往 X”和邮箱输入框。
+- 修复原生登录根节点 `display:none` 导致 Google iframe 尺寸为零的问题。
+- 使用 `GeckoSession.getClientToSurfaceMatrix` 将网页点击坐标转换成投影画面坐标。
+- Google 登录入口只点击实际 Google iframe，并显示原生授权界面；删除批量模拟点击和整页 Google 诊断输出。
+- `onNewSession` 返回未打开的会话，由 GeckoView 建立 opener；弹窗退出恢复主会话及大屏登录界面。
+- 删除用户名/密码值的控制台日志。
+- 仅在提交用户名后允许自动切换到密码步骤，避免后台密码字段让 Google 取消流程误入密码页。
+- 补齐 TV 桌面横幅；移除吞掉未捕获异常的调试处理，恢复 Android 默认崩溃处理。
+
+验证：`assembleDebug lintDebug` 成功（仍有 8 条警告）；Google 弹窗检查已通过，并目视确认官方账号输入页。
+
+最终真机复测：Google 弹窗打开通过；按一次返回恢复用户名登录页且焦点落在 Google 按钮；后台密码字段误判的 Node 回归检查通过。
+
+账号实测补充：此前过期后重试的 Google 授权页在手机确认后出现过 HTTP 400。关闭该弹窗、从 X 重新进入 Google 入口后，已登录 Google 账号可直接选择，授权弹窗自动关闭，X 随后加载真实时间线。未修改请求参数、未清除应用数据；400 的具体原因尚未定位。
+
+登录保持实测：执行 `am force-stop cn.deeloo.tvxbrowser` 后启动应用，等待首页加载完成，账号头像与真实时间线恢复。未测试投影仪重启及长期会话过期。
+
+首页显示修复已安装并在真机验证：加载中保留原生加载状态，不再把 `/home`、空时间线或普通弹窗当成登录页；从 X 主容器的祖先节点到内容列统一宽度约束，使真实时间线居中；统一深色页头、正文和操作区，修正文字对比度及固定页签栏透底。保留图片和视频本身的颜色。
+
+验证：扩展登录状态检查覆盖加载中首页、空时间线、普通弹窗、未登录落地页；`assembleDebug lintDebug` 通过；真机冷启动保持登录，首页加载无登录覆盖层，向下键能移动帖子焦点，滚动时固定页签栏背景不透底。
+
+后续待验收：Apple 登录、用户名/密码全流程及完整遥控器浏览体验。
+
+## 构建与检查
+
+```sh
+./gradlew assembleDebug lintDebug --console=plain
+adb -s 192.168.10.100:5555 install -r app/build/outputs/apk/debug/app-debug.apk
+adb -s 192.168.10.100:5555 shell am start -n cn.deeloo.tvxbrowser/.BrowserActivity --es url https://x.com/i/flow/login
+```
+
+等 X 登录页和 Google 按钮加载完成，执行：
+
+```sh
+node scripts/check-google-popup.mjs
+node scripts/check-login-state.mjs
+```
+
+脚本点击 Google 入口，检查是否创建弹窗、是否发生会话异常、是否完成页面加载；不输入账号，不输出原始 OAuth URL。页面内容仍需观察真机确认。可通过 `TVX_ADB_SERIAL` 指定其他设备。
+
+手动验收：在大屏登录页按下键选中 Google，确认进入官方登录页；返回一次应恢复大屏 Google 按钮焦点；再次确认应能重新打开官方登录页。
+
+截图请先在设备保存再拉取，投影仪 `exec-out screencap` 的标准输出可能混入厂商日志：
+
+```sh
+adb -s 192.168.10.100:5555 shell screencap -p /sdcard/tvx-check.png
+adb -s 192.168.10.100:5555 pull /sdcard/tvx-check.png /tmp/tvx-check.png
+```
+
+此目录已初始化 Git（`main` 分支），远程仓库为 [winter-loo/x-tv](https://github.com/winter-loo/x-tv)。项目仍有原型级配置（旧 targetSdk、开启远程调试、广泛扩展权限），正式发布前需要另做发布检查。

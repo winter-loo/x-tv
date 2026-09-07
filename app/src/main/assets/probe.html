@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeckoView TV Probe</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: #0b0e14;
+            color: #e6edf3;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 24px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        h1 {
+            font-size: 32px;
+            color: #1d9bf0;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            font-size: 16px;
+            color: #8b949e;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+            margin-bottom: 24px;
+        }
+        .card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .card h2 {
+            font-size: 18px;
+            margin-bottom: 12px;
+            color: #58a6ff;
+        }
+        .status {
+            font-size: 14px;
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-bottom: 8px;
+        }
+        .status.ok {
+            background: #238636;
+            color: #fff;
+        }
+        .status.fail {
+            background: #da3633;
+            color: #fff;
+        }
+        canvas {
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            background: #000;
+        }
+        .key-box {
+            width: 100%;
+            max-width: 1000px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+        .key-display {
+            font-size: 24px;
+            color: #7ee787;
+            font-family: monospace;
+            margin-top: 8px;
+            min-height: 36px;
+        }
+        .info-box {
+            width: 100%;
+            max-width: 1000px;
+            margin-top: 16px;
+            font-size: 13px;
+            color: #8b949e;
+            font-family: monospace;
+            background: #10141b;
+            padding: 12px;
+            border-radius: 8px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>GeckoView TV 探针</h1>
+        <div class="subtitle">当贝 DBD5X Pro (Android 9 / armeabi-v7a) 运行环境验证</div>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h2>Canvas 2D 渲染</h2>
+            <div id="canvas-status" class="status">检测中...</div>
+            <canvas id="canvas2d" width="160" height="120"></canvas>
+        </div>
+
+        <div class="card">
+            <h2>WebGL 硬件加速</h2>
+            <div id="webgl-status" class="status">检测中...</div>
+            <canvas id="canvasWebgl" width="160" height="120"></canvas>
+        </div>
+
+        <div class="card">
+            <h2>JavaScript & 动画</h2>
+            <div id="js-status" class="status ok">JS 正常 (60fps)</div>
+            <div id="fps-counter" style="font-size: 28px; font-weight: bold; color: #f0883e; margin-top: 30px;">-- FPS</div>
+        </div>
+    </div>
+
+    <div class="key-box">
+        <div style="font-size: 16px; color: #8b949e;">按遥控器按键测试 (上下左右 / 确定 / 返回)</div>
+        <div id="last-key" class="key-display">等待遥控器输入...</div>
+    </div>
+
+    <div id="system-info" class="info-box">系统信息加载中...</div>
+
+    <script>
+        // 1. Canvas 2D
+        try {
+            const c2d = document.getElementById('canvas2d');
+            const ctx = c2d.getContext('2d');
+            let angle = 0;
+            function draw2D() {
+                ctx.fillStyle = '#10141b';
+                ctx.fillRect(0, 0, c2d.width, c2d.height);
+                ctx.save();
+                ctx.translate(80, 60);
+                ctx.rotate(angle);
+                ctx.fillStyle = '#1d9bf0';
+                ctx.fillRect(-25, -25, 50, 50);
+                ctx.restore();
+                angle += 0.04;
+            }
+            document.getElementById('canvas-status').className = 'status ok';
+            document.getElementById('canvas-status').textContent = 'Canvas 2D 正常';
+        } catch (e) {
+            document.getElementById('canvas-status').className = 'status fail';
+            document.getElementById('canvas-status').textContent = 'Canvas 异常: ' + e;
+        }
+
+        // 2. WebGL
+        try {
+            const glCanvas = document.getElementById('canvasWebgl');
+            const gl = glCanvas.getContext('webgl') || glCanvas.getContext('experimental-webgl');
+            if (gl) {
+                const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                const renderer = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : 'Unknown';
+                document.getElementById('webgl-status').className = 'status ok';
+                document.getElementById('webgl-status').textContent = 'WebGL 正常';
+
+                let hue = 0;
+                function drawGL() {
+                    hue = (hue + 0.01) % 1;
+                    gl.clearColor(0.1, hue * 0.5, 0.4, 1.0);
+                    gl.clear(gl.COLOR_BUFFER_BIT);
+                }
+            } else {
+                throw new Error('WebGL not supported');
+            }
+        } catch (e) {
+            document.getElementById('webgl-status').className = 'status fail';
+            document.getElementById('webgl-status').textContent = 'WebGL 不可用';
+        }
+
+        // 3. FPS & RAF Loop
+        let frameCount = 0;
+        let lastTime = performance.now();
+        function loop(now) {
+            frameCount++;
+            if (now - lastTime >= 1000) {
+                const fps = Math.round((frameCount * 1000) / (now - lastTime));
+                document.getElementById('fps-counter').textContent = fps + ' FPS';
+                frameCount = 0;
+                lastTime = now;
+            }
+            if (window.draw2D) draw2D();
+            if (window.drawGL) drawGL();
+            requestAnimationFrame(loop);
+        }
+        requestAnimationFrame(loop);
+
+        // 4. Remote Key Event Listener
+        window.addEventListener('keydown', (e) => {
+            const keyText = `Key: ${e.key} | Code: ${e.code} | KeyCode: ${e.keyCode}`;
+            document.getElementById('last-key').textContent = keyText;
+        });
+
+        // 5. System Info
+        document.getElementById('system-info').textContent =
+            `UA: ${navigator.userAgent} | Screen: ${screen.width}x${screen.height} (Ratio: ${window.devicePixelRatio}) | Viewport: ${window.innerWidth}x${window.innerHeight}`;
+    </script>
+</body>
+</html>

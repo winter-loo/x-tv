@@ -1,0 +1,359 @@
+/* ==========================================================================
+   Android TV X (x.com) Stylizer Baseline
+   Transforms desktop/mobile web X into an immersive 1080p Leanback UI.
+   ========================================================================== */
+
+/* 1. Global Page Background & Scrollbar */
+html, body {
+    background-color: #090d14 !important;
+    overflow-x: hidden !important;
+    scrollbar-width: none !important;
+}
+::-webkit-scrollbar {
+    display: none !important;
+}
+
+/* 2. Hide Desktop Navigation Bars & Sidebars on Timeline */
+header[role="banner"] {
+    display: none !important;
+}
+div[data-testid="sidebarColumn"] {
+    display: none !important;
+}
+div[data-testid="BottomBar"] {
+    display: none !important;
+}
+
+/* 3. Center and Scale Primary Timeline */
+body.tv-timeline-active .tv-main-ancestor {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+}
+
+body.tv-timeline-active main[role="main"] {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+    max-width: 820px !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    margin: 0 auto !important;
+    padding: 24px 24px 60px !important;
+    box-sizing: border-box !important;
+}
+
+body.tv-timeline-active .tv-column-ancestor,
+body.tv-timeline-active div[data-testid="primaryColumn"] {
+    max-width: 100% !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    border: none !important;
+    margin: 0 auto !important;
+}
+
+/* Override X's light-theme surfaces without altering media or Google authorization. */
+body.tv-timeline-active [data-testid="primaryColumn"],
+body.tv-timeline-active [data-testid="primaryColumn"] div {
+    background-color: transparent !important;
+    border-color: #273344 !important;
+    color: #e7e9ea !important;
+}
+body.tv-timeline-active [data-testid="primaryColumn"] {
+    color: #e7e9ea !important;
+    color-scheme: dark;
+}
+body.tv-timeline-active [data-testid="primaryColumn"] :is(span, [dir="auto"], textarea, [contenteditable="true"]) {
+    color: #e7e9ea !important;
+}
+body.tv-timeline-active [data-testid="primaryColumn"] a :is(span, [dir="auto"]) {
+    color: #64b5ed !important;
+}
+body.tv-timeline-active [data-testid="primaryColumn"] svg {
+    color: #9eafc2 !important;
+}
+body.tv-timeline-active [role="tablist"] {
+    background: #0f1722 !important;
+    border-bottom: 1px solid #273344 !important;
+}
+body.tv-timeline-active [data-testid="primaryColumn"] div.tv-timeline-header {
+    background-color: #0f1722 !important;
+    z-index: 300 !important;
+}
+body.tv-timeline-active [role="tab"][aria-selected="true"] {
+    box-shadow: inset 0 -3px #1d9bf0 !important;
+}
+body.tv-timeline-active [data-testid="primaryColumn"] :is(button, [role="button"]) {
+    color: #e7e9ea !important;
+}
+body.tv-timeline-active [data-testid="tweetButtonInline"] {
+    background-color: #176da6 !important;
+}
+
+/* 4. Card-ify Tweets with High-Contrast TV Outline */
+article[data-testid="tweet"],
+article[role="article"] {
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box !important;
+    background-color: #12151c !important;
+    border: 2px solid #232a35 !important;
+    border-radius: 18px !important;
+    margin: 18px 0 !important;
+    padding: 22px 28px !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4) !important;
+    transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.16s ease,
+                outline 0.16s ease !important;
+    cursor: pointer !important;
+}
+
+/* 5. Typography Scale-up for 2-3 Meter Viewing */
+article[data-testid="tweet"] [dir="auto"],
+article[role="article"] [dir="auto"] {
+    font-size: 1.25rem !important;
+    line-height: 1.65 !important;
+    color: #e7e9ea !important;
+}
+
+/* User names and handles */
+article [data-testid="User-Name"] {
+    font-size: 1.15rem !important;
+    margin-bottom: 8px !important;
+}
+
+/* Media Cards and Video */
+article [data-testid="tweetPhoto"],
+article [data-testid="videoPlayer"] {
+    border-radius: 14px !important;
+    overflow: hidden !important;
+    margin-top: 14px !important;
+    max-height: 520px !important;
+}
+
+/* TV Focus Outline for Timeline Cards */
+article.tv-focused,
+.timeline-card.tv-focused {
+    outline: 4px solid #1d9bf0 !important;
+    outline-offset: 3px !important;
+    box-shadow: 0 0 35px rgba(29, 155, 240, 0.95), 0 10px 30px rgba(0, 0, 0, 0.8) !important;
+    transform: scale(1.025) !important;
+    z-index: 200 !important;
+    position: relative !important;
+}
+
+/* ==========================================================================
+   6. Complete Custom WebExtension TV Login Stage (100% 独立 UI，彻底消除原生网页)
+   ========================================================================== */
+
+/* Keep native #layers mounted with opacity: 0 so Google buttons/iframes stay active and laid out */
+body.tv-custom-login-active #react-root {
+    opacity: 0 !important;
+}
+body.tv-custom-login-active #layers {
+    opacity: 0 !important;
+    pointer-events: auto !important;
+}
+
+/* Fullscreen TV Login Viewport Stage */
+#tv-custom-login-stage {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: radial-gradient(ellipse at 50% 30%, #111827 0%, #06090e 100%) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 2147483647 !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+    box-sizing: border-box !important;
+    user-select: none !important;
+    overflow: hidden !important;
+}
+
+/* TV Center Console Card */
+.tv-login-card {
+    background: rgba(17, 23, 34, 0.96) !important;
+    border: 2px solid #27354a !important;
+    border-radius: 32px !important;
+    box-shadow: 0 30px 100px rgba(0, 0, 0, 0.95), 0 0 60px rgba(29, 155, 240, 0.25) !important;
+    width: 520px !important;
+    padding: 40px 48px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    backdrop-filter: blur(25px) !important;
+    animation: tvFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+@keyframes tvFadeIn {
+    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Centered Glowing X Logo */
+.tv-login-logo {
+    width: 48px !important;
+    height: 48px !important;
+    margin-bottom: 20px !important;
+    fill: #ffffff !important;
+    filter: drop-shadow(0 0 16px rgba(29, 155, 240, 0.8)) !important;
+}
+
+.tv-login-title {
+    font-size: 26px !important;
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    margin: 0 0 6px 0 !important;
+    text-align: center !important;
+    letter-spacing: -0.3px !important;
+}
+
+.tv-login-subtitle {
+    font-size: 14px !important;
+    color: #8b98a5 !important;
+    margin: 0 0 24px 0 !important;
+    text-align: center !important;
+}
+
+/* Form Container */
+.tv-form-container {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+}
+
+/* Error Alert Box */
+.tv-error-badge {
+    background: rgba(244, 33, 46, 0.15) !important;
+    border: 1.5px solid #f4212e !important;
+    border-radius: 12px !important;
+    padding: 10px 16px !important;
+    color: #f4212e !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    text-align: center !important;
+    display: none;
+}
+
+/* High-Contrast Input Field */
+.tv-input-wrapper {
+    position: relative !important;
+    width: 100% !important;
+}
+
+.tv-login-input {
+    width: 100% !important;
+    height: 56px !important;
+    background: #090d14 !important;
+    border: 2px solid #2d3b50 !important;
+    border-radius: 16px !important;
+    padding: 0 20px !important;
+    font-size: 18px !important;
+    color: #ffffff !important;
+    outline: none !important;
+    box-sizing: border-box !important;
+    transition: all 0.2s ease !important;
+}
+
+.tv-login-input::placeholder {
+    color: #536471 !important;
+    font-size: 16px !important;
+}
+
+/* Action Buttons */
+.tv-btn {
+    width: 100% !important;
+    height: 52px !important;
+    border-radius: 26px !important;
+    font-size: 17px !important;
+    font-weight: 700 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 12px !important;
+    cursor: pointer !important;
+    border: 2px solid transparent !important;
+    box-sizing: border-box !important;
+    transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.18s ease,
+                background-color 0.18s ease,
+                outline 0.18s ease !important;
+}
+
+.tv-btn-primary {
+    background: #1d9bf0 !important;
+    color: #ffffff !important;
+}
+
+.tv-btn-oauth {
+    background: #151d29 !important;
+    border-color: #2a374c !important;
+    color: #e7e9ea !important;
+    font-weight: 600 !important;
+}
+
+.tv-btn-oauth svg {
+    width: 22px !important;
+    height: 22px !important;
+}
+
+/* Section Divider */
+.tv-login-divider {
+    display: flex !important;
+    align-items: center !important;
+    text-align: center !important;
+    margin: 4px 0 !important;
+    color: #536471 !important;
+    font-size: 13px !important;
+}
+
+.tv-login-divider::before,
+.tv-login-divider::after {
+    content: '' !important;
+    flex: 1 !important;
+    border-bottom: 1px solid #273344 !important;
+}
+
+.tv-hidden {
+    display: none !important;
+}
+
+/* TV Focus Glow and Indicator */
+.tv-custom-focused {
+    outline: 4px solid #1d9bf0 !important;
+    outline-offset: 3px !important;
+    box-shadow: 0 0 35px rgba(29, 155, 240, 0.95), 0 10px 30px rgba(0, 0, 0, 0.8) !important;
+    transform: scale(1.03) !important;
+    z-index: 100 !important;
+    position: relative !important;
+}
+
+.tv-btn-oauth.tv-custom-focused {
+    background: #223046 !important;
+    border-color: #1d9bf0 !important;
+}
+
+.tv-login-input.tv-custom-focused {
+    background: #0d1522 !important;
+    border-color: #1d9bf0 !important;
+}
+
+/* TV Cursor Flag on Focused Item */
+.tv-custom-focused::before {
+    content: "▶";
+    position: absolute;
+    left: -26px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #1d9bf0;
+    filter: drop-shadow(0 0 8px #1d9bf0);
+}

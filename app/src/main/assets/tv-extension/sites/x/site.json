@@ -1,0 +1,16 @@
+{
+  "id": "x",
+  "name": "X (formerly Twitter)",
+  "apiVersion": 1,
+  "matches": [
+    "*://*.x.com/*",
+    "*://x.com/*",
+    "*://*.twitter.com/*",
+    "*://twitter.com/*"
+  ],
+  "capabilities": [
+    "vertical-navigation",
+    "activate",
+    "back"
+  ]
+}

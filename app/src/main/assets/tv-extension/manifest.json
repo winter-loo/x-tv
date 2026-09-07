@@ -1,0 +1,42 @@
+{
+  "manifest_version": 2,
+  "name": "TV X Extension",
+  "version": "1.0",
+  "description": "Remote-first TV navigation and CSS adapter for X",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "tv-extension@deeloo.cn"
+    }
+  },
+  "permissions": [
+    "geckoViewAddons",
+    "nativeMessaging",
+    "nativeMessagingFromContent",
+    "tabs",
+    "<all_urls>"
+  ],
+  "background": {
+    "scripts": [
+      "runtime/background.js"
+    ]
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "match_about_blank": true,
+      "all_frames": false,
+      "js": [
+        "runtime/navigation-runtime.js",
+        "sites/x/adapter.js",
+        "runtime/adapter-registry.js",
+        "runtime/content.js"
+      ],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    "sites/x/tv.css"
+  ]
+}
