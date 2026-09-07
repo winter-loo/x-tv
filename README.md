@@ -13,7 +13,11 @@
 
 焦点使用帖子链接标识，避免虚拟列表回收或插入帖子后误打开另一条。无法识别的帖子不执行猜测点击；未加载、空时间线和登录页面分别处理。菜单、点赞与回复等后续交互在其他 tickets 中实现。
 
-## 当前进度（2026-09-06）
+## 当前进度（2026-09-07）
+
+#1 平衡阅读布局已完成验收：9 项 Firefox DOM 回归、150 条真实帖子连续导航、真实 X Article 显示、详情往返、返回顶部、Google 登录与冷启动登录保持均通过。GeckoView 已更新至 `155.0.20260903215306`，修复真机 RGB PNG 解码崩溃。详见 [验收记录](docs/validation/issue-1.md)。
+
+## 原型阶段记录（2026-09-06）
 
 Google 登录链路已完成本次真机验收：手机两步验证后进入真实 X 首页；强制停止应用进程并重新启动，仍保持 X 登录，无需再次输入账号或验证。
 
@@ -42,6 +46,16 @@ Google 登录链路已完成本次真机验收：手机两步验证后进入真�
 后续待验收：Apple 登录、用户名/密码全流程及完整遥控器浏览体验。
 
 ## 构建与检查
+
+阅读界面的 Firefox DOM 回归：
+
+```sh
+npm ci
+TMPDIR=/var/tmp npx playwright install firefox
+npm test
+```
+
+测试边界和真机 PNG 解码复现见 [tests/README.md](tests/README.md)，#1 的验收证据见 [docs/validation/issue-1.md](docs/validation/issue-1.md)。
 
 ```sh
 ./gradlew assembleDebug lintDebug --console=plain
