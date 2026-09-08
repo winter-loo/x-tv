@@ -143,3 +143,45 @@ test('an explicit current login route takes precedence over a background timelin
     });
     await expect(page.locator('#tv-custom-login-stage')).toBeVisible();
 });
+
+test('high-frequency remote D-pad navigation reuses cached article bounds and prevents event queue drift', async ({ page }) => {
+    const posts = Array.from({ length: 10 }, (_, i) => post({ id: String(100 + i), text: `Post ${i}` }));
+    await mount(page, posts);
+    await expect(page.locator('article.tv-focused')).toHaveAttribute('data-fixture-id', '100');
+
+    // Instrument getBoundingClientRect to count layout reflows during navigation
+    await page.evaluate(() => {
+        window.rectCallCount = 0;
+        const orig = Element.prototype.getBoundingClientRect;
+        Element.prototype.getBoundingClientRect = function() {
+            if (this.tagName?.toLowerCase() === 'article') {
+                window.rectCallCount++;
+            }
+            return orig.apply(this, arguments);
+        };
+    });
+
+    // Simulate rapid repeated keydown burst within a single tick (remote hardware repeat)
+    await page.keyboard.down('ArrowDown');
+    await page.evaluate(() => {
+        for (let i = 0; i < 5; i++) {
+            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', repeat: true, bubbles: true, cancelable: true }));
+        }
+    });
+    await page.keyboard.up('ArrowDown');
+
+    // Rapid burst within 80ms was throttled; focus stayed on 101 without queue overflow
+    await expect(page.locator('article.tv-focused')).toHaveAttribute('data-fixture-id', '101');
+
+    // Next discrete step
+    await page.keyboard.press('ArrowDown');
+    await expect(page.locator('article.tv-focused')).toHaveAttribute('data-fixture-id', '102');
+
+    // Up navigation restores previous item smoothly
+    await page.keyboard.press('ArrowUp');
+    await expect(page.locator('article.tv-focused')).toHaveAttribute('data-fixture-id', '101');
+
+    // Verify layout queries were bounded
+    const rectCalls = await page.evaluate(() => window.rectCallCount);
+    expect(rectCalls).toBeLessThan(100);
+});

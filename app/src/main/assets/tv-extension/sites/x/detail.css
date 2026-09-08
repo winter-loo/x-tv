@@ -48,6 +48,144 @@ body[data-tv-detail-column="post"] #tv-detail-post-focus, body[data-tv-detail-co
 #tv-detail-status { left:calc(96 * var(--tv-u)); }
 #tv-detail-reply-status { left:calc(1152 * var(--tv-u)); }
 
+@keyframes tv-shimmer {
+    0% { opacity:0.45; }
+    50% { opacity:0.95; }
+    100% { opacity:0.45; }
+}
+
+#tv-detail-status.tv-loading-shimmer {
+    animation: tv-shimmer 1.4s ease-in-out infinite;
+    color: #8da2b5;
+}
+
+#tv-detail-status.tv-status-error {
+    color: #f87171;
+}
+
+/* Loading Skeleton Card */
+#tv-detail-skeleton-card {
+    position: fixed;
+    top: calc(160 * var(--tv-u));
+    left: calc(96 * var(--tv-u));
+    width: calc(1008 * var(--tv-u));
+    height: calc(716 * var(--tv-u));
+    background: #0f141c;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: calc(16 * var(--tv-u));
+    padding: calc(32 * var(--tv-u));
+    box-sizing: border-box;
+    z-index: 402;
+    display: flex;
+    flex-direction: column;
+    gap: calc(24 * var(--tv-u));
+}
+
+.tv-skeleton-header {
+    display: flex;
+    align-items: center;
+    gap: calc(16 * var(--tv-u));
+}
+
+.tv-skeleton-avatar {
+    width: calc(64 * var(--tv-u));
+    height: calc(64 * var(--tv-u));
+    border-radius: 50%;
+    background: #1e293b;
+    animation: tv-shimmer 1.5s ease-in-out infinite;
+}
+
+.tv-skeleton-meta {
+    display: flex;
+    flex-direction: column;
+    gap: calc(10 * var(--tv-u));
+    flex: 1;
+}
+
+.tv-skeleton-line {
+    height: calc(20 * var(--tv-u));
+    border-radius: calc(8 * var(--tv-u));
+    background: #1e293b;
+    animation: tv-shimmer 1.5s ease-in-out infinite;
+}
+
+.tv-skeleton-line.short { width: 35%; }
+.tv-skeleton-line.tiny { width: 20%; }
+.tv-skeleton-line.three-quarters { width: 75%; }
+
+.tv-skeleton-body {
+    display: flex;
+    flex-direction: column;
+    gap: calc(14 * var(--tv-u));
+    padding-top: calc(12 * var(--tv-u));
+}
+
+.tv-skeleton-media {
+    flex: 1;
+    min-height: calc(240 * var(--tv-u));
+    border-radius: calc(14 * var(--tv-u));
+    background: #182234;
+    animation: tv-shimmer 1.5s ease-in-out infinite;
+}
+
+/* Friendly Error Card with 1-click Return */
+#tv-detail-error-card {
+    position: fixed;
+    top: calc(240 * var(--tv-u));
+    left: calc(96 * var(--tv-u));
+    width: calc(1008 * var(--tv-u));
+    background: #131a24;
+    border: 1px solid rgba(248, 113, 113, 0.25);
+    border-radius: calc(16 * var(--tv-u));
+    padding: calc(48 * var(--tv-u)) calc(40 * var(--tv-u));
+    box-sizing: border-box;
+    z-index: 404;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: calc(16 * var(--tv-u));
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+}
+
+.tv-error-icon {
+    margin-bottom: calc(8 * var(--tv-u));
+}
+
+.tv-error-title {
+    font-size: calc(32 * var(--tv-u));
+    font-weight: 600;
+    color: #f1f5f9;
+}
+
+.tv-error-desc {
+    font-size: calc(24 * var(--tv-u));
+    color: #94a3b8;
+    max-width: 80%;
+    line-height: 1.5;
+}
+
+.tv-error-back-btn {
+    margin-top: calc(16 * var(--tv-u));
+    height: calc(60 * var(--tv-u));
+    padding: 0 calc(36 * var(--tv-u));
+    border-radius: calc(12 * var(--tv-u));
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    background: #1e293b;
+    color: #38bdf8;
+    font-size: calc(24 * var(--tv-u));
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.tv-error-back-btn:focus, .tv-error-back-btn.tv-focused {
+    background: #38bdf8;
+    color: #0f172a;
+    box-shadow: 0 0 0 2px #38bdf8, 0 8px 20px rgba(56, 189, 248, 0.4);
+    transform: scale(1.04);
+}
+
 body.tv-detail-active .tv-detail-avatar img { width:100% !important; height:100% !important; object-fit:cover !important; border-radius:50%; }
 body.tv-detail-active .tv-detail-attachment [data-testid="article-cover-image"] img { width:100% !important; height:100% !important; object-fit:cover !important; }
 body.tv-detail-active .tv-detail-post .tv-detail-engagement :is(button,a) { display:flex !important; align-items:center !important; gap:calc(4 * var(--tv-u)) !important; }

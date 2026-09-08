@@ -61,6 +61,32 @@ test('loading, empty and unavailable details retain column focus and never activ
     await expect(page.locator('.tv-focused')).toHaveCount(0);
 });
 
+test('detail loading state machine shows loading without flashing unavailable when empty without progressbar', async ({ page }) => {
+    await mount(page, [post({ id: '101' }), post({ id: '102', text: 'Detail post text', article: true })]);
+    await move(page, 'down');
+    await activate(page);
+    // Emulate initial loading period before React renders anything
+    await page.evaluate(() => {
+        document.querySelector('[role="tablist"]')?.remove();
+        document.querySelector('#timeline').innerHTML = '';
+    });
+    // Must show '正在加载帖子…' with shimmer skeleton screen, and NEVER false unavailable error
+    await expect(page.locator('#tv-detail-status')).toHaveText('正在加载帖子…');
+    await expect(page.locator('#tv-detail-status')).toHaveClass(/tv-loading-shimmer/);
+    await expect(page.locator('#tv-detail-status')).not.toContainText('暂不可用');
+    await expect(page.locator('#tv-detail-skeleton-card')).toBeVisible();
+
+    // Tombstone (e.g. deleted tweet) immediately transitions to friendly error screen with 1-click return
+    await page.evaluate(() => {
+        document.querySelector('#timeline').innerHTML = '<div data-testid="tombstone">此帖已被删除</div>';
+    });
+    await expect(page.locator('#tv-detail-status')).toContainText('暂不可用');
+    await expect(page.locator('#tv-detail-status')).not.toHaveClass(/tv-loading-shimmer/);
+    await expect(page.locator('#tv-detail-skeleton-card')).toHaveCount(0);
+    await expect(page.locator('#tv-detail-error-card')).toBeVisible();
+    await expect(page.locator('#tv-detail-error-back')).toBeVisible();
+});
+
 test('Back dismisses a native overlay then restores the original home post after native routing', async ({ page }) => {
     await openDetail(page,[post({id:'201'})]);
     await expect(page.locator('#tv-detail-header')).toBeVisible();
@@ -266,6 +292,52 @@ test('composer supports remote-only navigation, focus cycling, and suppresses em
     await move(page, 'down');
     await move(page, 'right');
     await activate(page);
+    await expect(page.locator('#tv-detail-composer-overlay')).toHaveCount(0);
+});
+
+test('detail composer activates cursor on Enter, navigates via remote D-pad keys, and synchronizes voice IME input', async ({ page }) => {
+    await openDetail(page, [post({ id: '201' })]);
+    await move(page, 'right');
+    await move(page, 'right');
+    await activate(page);
+
+    const input = page.locator('#tv-composer-input');
+    const submit = page.locator('#tv-composer-submit');
+    const cancel = page.locator('#tv-composer-cancel');
+
+    // Initial focus on input
+    await expect(input).toBeFocused();
+
+    // Enter on input activates cursor / IME without submitting or inserting newline
+    await page.keyboard.press('Enter');
+    await expect(input).toBeFocused();
+    expect(await input.inputValue()).toBe('');
+
+    // Remote D-pad ArrowDown directly from textarea moves focus to Submit button
+    await page.keyboard.press('ArrowDown');
+    await expect(submit).toBeFocused();
+
+    // Remote D-pad ArrowUp moves back to input
+    await page.keyboard.press('ArrowUp');
+    await expect(input).toBeFocused();
+
+    // Remote D-pad ArrowUp from input moves to cancel button
+    await page.keyboard.press('ArrowUp');
+    await expect(cancel).toBeFocused();
+
+    // Voice IME input synchronization test
+    await page.keyboard.press('ArrowDown'); // back to input
+    await expect(input).toBeFocused();
+    await page.evaluate(() => {
+        const el = document.querySelector('#tv-composer-input');
+        el.value = 'Voice recognition result from Dangbei remote';
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('compositionend', { bubbles: true }));
+    });
+    await expect(submit).toHaveAttribute('aria-disabled', 'false');
+
+    // Escape closes composer and restores focus
+    await page.keyboard.press('Escape');
     await expect(page.locator('#tv-detail-composer-overlay')).toHaveCount(0);
 });
 

@@ -166,6 +166,17 @@ window.TvXActions = window.TvXActions || (function() {
         ].filter(Boolean) : [];
     }
 
+    function activateInput() {
+        const input = overlay?.querySelector('#tv-composer-input');
+        if (!input) return;
+        input.focus({ preventScroll: true });
+        const len = input.value ? input.value.length : 0;
+        try { input.setSelectionRange(len, len); } catch (_) {}
+        try {
+            input.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+        } catch (_) {}
+    }
+
     function focusComposer() {
         const items = composerItems();
         if (!items.length) return;
@@ -175,6 +186,11 @@ window.TvXActions = window.TvXActions || (function() {
             item.classList.toggle('tv-composer-focused', index === composerSelected);
         });
         items[composerSelected]?.focus({ preventScroll: true });
+        if (composerSelected === 0) {
+            const input = items[0];
+            const len = input.value ? input.value.length : 0;
+            try { input.setSelectionRange(len, len); } catch (_) {}
+        }
     }
 
     function openComposer() {
@@ -235,7 +251,7 @@ window.TvXActions = window.TvXActions || (function() {
             submitBtn.setAttribute('aria-disabled', 'true');
         }
 
-        input.addEventListener('input', () => {
+        function syncDraft() {
             if (context?.post?.id) savedDrafts.set(context.post.id, input.value);
             const hasText = !!input.value.trim();
             submitBtn.setAttribute('aria-disabled', String(!hasText || isReplyPending));
@@ -245,7 +261,11 @@ window.TvXActions = window.TvXActions || (function() {
                 status.className = '';
                 submitBtn.textContent = '回复';
             }
-        });
+        }
+
+        input.addEventListener('input', syncDraft);
+        input.addEventListener('change', syncDraft);
+        input.addEventListener('compositionend', syncDraft);
 
         input.addEventListener('focus', () => { composerSelected = 0; focusComposer(); });
         submitBtn.addEventListener('focus', () => { composerSelected = 1; focusComposer(); });
@@ -256,6 +276,7 @@ window.TvXActions = window.TvXActions || (function() {
 
         composerSelected = 0;
         focusComposer();
+        activateInput();
         return true;
     }
 
@@ -546,8 +567,7 @@ window.TvXActions = window.TvXActions || (function() {
         }
         if (mode === 'composer') {
             if (composerSelected === 0) {
-                const input = overlay.querySelector('#tv-composer-input');
-                input?.focus();
+                activateInput();
                 return true;
             }
             if (composerSelected === 1) {
@@ -578,7 +598,32 @@ window.TvXActions = window.TvXActions || (function() {
                 event.stopImmediatePropagation();
                 return true;
             }
-            if (composerSelected !== 0) {
+            if (composerSelected === 0) {
+                if (event.key === 'ArrowDown') {
+                    move('down');
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    return true;
+                }
+                if (event.key === 'ArrowUp') {
+                    move('up');
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    return true;
+                }
+                if (event.key === 'Enter') {
+                    if (event.ctrlKey || event.metaKey) {
+                        submitReply();
+                        event.preventDefault();
+                        event.stopImmediatePropagation();
+                        return true;
+                    }
+                    activateInput();
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    return true;
+                }
+            } else {
                 if (event.key === 'ArrowDown') { move('down'); event.preventDefault(); event.stopImmediatePropagation(); return true; }
                 if (event.key === 'ArrowUp') { move('up'); event.preventDefault(); event.stopImmediatePropagation(); return true; }
                 if (event.key === 'ArrowLeft') { move('left'); event.preventDefault(); event.stopImmediatePropagation(); return true; }
@@ -586,13 +631,7 @@ window.TvXActions = window.TvXActions || (function() {
                 if (event.key === 'Enter' || event.key === ' ') { activate(); event.preventDefault(); event.stopImmediatePropagation(); return true; }
                 event.preventDefault();
                 event.stopImmediatePropagation();
-            } else {
-                if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
-                    submitReply();
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
-                    return true;
-                }
+                return true;
             }
             return true;
         }

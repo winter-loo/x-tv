@@ -462,6 +462,52 @@ test('home inline composer supports remote navigation, focus cycling without tra
     await expect(page.locator('article.tv-focused')).toHaveAttribute('data-fixture-id', '102');
 });
 
+test('actions composer activates cursor on Enter, navigates via remote D-pad keys, and synchronizes voice IME input', async ({ page }) => {
+    await mount(page, [post(), post({ id: '102' })]);
+    await move(page, 'down');
+    await page.keyboard.press('m');
+    await activate(page);
+
+    const input = page.locator('#tv-composer-input');
+    const submit = page.locator('#tv-composer-submit');
+    const cancel = page.locator('#tv-composer-cancel');
+
+    // Initial focus on input
+    await expect(input).toBeFocused();
+
+    // Enter on input activates cursor / IME without submitting or newline
+    await page.keyboard.press('Enter');
+    await expect(input).toBeFocused();
+    expect(await input.inputValue()).toBe('');
+
+    // Remote D-pad ArrowDown directly from textarea moves focus to Submit button
+    await page.keyboard.press('ArrowDown');
+    await expect(submit).toBeFocused();
+
+    // Remote D-pad ArrowUp moves back to input
+    await page.keyboard.press('ArrowUp');
+    await expect(input).toBeFocused();
+
+    // Remote D-pad ArrowUp from input moves to cancel button
+    await page.keyboard.press('ArrowUp');
+    await expect(cancel).toBeFocused();
+
+    // Voice IME input synchronization test
+    await page.keyboard.press('ArrowDown'); // back to input
+    await expect(input).toBeFocused();
+    await page.evaluate(() => {
+        const el = document.querySelector('#tv-composer-input');
+        el.value = 'Voice input from remote';
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('compositionend', { bubbles: true }));
+    });
+    await expect(submit).toHaveAttribute('aria-disabled', 'false');
+
+    // Escape closes composer and restores focus
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#tv-composer-dialog')).toHaveCount(0);
+});
+
 test('real X reply flow from home: submits to native composer, enters pending, suppresses duplicates, confirms success with sent simulation, and reconciles count', async ({ page }) => {
     await mountActions(page);
     await page.evaluate(() => {

@@ -226,6 +226,7 @@ window.TvXAdapter = window.TvXAdapter || (function() {
     function setupObserver() {
         if (observer) return;
         refreshPage = () => {
+            invalidateArticlesCache();
             if (refreshTimer !== null) return;
             refreshTimer = setTimeout(() => {
                 refreshTimer = null;
@@ -234,6 +235,9 @@ window.TvXAdapter = window.TvXAdapter || (function() {
             }, 50);
         };
         observer = new MutationObserver(records => {
+            if (records && records.some(record => record.type === "childList")) {
+                invalidateArticlesCache();
+            }
             // X positions virtual rows with inline styles after measuring their media.
             if (!records || records.some(record => record.type !== "attributes" || record.attributeName !== "style" ||
                 record.target.getAttribute("data-testid") === "cellInnerDiv")) refreshPage();
@@ -553,14 +557,32 @@ window.TvXAdapter = window.TvXAdapter || (function() {
        Timeline Navigation Implementation
        ========================================================================= */
 
-    function getArticles() {
+    let cachedArticles = null;
+    let cachedArticlesTime = 0;
+    const ARTICLE_CACHE_TTL = 60;
+
+    function invalidateArticlesCache() {
+        cachedArticles = null;
+        cachedArticlesTime = 0;
+    }
+
+    function getArticles(forceRefresh = false) {
+        const now = Date.now();
+        if (!forceRefresh && cachedArticles && (now - cachedArticlesTime < ARTICLE_CACHE_TTL)) {
+            if (cachedArticles.length === 0 || cachedArticles[0].isConnected) {
+                return cachedArticles;
+            }
+        }
         const list = Array.from(document.querySelectorAll(
             'article[data-testid="tweet"], article[role="article"], .timeline-card'
         ));
-        return list.filter(el => {
+        const filtered = list.filter(el => {
             const rect = el.getBoundingClientRect();
             return rect.height > 20;
         });
+        cachedArticles = filtered;
+        cachedArticlesTime = now;
+        return filtered;
     }
 
     function statusLink(article) {
@@ -588,11 +610,11 @@ window.TvXAdapter = window.TvXAdapter || (function() {
     function focusFirstVisibleArticle() {
         const articles = getArticles();
         const index = articles.findIndex(article => article.getBoundingClientRect().top >= -50 && extractArticleAnchor(article));
-        if (index >= 0) focusArticleAtIndex(index);
+        if (index >= 0) focusArticleAtIndex(index, articles);
     }
 
-    function focusArticleAtIndex(index) {
-        const articles = getArticles();
+    function focusArticleAtIndex(index, articlesList) {
+        const articles = articlesList || getArticles();
         const target = articles[index];
         if (!target || !extractArticleAnchor(target)) return;
         const changed = lastAnchorId !== extractArticleAnchor(target);
@@ -618,7 +640,7 @@ window.TvXAdapter = window.TvXAdapter || (function() {
     function verifyOrRestoreFocus() {
         const articles = getArticles();
         const index = articles.findIndex(article => extractArticleAnchor(article) === lastAnchorId);
-        if (index >= 0) focusArticleAtIndex(index);
+        if (index >= 0) focusArticleAtIndex(index, articles);
         else {
             // A recycled DOM node is not the same post, even if its CSS class survived.
             document.querySelectorAll(".tv-focused").forEach(node => node.classList.remove("tv-focused"));
@@ -644,7 +666,7 @@ window.TvXAdapter = window.TvXAdapter || (function() {
         while (target >= 0 && target < articles.length && !extractArticleAnchor(articles[target])) target += step;
         if (target >= 0 && target < articles.length) {
             cancelPendingMove();
-            focusArticleAtIndex(target);
+            focusArticleAtIndex(target, articles);
         }
     }
 
@@ -676,7 +698,7 @@ window.TvXAdapter = window.TvXAdapter || (function() {
         const step = direction === "down" ? 1 : -1;
         for (let i = index + step; i >= 0 && i < articles.length; i += step) {
             if (extractArticleAnchor(articles[i])) {
-                focusArticleAtIndex(i);
+                focusArticleAtIndex(i, articles);
                 return;
             }
         }
@@ -695,6 +717,9 @@ window.TvXAdapter = window.TvXAdapter || (function() {
        D-pad Movement & Action Dispatcher
        ========================================================================= */
 
+    let lastRepeatMoveTime = 0;
+    const REPEAT_MOVE_INTERVAL = 80;
+
     // Also works when native messaging is reconnecting. Android forwards a full
     // trusted key pair, so media playback has a real user gesture.
     function handleRemoteKeyDown(event) {
@@ -710,12 +735,27 @@ window.TvXAdapter = window.TvXAdapter || (function() {
             if (window.TvXDetail?.isOpen() && ['ArrowDown','ArrowUp'].includes(event.key)) {
                 window.TvXDetail.move(event.key === 'ArrowDown' ? 'down' : 'up');
                 event.preventDefault(); event.stopImmediatePropagation();
+            } else if (window.TvXActions?.isComposerOpen?.() && ['ArrowDown','ArrowUp'].includes(event.key)) {
+                window.TvXActions.move(event.key === 'ArrowDown' ? 'down' : 'up');
+                event.preventDefault(); event.stopImmediatePropagation();
             }
             return;
         }
         const direction = {ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right'}[event.key];
-        if (direction) move(direction);
-        else if (event.key === 'Enter' || event.key === ' ' || event.key === 'MediaPlayPause') {
+        if (direction) {
+            if (event.repeat && (direction === 'up' || direction === 'down')) {
+                const now = Date.now();
+                if (now - lastRepeatMoveTime < REPEAT_MOVE_INTERVAL) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    return;
+                }
+                lastRepeatMoveTime = now;
+            } else {
+                lastRepeatMoveTime = Date.now();
+            }
+            move(direction);
+        } else if (event.key === 'Enter' || event.key === ' ' || event.key === 'MediaPlayPause') {
             if (!event.repeat) activate();
         } else return;
         event.preventDefault();

@@ -2,6 +2,7 @@
 // so its virtual list and pagination continue receiving actual scroll events.
 window.TvXDetail = window.TvXDetail || (function() {
     let route = null;
+    let routeMountedAt = 0;
     let column = 'post';
     let root = null;
     let chrome = null;
@@ -242,6 +243,17 @@ window.TvXDetail = window.TvXDetail || (function() {
         ].filter(Boolean) : [];
     }
 
+    function activateInput() {
+        const input = overlay?.querySelector('#tv-composer-input');
+        if (!input) return;
+        input.focus();
+        const len = input.value ? input.value.length : 0;
+        try { input.setSelectionRange(len, len); } catch (_) {}
+        try {
+            input.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+        } catch (_) {}
+    }
+
     function focusComposer() {
         const items = interactiveItems();
         if (!items.length) return;
@@ -251,6 +263,11 @@ window.TvXDetail = window.TvXDetail || (function() {
             item.classList.toggle('tv-composer-focused', index === selected);
         });
         items[selected].focus();
+        if (selected === 0) {
+            const input = items[0];
+            const len = input.value ? input.value.length : 0;
+            try { input.setSelectionRange(len, len); } catch (_) {}
+        }
     }
 
     function trapComposerFocus(event) {
@@ -275,7 +292,32 @@ window.TvXDetail = window.TvXDetail || (function() {
             move(e.shiftKey ? 'up' : 'down');
             return;
         }
-        if (selected !== 0) {
+        if (selected === 0) {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                move('down');
+                return;
+            }
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                move('up');
+                return;
+            }
+            if (e.key === 'Enter') {
+                if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    submitReply();
+                    return;
+                }
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                activateInput();
+                return;
+            }
+        } else {
             if (e.key === 'ArrowDown') { e.preventDefault(); e.stopImmediatePropagation(); move('down'); }
             else if (e.key === 'ArrowUp') { e.preventDefault(); e.stopImmediatePropagation(); move('up'); }
             else if (e.key === 'ArrowLeft') { e.preventDefault(); e.stopImmediatePropagation(); move('left'); }
@@ -345,7 +387,7 @@ window.TvXDetail = window.TvXDetail || (function() {
             submitBtn.setAttribute('aria-disabled', 'true');
         }
 
-        input.addEventListener('input', () => {
+        function syncDraft() {
             savedDraft = input.value;
             const hasText = !!input.value.trim();
             submitBtn.setAttribute('aria-disabled', String(!hasText || isPending));
@@ -355,7 +397,11 @@ window.TvXDetail = window.TvXDetail || (function() {
                 status.className = '';
                 submitBtn.textContent = '回复';
             }
-        });
+        }
+
+        input.addEventListener('input', syncDraft);
+        input.addEventListener('change', syncDraft);
+        input.addEventListener('compositionend', syncDraft);
 
         input.addEventListener('focus', () => { selected = 0; focusComposer(); });
         submitBtn.addEventListener('focus', () => { selected = 1; focusComposer(); });
@@ -366,6 +412,7 @@ window.TvXDetail = window.TvXDetail || (function() {
 
         selected = 0;
         focusComposer();
+        activateInput();
         document.addEventListener('focusin', trapComposerFocus, true);
         window.addEventListener('keydown', handleComposerKeyDown, true);
     }
@@ -614,6 +661,7 @@ window.TvXDetail = window.TvXDetail || (function() {
             clearMarks();
             closeComposer(false);
             route = nextRoute;
+            routeMountedAt = Date.now();
             root = null;
             column = 'post';
             savedPostScroll = 0;
@@ -624,6 +672,7 @@ window.TvXDetail = window.TvXDetail || (function() {
             pendingReplyMove = null;
             window.scrollTo({top:0,behavior:'instant'});
         }
+        if (!routeMountedAt) routeMountedAt = Date.now();
         if (!chrome || !chrome.isConnected) mount();
         document.body.classList.add('tv-detail-active');
         document.body.setAttribute('data-tv-detail-column', column);
@@ -705,9 +754,43 @@ window.TvXDetail = window.TvXDetail || (function() {
         const titleText = '评论 ' + count + '　　↓ 更多';
         if (title.textContent !== titleText) title.textContent = titleText;
         const pending = !!primary?.querySelector('[role="progressbar"]');
+        const tombstone = !!(primary?.querySelector('[data-testid="tombstone"], [data-testid="error-detail"]') || document.querySelector('[data-testid="emptyState"]'));
+        const isInitialGrace = (Date.now() - routeMountedAt < 6000) && (articles.length === 0);
+        const isPostLoading = !root && (pending || isInitialGrace) && !tombstone;
         const status = chrome.querySelector('#tv-detail-status');
-        const message = root ? '' : pending ? '正在加载帖子…' : '帖子暂不可用，请返回后重试';
+        const message = root ? '' : isPostLoading ? '正在加载帖子…' : '帖子暂不可用，请返回后重试';
         if (status.textContent !== message) status.textContent = message;
+        status.classList.toggle('tv-loading-shimmer', isPostLoading);
+        status.classList.toggle('tv-status-error', !root && !isPostLoading);
+
+        let skeletonCard = chrome.querySelector('#tv-detail-skeleton-card');
+        let errorCard = chrome.querySelector('#tv-detail-error-card');
+
+        if (isPostLoading) {
+            if (!skeletonCard) {
+                skeletonCard = document.createElement('div');
+                skeletonCard.id = 'tv-detail-skeleton-card';
+                skeletonCard.innerHTML = '<div class="tv-skeleton-header"><div class="tv-skeleton-avatar"></div><div class="tv-skeleton-meta"><div class="tv-skeleton-line short"></div><div class="tv-skeleton-line tiny"></div></div></div><div class="tv-skeleton-body"><div class="tv-skeleton-line"></div><div class="tv-skeleton-line"></div><div class="tv-skeleton-line three-quarters"></div></div><div class="tv-skeleton-media"></div>';
+                chrome.appendChild(skeletonCard);
+            }
+            if (errorCard) errorCard.remove();
+        } else if (!root) {
+            if (skeletonCard) skeletonCard.remove();
+            if (!errorCard) {
+                errorCard = document.createElement('div');
+                errorCard.id = 'tv-detail-error-card';
+                errorCard.innerHTML = '<div class="tv-error-icon"><svg viewBox="0 0 24 24" width="40" height="40"><path fill="#f87171" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></div><div class="tv-error-title">帖子暂不可用</div><div class="tv-error-desc">该帖子可能已被作者删除或链接失效</div><button id="tv-detail-error-back" type="button" class="tv-error-back-btn">返回上一页</button>';
+                chrome.appendChild(errorCard);
+                errorCard.querySelector('#tv-detail-error-back')?.addEventListener('click', () => {
+                    if (window.TvXAdapter?.handleBack) window.TvXAdapter.handleBack();
+                    else history.back();
+                });
+            }
+        } else {
+            if (skeletonCard) skeletonCard.remove();
+            if (errorCard) errorCard.remove();
+        }
+
         const replyStatus = chrome.querySelector('#tv-detail-reply-status');
         const replyMessage = articles.some(article => article.classList.contains('tv-detail-reply')) ? '' : pending ? '正在加载评论…' : root ? '暂无已加载评论' : '';
         if (replyStatus.textContent !== replyMessage) replyStatus.textContent = replyMessage;
@@ -757,8 +840,7 @@ window.TvXDetail = window.TvXDetail || (function() {
         if (!route) return false;
         if (overlay && overlay.isConnected) {
             if (selected === 0) {
-                const input = overlay.querySelector('#tv-composer-input');
-                input?.focus();
+                activateInput();
                 return true;
             }
             if (selected === 1) {
@@ -769,6 +851,11 @@ window.TvXDetail = window.TvXDetail || (function() {
                 closeComposer(false);
                 return true;
             }
+            return true;
+        }
+        if (column === 'post' && !root && chrome?.querySelector('#tv-detail-error-card')) {
+            if (window.TvXAdapter?.handleBack) window.TvXAdapter.handleBack();
+            else history.back();
             return true;
         }
         if (column === 'comments' && !replyEntry) {
