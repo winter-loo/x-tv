@@ -514,7 +514,7 @@ window.TvXActions = window.TvXActions || (function() {
         if (externalLinks.length > 0) {
             linksHtml = '<div class="tv-action-divider"></div><div class="tv-action-section-title">外链文章</div>' +
                 externalLinks.map(link => `
-                    <button type="button" class="tv-action-btn-link" data-url="${escapeHtml(link.url)}" data-title="${escapeHtml(link.title)}">
+                    <button type="button" class="tv-action-btn-link" data-url="${escapeHtml(link.url)}" data-title="${escapeHtml(link.title)}" data-domain="${escapeHtml(link.domain)}">
                         <span class="tv-action-link-title">${escapeHtml(link.title)}</span>
                         <span class="tv-action-link-domain">${escapeHtml(link.domain)}</span>
                     </button>
@@ -573,8 +573,9 @@ window.TvXActions = window.TvXActions || (function() {
             if (btn && btn.classList.contains('tv-action-btn-link')) {
                 const url = btn.dataset.url;
                 const title = btn.dataset.title;
+                const domain = btn.dataset.domain;
                 close();
-                window.TvXCard?.open(url, title);
+                window.TvXCard?.open(url, title, domain);
                 return true;
             }
             if (selected === 1) { like(); return true; }

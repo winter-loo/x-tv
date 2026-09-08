@@ -16,8 +16,17 @@ export function post({ id = '101', text = 'Original fixture post text.', article
 }
 export const tabs = '<div role="tablist"><div role="tab" aria-selected="true">For you</div><div role="tab" aria-selected="false">Following</div></div>';
 export async function mount(page, posts = [post()], extra = '', { styleDelay = 0, boot = false } = {}) {
-    await page.route('https://x.com/**', async route => {
-        const url = new URL(route.request().url());
+    await page.route('**/*', async route => {
+        const reqUrl = route.request().url();
+        if (reqUrl.startsWith('https://media.test/')) {
+            await route.fallback();
+            return;
+        }
+        if (!reqUrl.startsWith('https://x.com/')) {
+            await route.fulfill({ contentType: 'text/html', body: '<!doctype html><html><body><h1>External Page</h1></body></html>' });
+            return;
+        }
+        const url = new URL(reqUrl);
         if (url.pathname.startsWith('/extension/')) {
             const path = url.pathname.slice('/extension/'.length);
             if (path.endsWith('reading.css') && styleDelay) await new Promise(resolve => setTimeout(resolve, styleDelay));

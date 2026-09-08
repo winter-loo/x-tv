@@ -74,8 +74,14 @@ window.TvXAdapter = window.TvXAdapter || (function() {
         window.TvXActions?.update();
         updateTimelineLayout();
         const mode = isLoginMode() ? "login" : (isHome() ? "home" : "other");
-        const articles = getArticles();
-        if (window.TvXReading) window.TvXReading.update(mode === "home", articles, statusLink);
+        let articles = getArticles();
+        if (window.TvXReading) {
+            const unhid = window.TvXReading.update(mode === "home", articles, statusLink);
+            if (unhid) {
+                articles = getArticles(true);
+                window.TvXReading.update(mode === "home", articles, statusLink);
+            }
+        }
         const detail = mode !== "login" && isPostDetail();
         if (window.TvXDetail) window.TvXDetail.update(detail, statusLink);
         if (detail && window.TvXDetail) {
@@ -569,7 +575,7 @@ window.TvXAdapter = window.TvXAdapter || (function() {
     function getArticles(forceRefresh = false) {
         const now = Date.now();
         if (!forceRefresh && cachedArticles && (now - cachedArticlesTime < ARTICLE_CACHE_TTL)) {
-            if (cachedArticles.length === 0 || cachedArticles[0].isConnected) {
+            if (cachedArticles.length > 0 && cachedArticles[0].isConnected) {
                 return cachedArticles;
             }
         }

@@ -9,12 +9,30 @@ window.TvXCard = window.TvXCard || (function() {
     }
 
     function extractDomain(url) {
+        if (!url) return '外链';
         try {
-            const host = new URL(url).hostname;
+            const normalized = /^https?:\/\//i.test(url) ? url : 'https://' + url;
+            const host = new URL(normalized).hostname;
             return host.replace(/^www\./, '');
         } catch (_) {
             return '外链';
         }
+    }
+
+    function findCardDomain(card, rawUrl) {
+        const rawDomain = extractDomain(rawUrl);
+        if (rawDomain && rawDomain !== 't.co' && !rawDomain.endsWith('.x.com') && rawDomain !== 'x.com' && !rawDomain.endsWith('.twitter.com') && rawDomain !== 'twitter.com') {
+            return rawDomain;
+        }
+        if (card) {
+            const candidates = Array.from(card.querySelectorAll('span, div[dir="auto"]'))
+                .map(el => el.textContent.trim())
+                .filter(t => t && !t.includes(' ') && /^[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}$/.test(t) && t.length <= 60);
+            if (candidates.length > 0) {
+                return candidates[0].toLowerCase().replace(/^www\./, '');
+            }
+        }
+        return rawDomain;
     }
 
     function findExternalLinks(article) {
@@ -40,7 +58,15 @@ window.TvXCard = window.TvXCard || (function() {
                         const spans = Array.from(card.querySelectorAll('span')).map(s => s.textContent.trim()).filter(Boolean);
                         title = spans[0] || '';
                     }
-                    const domain = extractDomain(rawUrl);
+                    const domain = findCardDomain(card, rawUrl);
+                    if (title && title.toLowerCase() === domain.toLowerCase()) {
+                        const otherSpans = Array.from(card.querySelectorAll('span, div[dir="auto"]'))
+                            .map(s => s.textContent.trim())
+                            .filter(t => t && t.toLowerCase() !== domain.toLowerCase() && !t.includes('http'));
+                        if (otherSpans.length > 0) {
+                            title = otherSpans[0];
+                        }
+                    }
                     links.push({
                         url: rawUrl,
                         title: (title || domain || '外部文章').trim(),
@@ -86,13 +112,13 @@ window.TvXCard = window.TvXCard || (function() {
 
     let previousScroll = 0;
 
-    function open(url, title) {
+    function open(url, title, domain) {
         if (session && session.isConnected) close();
         previousFocus = document.activeElement;
         previousScroll = window.scrollY;
 
-        const domain = extractDomain(url);
-        const displayTitle = title || domain || '外部文章';
+        const resolvedDomain = domain || extractDomain(url);
+        const displayTitle = title || resolvedDomain || '外部文章';
 
         session = document.createElement('div');
         session.id = 'tv-article-session';
@@ -104,13 +130,13 @@ window.TvXCard = window.TvXCard || (function() {
             <div id="tv-article-header">
                 <div id="tv-article-source">
                     <span class="tv-article-badge">WEB</span>
-                    <span id="tv-article-domain">${escapeHtml(domain)}</span>
+                    <span id="tv-article-domain">${escapeHtml(resolvedDomain)}</span>
                 </div>
                 <div id="tv-article-title">${escapeHtml(displayTitle)}</div>
                 <div id="tv-article-guidance">↑↓ 滚动阅读     返回 关闭</div>
             </div>
             <div id="tv-article-scroll">
-                <iframe id="tv-article-frame" src="${escapeHtml(url)}" sandbox="allow-scripts allow-same-origin allow-popups"></iframe>
+                <iframe id="tv-article-frame" src="${escapeHtml(url)}"></iframe>
             </div>
         `;
 

@@ -146,3 +146,67 @@ setInterval(() => {
     if (!nativePort) connectToNative();
     sendToNative({event:'ping'});
 }, 2000);
+
+// Relax Content-Security-Policy and X-Frame-Options to allow in-app article reading
+if (browser.webRequest?.onHeadersReceived) {
+    function relaxCSPForFrameSrc(cspValue) {
+        if (!cspValue) return "frame-src * data: blob: 'self' https: http:; child-src * data: blob: 'self' https: http:";
+        let directives = cspValue.split(';').map(d => d.trim()).filter(Boolean);
+        let foundFrameSrc = false;
+        let foundChildSrc = false;
+        directives = directives.map(dir => {
+            if (/^frame-src\b/i.test(dir)) {
+                foundFrameSrc = true;
+                return "frame-src * data: blob: 'self' https: http:";
+            }
+            if (/^child-src\b/i.test(dir)) {
+                foundChildSrc = true;
+                return "child-src * data: blob: 'self' https: http:";
+            }
+            return dir;
+        });
+        if (!foundFrameSrc) directives.push("frame-src * data: blob: 'self' https: http:");
+        if (!foundChildSrc) directives.push("child-src * data: blob: 'self' https: http:");
+        return directives.join('; ');
+    }
+
+    function stripFrameAncestors(cspValue) {
+        if (!cspValue) return '';
+        let directives = cspValue.split(';').map(d => d.trim()).filter(Boolean);
+        directives = directives.filter(dir => !/^frame-ancestors\b/i.test(dir));
+        return directives.join('; ');
+    }
+
+    browser.webRequest.onHeadersReceived.addListener(
+        (details) => {
+            if (!details.responseHeaders) return;
+            let responseHeaders = details.responseHeaders;
+
+            if (details.type === 'main_frame') {
+                const url = details.url || '';
+                if (url.includes('x.com') || url.includes('twitter.com')) {
+                    for (let i = 0; i < responseHeaders.length; i++) {
+                        const name = responseHeaders[i].name.toLowerCase();
+                        if (name === 'content-security-policy') {
+                            responseHeaders[i].value = relaxCSPForFrameSrc(responseHeaders[i].value);
+                        }
+                    }
+                }
+            } else if (details.type === 'sub_frame') {
+                responseHeaders = responseHeaders.filter(
+                    h => h.name.toLowerCase() !== 'x-frame-options'
+                );
+                for (let i = 0; i < responseHeaders.length; i++) {
+                    const name = responseHeaders[i].name.toLowerCase();
+                    if (name === 'content-security-policy') {
+                        responseHeaders[i].value = stripFrameAncestors(responseHeaders[i].value);
+                    }
+                }
+            }
+
+            return { responseHeaders };
+        },
+        { urls: ['<all_urls>'], types: ['main_frame', 'sub_frame'] },
+        ['blocking', 'responseHeaders']
+    );
+}

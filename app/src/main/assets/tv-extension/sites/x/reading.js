@@ -138,8 +138,12 @@ window.TvXReading = window.TvXReading || (function() {
         // X first mounts the composer into an otherwise empty timeline wrapper,
         // then adds posts to that same wrapper. Reconcile the old annotation so
         // a wrapper that now contains posts can become measurable again.
+        let unhid = false;
         for (const previous of document.querySelectorAll(".tv-native-composer")) {
-            if (previous !== composer) previous.classList.remove("tv-native-composer");
+            if (previous !== composer) {
+                previous.classList.remove("tv-native-composer");
+                unhid = true;
+            }
         }
         if (composer && !composer.classList.contains("tv-native-composer")) composer.classList.add("tv-native-composer");
         const recognized = articles.some(article => article.classList.contains("tv-reading-card"));
@@ -148,6 +152,7 @@ window.TvXReading = window.TvXReading || (function() {
             const message = articles.length ? "当前页面暂未识别为可浏览帖子" : (document.querySelector('[role="progressbar"]') ? "正在加载帖子…" : "暂无可浏览帖子，请稍后重试");
             if (status.textContent !== message) status.textContent = message;
         } else status.remove();
+        return unhid;
     }
 
     function focus(article) {

@@ -85,9 +85,10 @@ test('Activating an external link from the menu opens the built-in browsing sess
     await expect(session.locator('#tv-article-domain')).toHaveText('somethingbig.ai');
     await expect(session.locator('#tv-article-title')).toContainText('Something Big');
 
-    // Iframe has target URL
+    // Iframe has target URL and no sandbox restrictions
     const frame = session.locator('#tv-article-frame');
     await expect(frame).toHaveAttribute('src', 'https://somethingbig.ai/p/future-ai');
+    await expect(frame).not.toHaveAttribute('sandbox');
 
     // Direction down scrolls the session
     const scrollContainer = session.locator('#tv-article-scroll');
@@ -99,6 +100,50 @@ test('Activating an external link from the menu opens the built-in browsing sess
     await expect(session).toHaveCount(0);
     await expect(page).toHaveURL('https://x.com/home');
     await expect(page.locator('article.tv-focused')).toHaveAttribute('data-fixture-id', '101');
+});
+
+test('Twitter t.co card URL resolves real domain from card text in menu and session header', async ({ page }) => {
+    const cardHtml = `
+      <div data-testid="card.wrapper">
+        <a href="https://t.co/d8Ak9Z1x">
+          <div data-testid="article-cover-image"><img alt="Card cover" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='60'%3E%3C/svg%3E"></div>
+          <div><div><span dir="auto">Algorithms for Modern Hardware</span></div><div dir="auto"><span>en.algorithmica.org</span></div></div>
+        </a>
+      </div>`;
+    const html = post({ id: '105', text: 'Check out this guide' })
+        .replace('<div role="group">', cardHtml + '<div role="group">');
+
+    await mount(page, [html]);
+    await move(page, 'down');
+    await page.keyboard.press('m');
+
+    const menu = page.getByRole('dialog', { name: '帖子操作' });
+    await expect(menu).toBeVisible();
+
+    // Menu button resolves domain to en.algorithmica.org instead of t.co
+    const linkBtn = menu.locator('button.tv-action-btn-link').first();
+    await expect(linkBtn).toBeVisible();
+    await expect(linkBtn.locator('.tv-action-link-domain')).toHaveText('en.algorithmica.org');
+    await expect(linkBtn).toContainText('Algorithms for Modern Hardware');
+
+    // Activate link
+    await move(page, 'down'); // to like
+    await move(page, 'down'); // to link
+    await expect(linkBtn).toBeFocused();
+    await activate(page);
+
+    // Session header displays resolved domain
+    const session = page.locator('#tv-article-session');
+    await expect(session).toBeVisible();
+    await expect(session.locator('#tv-article-domain')).toHaveText('en.algorithmica.org');
+    await expect(session.locator('#tv-article-title')).toHaveText('Algorithms for Modern Hardware');
+
+    const frame = session.locator('#tv-article-frame');
+    await expect(frame).toHaveAttribute('src', 'https://t.co/d8Ak9Z1x');
+    await expect(frame).not.toHaveAttribute('sandbox');
+
+    await back(page);
+    await expect(session).toHaveCount(0);
 });
 
 test('Post with zero external links does not render the external links section', async ({ page }) => {
