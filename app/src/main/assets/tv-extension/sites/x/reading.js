@@ -155,6 +155,11 @@ window.TvXReading = window.TvXReading || (function() {
         const u = window.innerWidth / 1920;
         const delta = article.getBoundingClientRect().top - 192 * u;
         if (Math.abs(delta) > 1) article.scrollIntoView({ block: "start", inline: "nearest", behavior: "instant" });
+        if (window.TvXCard?.isCardFocused()) {
+            const text = "确认 阅读文章     ← 返回正文     ↑↓ 切换帖子     返回 退出";
+            if (guidance.textContent !== text) guidance.textContent = text;
+            return;
+        }
         const overflow = Array.from(article.querySelectorAll(".tv-reading-text, .tv-reading-attachment"))
             .some(node => node.scrollHeight > node.clientHeight + 1);
         const media = article.querySelector('video, [data-testid="tweetPhoto"] img');

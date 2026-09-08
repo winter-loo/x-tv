@@ -74,6 +74,7 @@ function injectContentScripts(tabId) {
         .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/post-identity.js" }))
         .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/reading.js" }))
         .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/detail.js" }))
+        .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/card.js" }))
         .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/actions.js" }))
         .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/media.js" }))
         .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/adapter.js" }))

@@ -36,6 +36,7 @@
         "sites/x/post-identity.js",
         "sites/x/reading.js",
         "sites/x/detail.js",
+        "sites/x/card.js",
         "sites/x/actions.js",
         "sites/x/media.js",
         "sites/x/adapter.js",
@@ -45,6 +46,7 @@
       "run_at": "document_start",
       "css": [
         "sites/x/bootstrap.css",
+        "sites/x/card.css",
         "sites/x/media.css"
       ]
     }
@@ -54,6 +56,7 @@
     "sites/x/reading.css",
     "sites/x/detail.css",
     "sites/x/actions.css",
+    "sites/x/card.css",
     "sites/x/icons/*.svg",
     "sites/x/media.css"
   ]

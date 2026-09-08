@@ -259,7 +259,9 @@ window.TvXDetail = window.TvXDetail || (function() {
         entry?.classList.toggle('tv-detail-focused', column === 'comments' && replyEntry);
         const guidance = chrome?.querySelector('#tv-detail-guidance');
         if (guidance) guidance.textContent = column === 'post'
-            ? '↑↓ 滚动正文　　→ 选择评论　　返回 上一层'
+            ? (window.TvXCard?.isCardFocused()
+                ? '确认 阅读文章　　↑ 返回正文　　→ 选择评论　　返回 上一层'
+                : '↑↓ 滚动正文　　→ 选择评论　　返回 上一层')
             : replyEntry ? '确认 写评论　　↑↓ 返回评论列表　　← 正文　　返回 上一层'
             : '↑↓ 选择 / 翻阅评论　　确认 查看详情　　→ 写评论　　← 正文　　返回 上一层';
     }
@@ -782,6 +784,7 @@ window.TvXDetail = window.TvXDetail || (function() {
         hookAdapter();
         if (!enabled) {
             if (!route) return;
+            window.TvXCard?.unselect();
             route = null;
             root = null;
             if (instantRoot) {
@@ -802,6 +805,7 @@ window.TvXDetail = window.TvXDetail || (function() {
         }
         const nextRoute = location.pathname.match(/^\/[^/]+\/status\/\d+/)?.[0];
         if (route !== nextRoute) {
+            window.TvXCard?.unselect();
             clearMarks();
             closeComposer(false);
             if (instantRoot) {
@@ -992,6 +996,7 @@ window.TvXDetail = window.TvXDetail || (function() {
         }
         if (direction === 'left' || direction === 'right') {
             pendingReplyMove = null;
+            if (window.TvXCard?.isCardFocused()) window.TvXCard.unselect();
             if (direction === 'left') column = 'post';
             else if (column === 'comments') replyEntry = !replyEntry;
             else { column = 'comments'; replyEntry = !replies().length; }
@@ -999,9 +1004,19 @@ window.TvXDetail = window.TvXDetail || (function() {
             if (column === 'comments' && !replyEntry) selectReply(currentReply() || visibleReply());
             renderReplyFocus();
         } else if (direction === 'up' || direction === 'down') {
-            const step = (direction === 'down' ? 1 : -1) * (column === 'post' ? 716 : 604) * window.innerWidth / 1920 * 0.8;
             if (column === 'post') {
                 const target = root || instantRoot;
+                if (direction === 'down' && target && window.TvXCard?.hasCard(target) && !window.TvXCard?.isCardFocused()) {
+                    window.TvXCard.select(target);
+                    renderReplyFocus();
+                    return true;
+                }
+                if (direction === 'up' && window.TvXCard?.isCardFocused()) {
+                    window.TvXCard.unselect();
+                    renderReplyFocus();
+                    return true;
+                }
+                const step = (direction === 'down' ? 1 : -1) * 716 * window.innerWidth / 1920 * 0.8;
                 if (target) {
                     target.scrollBy({top:step,behavior:'instant'});
                     savedPostScroll = target.scrollTop;
@@ -1029,6 +1044,9 @@ window.TvXDetail = window.TvXDetail || (function() {
                 return true;
             }
             return true;
+        }
+        if (column === 'post' && window.TvXCard?.isCardFocused()) {
+            if (window.TvXCard.activate()) return true;
         }
         if (column === 'post' && !root && chrome?.querySelector('#tv-detail-error-card')) {
             if (window.TvXAdapter?.handleBack) window.TvXAdapter.handleBack();

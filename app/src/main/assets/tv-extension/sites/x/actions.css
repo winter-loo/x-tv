@@ -97,6 +97,50 @@
 #tv-action-menu button.tv-action-liked::before {
     background: url("icons/liked.svg") center / contain no-repeat !important;
 }
+.tv-action-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: calc(4 * var(--tv-u)) 0;
+}
+.tv-action-section-title {
+    font-size: calc(20 * var(--tv-u));
+    font-weight: 600;
+    color: #94a3b8;
+    letter-spacing: 0.5px;
+    margin: 0 0 calc(-4 * var(--tv-u)) calc(4 * var(--tv-u));
+}
+#tv-action-menu button.tv-action-btn-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: calc(12 * var(--tv-u));
+    padding: 0 calc(24 * var(--tv-u));
+}
+#tv-action-menu button.tv-action-btn-link::before {
+    content: "";
+    display: inline-block;
+    flex: none;
+    width: calc(24 * var(--tv-u));
+    height: calc(24 * var(--tv-u));
+    margin-right: calc(14 * var(--tv-u));
+    vertical-align: middle;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2338bdf8'%3E%3Cpath d='M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.tv-action-link-title {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: left;
+}
+.tv-action-link-domain {
+    flex: none;
+    font-size: calc(20 * var(--tv-u));
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.12);
+    padding: calc(2 * var(--tv-u)) calc(10 * var(--tv-u));
+    border-radius: calc(8 * var(--tv-u));
+}
 #tv-action-status {
     margin: 0;
     white-space: pre-wrap;
