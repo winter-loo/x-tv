@@ -139,27 +139,31 @@ test('Post with 3 external links renders all 3 in the menu external links sectio
     await expect(linkButtons.nth(2).locator('.tv-action-link-domain')).toHaveText('news.ycombinator.com');
 });
 
-test('Timeline spatial D-pad right navigates to external card with highlight and guidance, OK opens session', async ({ page }) => {
+test('Spatial D-pad does not focus card directly; external links are accessed via action menu', async ({ page }) => {
     await mount(page, [post({ id: '100' }), postWithLinks({ id: '101' })]);
     await move(page, 'down');
 
-    // Remote right focuses the card
+    // Remote right does not focus card
     await move(page, 'right');
     const card = page.locator('[data-testid="card.wrapper"]');
-    await expect(card).toHaveClass(/tv-card-focused/);
-
-    // Guidance shows "确认 阅读文章"
-    const guidance = page.locator('#tv-reading-guidance');
-    await expect(guidance).toContainText('确认 阅读文章');
-
-    // Left unselects the card
-    await move(page, 'left');
     await expect(card).not.toHaveClass(/tv-card-focused/);
 
-    // Right again and activate opens the session
-    await move(page, 'right');
-    await expect(card).toHaveClass(/tv-card-focused/);
+    // Guidance remains standard timeline guidance
+    const guidance = page.locator('#tv-reading-guidance');
+    await expect(guidance).toContainText('切换帖子');
+    await expect(guidance).not.toContainText('阅读文章');
 
+    // External links are opened via action menu ('m')
+    await page.keyboard.press('m');
+    const menu = page.getByRole('dialog', { name: '帖子操作' });
+    await expect(menu).toBeVisible();
+    const linkBtn = menu.locator('button.tv-action-btn-link').first();
+    await expect(linkBtn).toBeVisible();
+
+    // Select link and activate opens session
+    await move(page, 'down'); // like
+    await move(page, 'down'); // link1
+    await expect(linkBtn).toBeFocused();
     await activate(page);
 
     const session = page.locator('#tv-article-session');
@@ -167,39 +171,6 @@ test('Timeline spatial D-pad right navigates to external card with highlight and
     await expect(session.locator('#tv-article-frame')).toHaveAttribute('src', 'https://somethingbig.ai/p/future-ai');
 
     // Back closes session
-    await back(page);
-    await expect(session).toHaveCount(0);
-});
-
-test('Detail page D-pad down navigates to external card in post column, OK opens session', async ({ page }) => {
-    await mount(page, [postWithLinks({ id: '101' })]);
-    await move(page, 'down');
-    await activate(page); // Enter detail page
-
-    // Wait for detail overlay
-    await page.waitForFunction(() => Array.from(document.styleSheets).some(sheet => sheet.href?.endsWith('detail.css')));
-    await expect(page.locator('#tv-detail-header')).toBeVisible();
-
-    // D-pad down in post column focuses the card
-    await move(page, 'down');
-    const card = page.locator('#tv-detail-instant-root [data-testid="card.wrapper"], article.tv-detail-post [data-testid="card.wrapper"]').first();
-    await expect(card).toHaveClass(/tv-card-focused/);
-
-    // Detail guidance shows "确认 阅读文章"
-    const guidance = page.locator('#tv-detail-guidance');
-    await expect(guidance).toContainText('确认 阅读文章');
-
-    // Up unselects card
-    await move(page, 'up');
-    await expect(card).not.toHaveClass(/tv-card-focused/);
-
-    // Down and activate opens session
-    await move(page, 'down');
-    await expect(card).toHaveClass(/tv-card-focused/);
-    await activate(page);
-
-    const session = page.locator('#tv-article-session');
-    await expect(session).toBeVisible();
     await back(page);
     await expect(session).toHaveCount(0);
 });

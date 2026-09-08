@@ -838,10 +838,7 @@ window.TvXAdapter = window.TvXAdapter || (function() {
         if (window.TvXActions?.move(direction)) return;
         if (window.TvXMedia?.move(direction)) return;
         if (window.TvXCard?.move(direction)) return;
-        if (isHome() && direction === "right") {
-            if (window.TvXMedia?.select(focusedArticle())) return;
-            if (window.TvXCard?.select(focusedArticle())) return;
-        }
+        if (isHome() && direction === "right" && window.TvXMedia?.select(focusedArticle())) return;
         if (isLoginMode()) {
             const elements = getCustomInteractiveElements();
             if (elements.length === 0) return;
@@ -868,7 +865,6 @@ window.TvXAdapter = window.TvXAdapter || (function() {
     function activate() {
         if (window.TvXActions?.activate()) return;
         if (window.TvXMedia?.activate()) return;
-        if (window.TvXCard?.activate()) return;
         if (isLoginMode()) {
             const elements = getCustomInteractiveElements();
             if (elements.length === 0 || customLoginFocusIndex >= elements.length) return;

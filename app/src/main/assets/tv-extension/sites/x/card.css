@@ -82,16 +82,3 @@
     display: block;
 }
 
-/* TV Focus highlight outline for Web Cards */
-[data-testid="card.wrapper"].tv-card-focused,
-[data-testid="article-cover-image"].tv-card-focused,
-.tv-card-focused {
-    outline: none !important;
-    border-radius: calc(16 * var(--tv-u, 1px)) !important;
-    box-shadow: 0 0 0 calc(3 * var(--tv-u, 1px)) #38bdf8, 0 calc(8 * var(--tv-u, 1px)) calc(24 * var(--tv-u, 1px)) rgba(56, 189, 248, 0.4) !important;
-    transform: scale(1.02);
-    transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
-    position: relative;
-    z-index: 5;
-}
-

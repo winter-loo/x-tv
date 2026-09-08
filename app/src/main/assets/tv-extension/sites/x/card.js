@@ -143,85 +143,10 @@ window.TvXCard = window.TvXCard || (function() {
         return true;
     }
 
-    let focusedCard = null;
-    let postWithCard = null;
-
-    function findCard(post) {
-        if (!post) return null;
-        const card = post.querySelector('[data-testid="card.wrapper"]');
-        if (!card) return null;
-        if (card.closest('[data-testid="quoteTweet"]')) return null;
-        return card;
-    }
-
-    function hasCard(post) {
-        return !!findCard(post);
-    }
-
-    function select(post) {
-        const card = findCard(post);
-        if (!card) return false;
-        unselect();
-        postWithCard = post;
-        focusedCard = card;
-        focusedCard.classList.add('tv-card-focused');
-        focusedCard.setAttribute('data-tv-card-focused', 'true');
-        focusedCard.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
-
-        if (window.TvXReading && document.body.classList.contains('tv-reading-active')) {
-            window.TvXReading.waiting('确认 阅读文章     ← 返回正文     ↑↓ 切换帖子     返回 退出');
-        }
-        return true;
-    }
-
-    function unselect() {
-        if (focusedCard) {
-            focusedCard.classList.remove('tv-card-focused');
-            focusedCard.removeAttribute('data-tv-card-focused');
-            focusedCard = null;
-            if (postWithCard) {
-                if (window.TvXReading && document.body.classList.contains('tv-reading-active')) {
-                    window.TvXReading.focus(postWithCard);
-                }
-                postWithCard = null;
-            }
-            return true;
-        }
-        return false;
-    }
-
-    function isCardFocused() {
-        return !!focusedCard && focusedCard.isConnected;
-    }
-
-    function activate() {
-        if (session && session.isConnected) return false;
-        if (focusedCard) {
-            const a = focusedCard.closest('a[href]') || focusedCard.querySelector('a[href]');
-            const url = a?.href || focusedCard.dataset.url;
-            const title = a?.getAttribute('aria-label') || focusedCard.querySelector('[dir="auto"]')?.textContent || '';
-            if (url) {
-                open(url, title);
-                return true;
-            }
-        }
-        return false;
-    }
-
     function move(direction) {
         if (session && session.isConnected) {
             scroll(direction);
             return true;
-        }
-        if (focusedCard) {
-            if (direction === 'left') {
-                unselect();
-                return true;
-            }
-            if (direction === 'up' || direction === 'down') {
-                unselect();
-                return false;
-            }
         }
         return false;
     }
@@ -229,10 +154,6 @@ window.TvXCard = window.TvXCard || (function() {
     function back() {
         if (session && session.isConnected) {
             close();
-            return true;
-        }
-        if (focusedCard) {
-            unselect();
             return true;
         }
         return false;
@@ -244,17 +165,12 @@ window.TvXCard = window.TvXCard || (function() {
 
     return {
         findExternalLinks,
-        hasCard,
-        findCard,
-        select,
-        unselect,
-        isCardFocused,
-        activate,
-        move,
-        back,
         open,
         close,
         scroll,
+        move,
+        back,
         isOpen
     };
 })();
+
