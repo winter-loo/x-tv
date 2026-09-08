@@ -634,7 +634,14 @@ window.TvXAdapter = window.TvXAdapter || (function() {
             // so a subsequent native scroll cannot lose the logical post.
             homeScroll = pageScrollY();
         } else if (changed) TvNavigationRuntime.setFocus(target);
-        if (changed) reportState();
+        if (changed) {
+            reportState();
+            if (isHome() && window.TvXDetail?.stash) {
+                const link = statusLink(target);
+                const path = window.TvXPostIdentity?.canonicalPath(link);
+                if (path) window.TvXDetail.stash(target, path);
+            }
+        }
     }
 
     function verifyOrRestoreFocus() {
@@ -762,9 +769,13 @@ window.TvXAdapter = window.TvXAdapter || (function() {
         event.stopImmediatePropagation();
     }
 
-    function openStatus(link) {
+    function openStatus(link, article) {
         const path = window.TvXPostIdentity?.canonicalPath(link);
         if (!path) return;
+        const targetArticle = article || link.closest('article[data-testid="tweet"]') || focusedArticle();
+        if (targetArticle && window.TvXDetail?.stash) {
+            window.TvXDetail.stash(targetArticle, path);
+        }
         if (isHome() && window.TvXNativeHost) {
             window.TvXNativeHost.openPost(path);
             return;
@@ -812,7 +823,10 @@ window.TvXAdapter = window.TvXAdapter || (function() {
                 if (!isHome() && location.pathname === post.path) return;
                 const article = getArticles().find(item => extractArticleAnchor(item) === post.path);
                 const link = statusLink(article);
-                if (link) { if (isHome()) homeScroll = pageScrollY(); openStatus(link); }
+                if (link) {
+                    if (isHome()) homeScroll = pageScrollY();
+                    openStatus(link, article);
+                }
             },
             restore: () => { verifyOrRestoreFocus(); reportState(); }
         });
@@ -872,7 +886,7 @@ window.TvXAdapter = window.TvXAdapter || (function() {
         if (link) {
             cancelPendingMove();
             if (isHome()) homeScroll = pageScrollY();
-            openStatus(link);
+            openStatus(link, current);
         } else if (current && current.classList.contains("timeline-card")) {
             TvNavigationRuntime.clickElement(current);
         } else if (isHome()) {

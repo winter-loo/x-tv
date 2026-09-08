@@ -21,6 +21,8 @@ window.TvXDetail = window.TvXDetail || (function() {
     let sentTimer = null;
     let domObserver = null;
     let replySettled = false;
+    let cachedSnapshot = null;
+    let instantRoot = null;
 
     function mark(node, kind) {
         if (!node) return;
@@ -58,20 +60,157 @@ window.TvXDetail = window.TvXDetail || (function() {
 
     const ownStatusLink = window.TvXPostIdentity.statusLink;
 
-    function formatArticle(article, permalink) {
-        const reply = article.querySelector('[data-testid="reply"]');
+    function pruneStorage() {
+        try {
+            const now = Date.now();
+            const keys = [];
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const k = sessionStorage.key(i);
+                if (k && k.startsWith('tvx_instant_detail_')) keys.push(k);
+            }
+            if (keys.length > 5) {
+                const items = keys.map(k => {
+                    try { return { key: k, data: JSON.parse(sessionStorage.getItem(k)) }; }
+                    catch (_) { return { key: k, data: null }; }
+                }).sort((a, b) => (b.data?.timestamp || 0) - (a.data?.timestamp || 0));
+                for (let i = 5; i < items.length; i++) sessionStorage.removeItem(items[i].key);
+            }
+            for (const k of keys) {
+                try {
+                    const item = JSON.parse(sessionStorage.getItem(k));
+                    if (!item || !item.timestamp || (now - item.timestamp > 10 * 60 * 1000)) {
+                        sessionStorage.removeItem(k);
+                    }
+                } catch (_) {
+                    sessionStorage.removeItem(k);
+                }
+            }
+        } catch (_) {}
+    }
+
+    function findAttachment(article, boundaries) {
         const cover = article.querySelector('[data-testid="article-cover-image"]');
         const media = article.querySelector('[data-testid="card.wrapper"], [data-testid="videoPlayer"], [data-testid="tweetPhoto"]');
+        let attachment = cover || media;
+        if (!attachment) return null;
+        while (attachment.parentElement && attachment.parentElement !== article &&
+            !boundaries.some(node => attachment.parentElement.contains(node))) {
+            attachment = attachment.parentElement;
+        }
+        return attachment;
+    }
+
+    function stash(article, targetPath) {
+        if (!article) return null;
+        const path = targetPath || window.TvXPostIdentity?.canonicalPath(ownStatusLink(article));
+        const match = path?.match(/\/status\/(\d+)/);
+        const id = match ? match[1] : null;
+        if (!id) return null;
+
+        const avatar = article.querySelector('[data-testid="Tweet-User-Avatar"]');
+        const name = article.querySelector('[data-testid="User-Name"]');
+        const text = article.querySelector('[data-testid="tweetText"]');
+        const reply = article.querySelector('[data-testid="reply"]');
+        const boundaries = [avatar, name, text, reply?.closest('[role="group"]')].filter(Boolean);
+        const attachment = findAttachment(article, boundaries);
+        const engagement = reply?.closest('[role="group"]');
+
+        const snapshot = {
+            id,
+            path,
+            avatarHtml: avatar ? avatar.outerHTML : '',
+            nameHtml: name ? name.outerHTML : '',
+            textHtml: text ? text.outerHTML : '',
+            attachmentHtml: attachment ? attachment.outerHTML : '',
+            engagementHtml: engagement ? engagement.outerHTML : '',
+            replyCount: reply?.textContent.trim() || '',
+            timestamp: Date.now()
+        };
+
+        try {
+            sessionStorage.setItem('tvx_instant_detail_' + id, JSON.stringify(snapshot));
+            pruneStorage();
+        } catch (_) {}
+        cachedSnapshot = snapshot;
+        return snapshot;
+    }
+
+    function getSnapshot(id) {
+        if (cachedSnapshot && cachedSnapshot.id === id) return cachedSnapshot;
+        try {
+            const raw = sessionStorage.getItem('tvx_instant_detail_' + id);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (parsed && parsed.id === id) {
+                    cachedSnapshot = parsed;
+                    return parsed;
+                }
+            }
+        } catch (_) {}
+        return null;
+    }
+
+    function clearSnapshot(id) {
+        if (!id || (cachedSnapshot && cachedSnapshot.id === id)) cachedSnapshot = null;
+        try {
+            if (id) sessionStorage.removeItem('tvx_instant_detail_' + id);
+            else {
+                for (let i = sessionStorage.length - 1; i >= 0; i--) {
+                    const k = sessionStorage.key(i);
+                    if (k && k.startsWith('tvx_instant_detail_')) sessionStorage.removeItem(k);
+                }
+            }
+        } catch (_) {}
+    }
+
+    function renderInstantRoot(snapshot) {
+        if (!chrome) return null;
+        let el = chrome.querySelector('#tv-detail-instant-root');
+        if (!el) {
+            el = document.createElement('article');
+            el.id = 'tv-detail-instant-root';
+            el.className = 'tv-detail-post tv-instant-post';
+            el.setAttribute('data-fixture-id', snapshot.id);
+            el.setAttribute('data-instant-detail', 'true');
+            chrome.appendChild(el);
+        } else if (el.getAttribute('data-fixture-id') !== snapshot.id) {
+            el.setAttribute('data-fixture-id', snapshot.id);
+            el.innerHTML = '';
+        } else {
+            instantRoot = el;
+            return el;
+        }
+
+        const parts = [
+            [snapshot.avatarHtml, 'avatar'],
+            [snapshot.nameHtml, 'name'],
+            [snapshot.textHtml, 'text'],
+            [snapshot.attachmentHtml, 'attachment'],
+            [snapshot.engagementHtml, 'engagement']
+        ];
+        for (const [html, kind] of parts) {
+            if (!html) continue;
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            const child = temp.firstElementChild;
+            if (child) {
+                child.classList.add('tv-detail-' + kind, 'tv-detail-part');
+                el.appendChild(child);
+            }
+        }
+
+        instantRoot = el;
+        return el;
+    }
+
+    function formatArticle(article, permalink) {
+        const reply = article.querySelector('[data-testid="reply"]');
         const avatar = article.querySelector('[data-testid="Tweet-User-Avatar"]');
         const name = article.querySelector('[data-testid="User-Name"]');
         const text = article.querySelector('[data-testid="tweetText"]');
         const engagement = reply?.closest('[role="group"]');
-        let attachment = cover || media;
-        // Retain the native media-only branch, including its aspect-ratio sizer.
-        // tweetPhoto's immediate parent is an absolute overlay on current X.
         const boundaries = [avatar, name, text, engagement, permalink].filter(Boolean);
-        while (attachment?.parentElement && attachment.parentElement !== article &&
-            !boundaries.some(node => attachment.parentElement.contains(node))) attachment = attachment.parentElement;
+        const attachment = findAttachment(article, boundaries);
         const parts = [
             [avatar, 'avatar'],
             [name, 'name'],
@@ -176,6 +315,7 @@ window.TvXDetail = window.TvXDetail || (function() {
     function openReply(article) {
         const path = replyPath(article);
         if (!root || !article?.isConnected || !path || path === route) return;
+        stash(article, path);
         selectReply(article, false);
         savedCommentsScroll = window.scrollY;
         savedPostScroll = root.scrollTop;
@@ -644,6 +784,10 @@ window.TvXDetail = window.TvXDetail || (function() {
             if (!route) return;
             route = null;
             root = null;
+            if (instantRoot) {
+                instantRoot.remove();
+                instantRoot = null;
+            }
             replyAnchor = null;
             pendingReplyMove = null;
             document.removeEventListener('click', handleReplyClick, true);
@@ -660,6 +804,10 @@ window.TvXDetail = window.TvXDetail || (function() {
         if (route !== nextRoute) {
             clearMarks();
             closeComposer(false);
+            if (instantRoot) {
+                instantRoot.remove();
+                instantRoot = null;
+            }
             route = nextRoute;
             routeMountedAt = Date.now();
             root = null;
@@ -684,11 +832,29 @@ window.TvXDetail = window.TvXDetail || (function() {
         clearMarks();
         root = selectedPost || null;
         if (root) {
+            if (instantRoot) {
+                savedPostScroll = instantRoot.scrollTop || savedPostScroll;
+                instantRoot.remove();
+                instantRoot = null;
+            }
+            clearSnapshot(id);
             mark(root, 'post');
             root.classList.remove('tv-focused');
             for (let parent = root.parentElement; parent && parent !== primary; parent = parent.parentElement) mark(parent, 'post-ancestor');
             formatArticle(root, ownStatusLink(root, findStatusLink));
             if (savedPostScroll) root.scrollTop = savedPostScroll;
+        } else {
+            const tombstone = !!(primary?.querySelector('[data-testid="tombstone"], [data-testid="error-detail"]') || document.querySelector('[data-testid="emptyState"]'));
+            if (!tombstone && id) {
+                const snapshot = getSnapshot(id);
+                if (snapshot) {
+                    renderInstantRoot(snapshot);
+                    if (savedPostScroll && instantRoot) instantRoot.scrollTop = savedPostScroll;
+                }
+            } else if (tombstone && instantRoot) {
+                instantRoot.remove();
+                instantRoot = null;
+            }
         }
         for (const article of articles) {
             if (article === root) continue;
@@ -700,6 +866,10 @@ window.TvXDetail = window.TvXDetail || (function() {
                 continue;
             }
             mark(article, 'reply');
+            if (!article.hasAttribute('data-tv-reply-animated')) {
+                article.setAttribute('data-tv-reply-animated', 'true');
+                article.classList.add('tv-reply-animated');
+            }
             formatArticle(article);
         }
         if (column === 'comments' && !replyEntry) {
@@ -738,9 +908,12 @@ window.TvXDetail = window.TvXDetail || (function() {
         if (source && avatar.getAttribute('src') !== source) avatar.src = source;
         avatar.hidden = !source;
 
+        const tombstone = !!(primary?.querySelector('[data-testid="tombstone"], [data-testid="error-detail"]') || document.querySelector('[data-testid="emptyState"]'));
+        const hasInstant = !root && !!instantRoot && !tombstone;
+
         const entryBtn = chrome.querySelector('#tv-detail-entry button');
         if (entryBtn) {
-            entryBtn.disabled = !root;
+            entryBtn.disabled = !root && !hasInstant;
             if (!entryBtn._hasReplyListener) {
                 entryBtn._hasReplyListener = true;
                 entryBtn.addEventListener('click', () => {
@@ -749,19 +922,18 @@ window.TvXDetail = window.TvXDetail || (function() {
             }
         }
 
-        const count = root?.querySelector('[data-testid="reply"]')?.textContent.trim() || '';
+        const count = (root || instantRoot)?.querySelector('[data-testid="reply"]')?.textContent.trim() || '';
         const title = chrome.querySelector('#tv-detail-comments-title');
         const titleText = '评论 ' + count + '　　↓ 更多';
         if (title.textContent !== titleText) title.textContent = titleText;
         const pending = !!primary?.querySelector('[role="progressbar"]');
-        const tombstone = !!(primary?.querySelector('[data-testid="tombstone"], [data-testid="error-detail"]') || document.querySelector('[data-testid="emptyState"]'));
         const isInitialGrace = (Date.now() - routeMountedAt < 6000) && (articles.length === 0);
-        const isPostLoading = !root && (pending || isInitialGrace) && !tombstone;
+        const isPostLoading = !root && !hasInstant && (pending || isInitialGrace) && !tombstone;
         const status = chrome.querySelector('#tv-detail-status');
-        const message = root ? '' : isPostLoading ? '正在加载帖子…' : '帖子暂不可用，请返回后重试';
+        const message = (root || hasInstant) ? '' : isPostLoading ? '正在加载帖子…' : '帖子暂不可用，请返回后重试';
         if (status.textContent !== message) status.textContent = message;
         status.classList.toggle('tv-loading-shimmer', isPostLoading);
-        status.classList.toggle('tv-status-error', !root && !isPostLoading);
+        status.classList.toggle('tv-status-error', !root && !hasInstant && !isPostLoading);
 
         let skeletonCard = chrome.querySelector('#tv-detail-skeleton-card');
         let errorCard = chrome.querySelector('#tv-detail-error-card');
@@ -774,7 +946,7 @@ window.TvXDetail = window.TvXDetail || (function() {
                 chrome.appendChild(skeletonCard);
             }
             if (errorCard) errorCard.remove();
-        } else if (!root) {
+        } else if (!root && !hasInstant) {
             if (skeletonCard) skeletonCard.remove();
             if (!errorCard) {
                 errorCard = document.createElement('div');
@@ -792,8 +964,10 @@ window.TvXDetail = window.TvXDetail || (function() {
         }
 
         const replyStatus = chrome.querySelector('#tv-detail-reply-status');
-        const replyMessage = articles.some(article => article.classList.contains('tv-detail-reply')) ? '' : pending ? '正在加载评论…' : root ? '暂无已加载评论' : '';
+        const hasReplies = articles.some(article => article.classList.contains('tv-detail-reply'));
+        const replyMessage = hasReplies ? '' : (pending || hasInstant) ? '正在加载评论…' : root ? '暂无已加载评论' : '';
         if (replyStatus.textContent !== replyMessage) replyStatus.textContent = replyMessage;
+        replyStatus.classList.toggle('tv-loading-shimmer', !hasReplies && (pending || hasInstant));
     }
 
     function move(direction) {
@@ -826,9 +1000,12 @@ window.TvXDetail = window.TvXDetail || (function() {
             renderReplyFocus();
         } else if (direction === 'up' || direction === 'down') {
             const step = (direction === 'down' ? 1 : -1) * (column === 'post' ? 716 : 604) * window.innerWidth / 1920 * 0.8;
-            if (column === 'post' && root) {
-                root.scrollBy({top:step,behavior:'instant'});
-                savedPostScroll = root.scrollTop;
+            if (column === 'post') {
+                const target = root || instantRoot;
+                if (target) {
+                    target.scrollBy({top:step,behavior:'instant'});
+                    savedPostScroll = target.scrollTop;
+                }
             } else if (column === 'comments') {
                 moveReply(direction);
             }
@@ -883,6 +1060,9 @@ window.TvXDetail = window.TvXDetail || (function() {
         closeComposer,
         submitReply,
         isOpen: () => !!overlay && overlay.isConnected,
-        isPending: () => isPending
+        isPending: () => isPending,
+        stash,
+        getSnapshot,
+        clearSnapshot
     };
 })();

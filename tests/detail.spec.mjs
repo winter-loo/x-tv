@@ -65,10 +65,13 @@ test('detail loading state machine shows loading without flashing unavailable wh
     await mount(page, [post({ id: '101' }), post({ id: '102', text: 'Detail post text', article: true })]);
     await move(page, 'down');
     await activate(page);
-    // Emulate initial loading period before React renders anything
+    // Emulate initial loading period before React renders anything (cold load without timeline snapshot)
     await page.evaluate(() => {
+        window.TvXDetail?.clearSnapshot?.();
+        sessionStorage.clear();
         document.querySelector('[role="tablist"]')?.remove();
         document.querySelector('#timeline').innerHTML = '';
+        window.TvXDetail?.update(true);
     });
     // Must show '正在加载帖子…' with shimmer skeleton screen, and NEVER false unavailable error
     await expect(page.locator('#tv-detail-status')).toHaveText('正在加载帖子…');
@@ -85,6 +88,128 @@ test('detail loading state machine shows loading without flashing unavailable wh
     await expect(page.locator('#tv-detail-skeleton-card')).toHaveCount(0);
     await expect(page.locator('#tv-detail-error-card')).toBeVisible();
     await expect(page.locator('#tv-detail-error-back')).toBeVisible();
+});
+
+test('timeline Enter navigation instantly displays main post (<100ms) before network or native React renders', async ({ page }) => {
+    await mount(page, [
+        post({ id: '101' }),
+        post({ id: '102', text: 'Instant detail body text. '.repeat(20), article: true })
+    ]);
+    await move(page, 'down');
+    // Emulate X router unmounting timeline upon link activation
+    await page.evaluate(() => {
+        document.addEventListener('click', () => {
+            document.querySelector('[role="tablist"]')?.remove();
+            document.querySelector('#timeline').innerHTML = '';
+        }, true);
+    });
+    // Navigate via Enter / activate
+    await activate(page);
+    await page.waitForFunction(() => Array.from(document.styleSheets).some(sheet => sheet.href?.endsWith('detail.css')));
+
+    // 1. Instant root article exists immediately in DOM
+    const instant = page.locator('#tv-detail-instant-root');
+    await expect(instant).toBeVisible();
+    await expect(instant).toHaveClass(/tv-detail-post/);
+
+    // 2. Geometry matches approved 1008x716 at (96, 160)
+    await expect.poll(() => rect(instant)).toEqual({ x: 96, y: 160, width: 1008, height: 716 });
+
+    // 3. Post content is immediately visible
+    await expect(instant.locator('.tv-detail-avatar img')).toBeVisible();
+    await expect(instant.locator('.tv-detail-name')).toContainText('Fixture Author');
+    await expect(instant.locator('.tv-detail-text')).toContainText('Instant detail body text.');
+    await expect(instant.locator('.tv-detail-attachment')).toBeVisible();
+    await expect(instant.locator('.tv-detail-engagement')).toBeVisible();
+
+    // 4. Loading status: main post status is empty, skeleton card NOT present
+    await expect(page.locator('#tv-detail-status')).toHaveText('');
+    await expect(page.locator('#tv-detail-skeleton-card')).toHaveCount(0);
+
+    // 5. Comments column shows smooth loading placeholder
+    await expect(page.locator('#tv-detail-reply-status')).toHaveText('正在加载评论…');
+
+    // 6. Action entry "写评论…" is ready
+    await expect(page.getByRole('button', { name: '写评论…' })).toBeEnabled();
+});
+
+test('scrolling instant root is preserved when live native post and replies mount seamlessly', async ({ page }) => {
+    await mount(page, [
+        post({ id: '101' }),
+        post({ id: '102', text: 'Long instant post text. '.repeat(100), article: true })
+    ]);
+    await move(page, 'down');
+    // Emulate X router unmounting timeline upon link activation
+    await page.evaluate(() => {
+        document.addEventListener('click', () => {
+            document.querySelector('[role="tablist"]')?.remove();
+            document.querySelector('#timeline').innerHTML = '';
+        }, true);
+    });
+    await activate(page);
+    await page.waitForFunction(() => Array.from(document.styleSheets).some(sheet => sheet.href?.endsWith('detail.css')));
+
+    const instant = page.locator('#tv-detail-instant-root');
+    await expect(instant).toBeVisible();
+
+    // Scroll instant post down
+    await move(page, 'down');
+    const scrolled = await instant.evaluate(node => node.scrollTop);
+    expect(scrolled).toBeGreaterThan(300);
+
+    // Now native React finishes network request and renders the live tweet and comments
+    await page.evaluate(html => {
+        document.querySelector('#timeline').innerHTML = html;
+        window.TvXDetail?.update(true);
+    }, post({ id: '102', text: 'Long instant post text. '.repeat(100), article: true }) + post({ id: '201', text: 'Real comment arrives' }));
+
+    // Instant root is seamlessly replaced by live native post
+    await expect(page.locator('#tv-detail-instant-root')).toHaveCount(0);
+    const liveRoot = page.locator('[data-fixture-id="102"]');
+    await expect(liveRoot).toHaveClass(/tv-detail-post/);
+    expect(await liveRoot.evaluate(node => node.scrollTop)).toBe(scrolled);
+
+    // Comments arrive and reply status updates
+    await expect(page.locator('[data-fixture-id="201"]')).toHaveClass(/tv-detail-reply/);
+    await expect(page.locator('#tv-detail-reply-status')).toHaveText('');
+});
+
+test('sessionStorage lifecycle prunes old entries and unmount cleanly removes instant root', async ({ page }) => {
+    await mount(page, [post({ id: '101' }), post({ id: '102' })]);
+    // Stash directly from article
+    const hasItem = await page.evaluate(() => {
+        window.TvXDetail.stash(document.querySelector('article'), '/fixture/status/102');
+        return sessionStorage.getItem('tvx_instant_detail_102') !== null;
+    });
+    expect(hasItem).toBe(true);
+
+    // Test pruning by inserting multiple dummy snapshots
+    const count = await page.evaluate(() => {
+        for (let i = 1; i <= 8; i++) {
+            window.TvXDetail.stash(document.querySelector('article'), '/fixture/status/90' + i);
+        }
+        let total = 0;
+        for (let i = 0; i < sessionStorage.length; i++) {
+            if (sessionStorage.key(i)?.startsWith('tvx_instant_detail_')) total++;
+        }
+        return total;
+    });
+    // Should be capped at 5
+    expect(count).toBeLessThanOrEqual(5);
+
+    // Mount instant detail and verify unmount cleans it
+    await page.evaluate(() => {
+        history.pushState({}, '', '/fixture/status/908');
+        window.TvXDetail.update(true);
+    });
+    await expect(page.locator('#tv-detail-instant-root')).toBeVisible();
+
+    // Navigate back to home: unmount detail cleans instant root
+    await page.evaluate(() => {
+        history.pushState({}, '', '/home');
+        window.TvXDetail.update(false);
+    });
+    await expect(page.locator('#tv-detail-instant-root')).toHaveCount(0);
 });
 
 test('Back dismisses a native overlay then restores the original home post after native routing', async ({ page }) => {

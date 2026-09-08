@@ -28,8 +28,18 @@ body.tv-detail-active .tv-detail-post .tv-detail-engagement svg { width:calc(56 
 body.tv-detail-active .tv-detail-post .tv-detail-engagement [data-testid="reply"] svg { background-image:url("icons/comments.svg"); }
 body.tv-detail-active .tv-detail-post .tv-detail-engagement [data-testid="like"] svg { background-image:url("icons/like.svg"); }
 body.tv-detail-active .tv-detail-post .tv-detail-engagement a[href$="/analytics"] svg { background-image:url("icons/views.svg"); }
-body.tv-detail-active .tv-detail-post .tv-detail-engagement [data-testid="unlike"] svg { fill:#f91880 !important; }
+@keyframes tv-reply-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(calc(12 * var(--tv-u)));
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 body.tv-detail-active .tv-detail-reply { padding:calc(12 * var(--tv-u)) 0 !important; }
+body.tv-detail-active .tv-detail-reply.tv-reply-animated { animation: tv-reply-fade-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) both; }
 body.tv-detail-active .tv-detail-reply [data-testid="tweetText"], body.tv-detail-active .tv-detail-reply [data-testid="tweetText"] :is(span,a) { font-size:calc(28 * var(--tv-u)) !important; line-height:calc(38 * var(--tv-u)) !important; }
 body.tv-detail-active .tv-detail-reply [data-testid="User-Name"] :is(span,a,time) { font-size:calc(24 * var(--tv-u)) !important; line-height:calc(30 * var(--tv-u)) !important; }
 body.tv-detail-active .tv-detail-reply [data-testid="Tweet-User-Avatar"] { width:calc(56 * var(--tv-u)) !important; height:calc(56 * var(--tv-u)) !important; }
@@ -54,7 +64,7 @@ body[data-tv-detail-column="post"] #tv-detail-post-focus, body[data-tv-detail-co
     100% { opacity:0.45; }
 }
 
-#tv-detail-status.tv-loading-shimmer {
+#tv-detail-status.tv-loading-shimmer, #tv-detail-reply-status.tv-loading-shimmer {
     animation: tv-shimmer 1.4s ease-in-out infinite;
     color: #8da2b5;
 }
