@@ -1,59 +1,110 @@
-/* Approved Figma menu 19:2 / 19:41 / 102:2, in the 1920 × 1080 coordinate space. */
+/* Aero Dark TV Action Menu, in the 1920 × 1080 coordinate space. */
 #tv-action-overlay {
     --tv-u: calc(100vw / 1920);
     position: fixed;
     inset: 0;
     z-index: 1000000;
-    background: rgba(0, 0, 0, .62);
+    background: rgba(0, 0, 0, .68);
+    backdrop-filter: blur(8px);
     color: #b8c4d4;
     font-family: Roboto, "Noto Sans SC", sans-serif;
 }
 #tv-action-menu {
     box-sizing: border-box;
     position: absolute;
-    left: calc(640 * var(--tv-u));
-    top: calc(314 * var(--tv-u));
-    width: calc(640 * var(--tv-u));
-    height: calc(452 * var(--tv-u));
-    padding: calc(32 * var(--tv-u));
+    left: calc(690 * var(--tv-u));
+    top: calc(392 * var(--tv-u));
+    width: calc(540 * var(--tv-u));
+    height: auto;
+    padding: calc(28 * var(--tv-u)) calc(32 * var(--tv-u)) calc(22 * var(--tv-u));
     border: 0;
-    box-shadow: inset 0 0 0 1px #384554;
-    border-radius: calc(28 * var(--tv-u));
-    background: #111721;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), 0 calc(20 * var(--tv-u)) calc(50 * var(--tv-u)) rgba(0, 0, 0, 0.65);
+    border-radius: calc(24 * var(--tv-u));
+    background: rgba(17, 23, 33, 0.95);
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: calc(20 * var(--tv-u));
+    gap: calc(16 * var(--tv-u));
 }
-#tv-action-title { margin: 0; font-size: calc(30 * var(--tv-u)); line-height: 1.4; font-weight: 400; }
+#tv-action-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: calc(16 * var(--tv-u));
+    height: calc(34 * var(--tv-u));
+}
+#tv-action-title {
+    margin: 0;
+    flex: none;
+    font-size: calc(26 * var(--tv-u));
+    line-height: calc(34 * var(--tv-u));
+    font-weight: 600;
+    color: #f1f5f9;
+}
+#tv-action-counts {
+    font-size: calc(22 * var(--tv-u));
+    line-height: calc(34 * var(--tv-u));
+    color: #94a3b8;
+    text-align: right;
+}
 #tv-action-menu button {
     flex: none;
-    height: calc(104 * var(--tv-u));
+    height: calc(68 * var(--tv-u));
     border: 0;
-    border-radius: calc(18 * var(--tv-u));
+    border-radius: calc(14 * var(--tv-u));
     margin: 0;
-    padding: 0;
-    color: #f0f2f7;
-    background: #1f2633;
-    font: calc(32 * var(--tv-u))/1.4 Roboto, "Noto Sans SC", sans-serif;
+    padding: 0 calc(36 * var(--tv-u));
+    color: #f1f5f9;
+    background: #1e293b;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    font: 500 calc(26 * var(--tv-u))/calc(68 * var(--tv-u)) Roboto, "Noto Sans SC", sans-serif;
     outline: none;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s cubic-bezier(0.16, 1, 0.3, 1), background 0.15s ease;
 }
-#tv-action-menu button.tv-action-focused { background: white; color: #090d14; }
-#tv-action-status { margin: 0; white-space: pre-wrap; font-size: calc(24 * var(--tv-u)); line-height: 1.4; }
-#tv-action-menu button.tv-action-liked { color: #db1459; }
-#tv-action-menu button.tv-action-liked::before {
+#tv-action-menu button.tv-action-focused {
+    background: #2a374a;
+    color: #ffffff;
+    box-shadow: 0 0 0 calc(2.5 * var(--tv-u)) #38bdf8, 0 calc(8 * var(--tv-u)) calc(20 * var(--tv-u)) rgba(56, 189, 248, 0.3);
+    transform: scale(1.02);
+}
+#tv-action-menu button.tv-action-btn-comment::before,
+#tv-action-menu button:nth-of-type(1)::before {
     content: "";
     display: inline-block;
-    width: calc(36 * var(--tv-u));
-    height: calc(36 * var(--tv-u));
-    margin-right: calc(12 * var(--tv-u));
-    vertical-align: -.2em;
-    background: url("icons/liked.svg") center / contain no-repeat;
+    width: calc(24 * var(--tv-u));
+    height: calc(24 * var(--tv-u));
+    margin-right: calc(14 * var(--tv-u));
+    vertical-align: middle;
+    background: url("icons/comments.svg") center / contain no-repeat;
 }
-#tv-action-heading { display: flex; align-items: center; justify-content: space-between; gap: calc(16 * var(--tv-u)); }
-#tv-action-title { flex: none; }
-#tv-action-counts { font-size: calc(24 * var(--tv-u)); line-height: 1.4; text-align: right; }
+#tv-action-menu button.tv-action-btn-like::before,
+#tv-action-menu button:nth-of-type(2)::before {
+    content: "";
+    display: inline-block;
+    width: calc(24 * var(--tv-u));
+    height: calc(24 * var(--tv-u));
+    margin-right: calc(14 * var(--tv-u));
+    vertical-align: middle;
+    background: url("icons/like.svg") center / contain no-repeat;
+}
+#tv-action-menu button.tv-action-liked {
+    color: #f43f5e;
+}
+#tv-action-menu button.tv-action-liked::before {
+    background: url("icons/liked.svg") center / contain no-repeat !important;
+}
+#tv-action-status {
+    margin: 0;
+    white-space: pre-wrap;
+    font-size: calc(20 * var(--tv-u));
+    line-height: calc(28 * var(--tv-u));
+    color: #94a3b8;
+    text-align: center;
+}
 
 /* Approved Figma Home Inline Reply Composer
    (node-id: 75-2, 75-44, 75-94, 84-2, 84-44, 91-12)

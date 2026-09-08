@@ -489,7 +489,7 @@ window.TvXActions = window.TvXActions || (function() {
         }
         overlay = document.createElement('div');
         overlay.id = 'tv-action-overlay';
-        overlay.innerHTML = '<section id="tv-action-menu" role="dialog" aria-modal="true" aria-labelledby="tv-action-title"><div id="tv-action-heading"><h2 id="tv-action-title">帖子操作</h2><span id="tv-action-counts" aria-label="帖子互动计数"></span></div><button type="button">评论</button><button type="button">喜欢</button><p id="tv-action-status" role="status">↑↓ 选择    确认 执行    返回 关闭</p></section>';
+        overlay.innerHTML = '<section id="tv-action-menu" role="dialog" aria-modal="true" aria-labelledby="tv-action-title"><div id="tv-action-heading"><h2 id="tv-action-title">帖子操作</h2><span id="tv-action-counts" aria-label="帖子互动计数"></span></div><button type="button" class="tv-action-btn-comment">评论</button><button type="button" class="tv-action-btn-like">喜欢</button><p id="tv-action-status" role="status">↑↓ 选择    确认 执行    返回 关闭</p></section>';
         document.body.appendChild(overlay);
         buttons().forEach((button, index) => button.addEventListener('click', () => { selected = index; activate(); }));
         selected = 0;

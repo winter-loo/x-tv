@@ -7,10 +7,16 @@ test('Menu traps remote focus, matches the approved overlay and returns to the s
     await page.keyboard.press('m');
     const menu = page.getByRole('dialog', { name: '帖子操作' });
     await expect(menu).toBeVisible();
-    expect(await rect(menu)).toEqual({ x: 640, y: 314, width: 640, height: 452 });
-    await expect(page.getByRole('button', { name: '评论', exact: true })).toBeFocused();
+    expect(await rect(menu)).toEqual({ x: 690, y: 392, width: 540, height: 296 });
+    const commentButton = page.getByRole('button', { name: '评论', exact: true });
+    const likeButton = page.getByRole('button', { name: '喜欢', exact: true });
+    expect((await rect(likeButton)).height).toBe(68);
+    await expect(commentButton).toBeFocused();
+    await expect.poll(async () => (await rect(commentButton)).height).toBe(69);
     await move(page, 'down');
-    await expect(page.getByRole('button', { name: '喜欢', exact: true })).toBeFocused();
+    await expect(likeButton).toBeFocused();
+    await expect.poll(async () => (await rect(likeButton)).height).toBe(69);
+    await expect.poll(async () => (await rect(commentButton)).height).toBe(68);
     await move(page, 'right');
     await expect(page.locator('article.tv-focused')).toHaveAttribute('data-fixture-id', '102');
     await page.keyboard.press('Tab');
@@ -23,6 +29,36 @@ test('Menu traps remote focus, matches the approved overlay and returns to the s
     const composer = page.locator('#tv-composer-dialog');
     await expect(composer).toBeVisible();
     expect((await rect(composer)).width).toBe(880);
+});
+
+test('Aero Dark action menu renders symmetrical SVG icons and sky-blue focus styling', async ({ page }) => {
+    await mount(page, [post()]);
+    await move(page, 'down');
+    await page.keyboard.press('m');
+    const menu = page.getByRole('dialog', { name: '帖子操作' });
+    await expect(menu).toBeVisible();
+    await expect(page.getByRole('button', { name: '评论', exact: true })).toBeFocused();
+
+    const styles = await page.evaluate(() => {
+        const commentBtn = document.querySelector('#tv-action-menu button.tv-action-btn-comment');
+        const likeBtn = document.querySelector('#tv-action-menu button.tv-action-btn-like');
+        const commentBefore = window.getComputedStyle(commentBtn, '::before');
+        const likeBefore = window.getComputedStyle(likeBtn, '::before');
+        return {
+            commentBg: commentBefore.backgroundImage,
+            commentWidth: commentBefore.width,
+            likeBg: likeBefore.backgroundImage,
+            likeWidth: likeBefore.width,
+            commentFocusedBoxShadow: window.getComputedStyle(commentBtn).boxShadow,
+            commentFocusedBg: window.getComputedStyle(commentBtn).backgroundColor
+        };
+    });
+    expect(styles.commentBg).toContain('comments.svg');
+    expect(styles.commentWidth).toBe('24px');
+    expect(styles.likeBg).toContain('like.svg');
+    expect(styles.likeWidth).toBe('24px');
+    expect(styles.commentFocusedBoxShadow).toContain('56, 189, 248');
+    expect(styles.commentFocusedBg).toContain('42, 55, 74');
 });
 
 import { mountActions, bootFreshActions } from './fixtures/actions.mjs';
