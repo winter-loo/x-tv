@@ -157,13 +157,17 @@ window.TvXReading = window.TvXReading || (function() {
 
     function focus(article) {
         if (!active || !article) return;
+        document.querySelectorAll('article.tv-reading-card').forEach(card => {
+            if (card !== article) card.removeAttribute('data-tv-focus-target');
+        });
+        article.setAttribute('data-tv-focus-target', 'text');
         const u = window.innerWidth / 1920;
         const delta = article.getBoundingClientRect().top - 192 * u;
         if (Math.abs(delta) > 1) article.scrollIntoView({ block: "start", inline: "nearest", behavior: "instant" });
         const overflow = Array.from(article.querySelectorAll(".tv-reading-text, .tv-reading-attachment"))
             .some(node => node.scrollHeight > node.clientHeight + 1);
         const media = article.querySelector('video, [data-testid="tweetPhoto"] img');
-        const text = "↑↓ 切换帖子     确认 打开帖子" + (media ? "     → 图片 / 视频" + (overflow ? "     ← 翻阅正文" : "") : overflow ? "     ←→ 翻阅长内容" : "") + "     菜单 评论 / 喜欢     返回 回到顶部 / 退出";
+        const text = "【当前焦点：正文】 ↑↓ 切换帖子     确认 打开帖子" + (media ? "     → 图片 / 视频" + (overflow ? "     ← 翻阅正文" : "") : overflow ? "     ←→ 翻阅长内容" : "") + "     菜单 评论 / 喜欢     返回 回到顶部 / 退出";
         if (guidance.textContent !== text) guidance.textContent = text;
     }
 

@@ -14,7 +14,9 @@ window.TvXMedia = window.TvXMedia || (() => {
         selected?.removeAttribute('data-tv-media-selected');
         selected = items[index];
         selected?.setAttribute('data-tv-media-selected', 'true');
-        hint('← 返回正文     → 下一项媒体     确认 ' + (selected?.tagName === 'VIDEO' ? '播放视频' : '查看图片') + `     ${index + 1} / ${items.length}`);
+        article?.setAttribute('data-tv-focus-target', 'media');
+        const mediaType = selected?.tagName === 'VIDEO' ? '视频' : '图片';
+        hint(`【当前焦点：${mediaType}】 ← 返回正文     → 下一项媒体     确认 ` + (selected?.tagName === 'VIDEO' ? '播放视频' : '查看图片') + `     ${index + 1} / ${items.length}`);
     }
     function select(post) {
         if (!post) return false;
@@ -144,6 +146,7 @@ window.TvXMedia = window.TvXMedia || (() => {
     }
     function reset() {
         closePresentation(); selected?.removeAttribute('data-tv-media-selected');
+        if (article) article.setAttribute('data-tv-focus-target', 'text');
         selected = null; article = null; items = []; identity = null;
         if (previousFocus?.isConnected) previousFocus.focus({preventScroll:true}); previousFocus = null;
     }

@@ -238,3 +238,59 @@ body.tv-reading-active .tv-reading-engagement [data-testid="unlike"] svg {
     fill: transparent !important;
     background-image: url("icons/liked.svg");
 }
+
+/* ==========================================================================
+   TV Reading Focus States: Left Text vs Right Video/Media Indicators
+   ========================================================================== */
+
+/* 1. Left Text Focused (Default on focused post, or explicit text focus) */
+body.tv-reading-active article.tv-reading-card.tv-focused:not([data-tv-focus-target="media"]) .tv-reading-text,
+body.tv-reading-active article.tv-reading-card.tv-focused[data-tv-focus-target="text"] .tv-reading-text {
+    outline: 3px solid #1d9bf0 !important;
+    outline-offset: calc(8 * var(--tv-u)) !important;
+    border-radius: calc(14 * var(--tv-u)) !important;
+    box-shadow: 0 0 calc(28 * var(--tv-u)) rgba(29, 155, 240, 0.45) !important;
+    background: rgba(29, 155, 240, 0.05) !important;
+    opacity: 1 !important;
+}
+
+body.tv-reading-active article.tv-reading-card.tv-focused:not([data-tv-focus-target="media"]) .tv-reading-attachment {
+    border: 1px solid var(--tv-border) !important;
+    box-shadow: none !important;
+    opacity: 0.82 !important;
+}
+
+/* 2. Right Media Focused (When user presses Right arrow into video/photo) */
+body.tv-reading-active article.tv-reading-card.tv-focused[data-tv-focus-target="media"] .tv-reading-text {
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    opacity: 0.65 !important;
+}
+
+body.tv-reading-active article.tv-reading-card.tv-focused[data-tv-focus-target="media"] .tv-reading-attachment {
+    position: relative !important;
+    outline: 3px solid #1d9bf0 !important;
+    outline-offset: -1px !important;
+    box-shadow: 0 0 calc(36 * var(--tv-u)) rgba(29, 155, 240, 0.75), inset 0 0 calc(16 * var(--tv-u)) rgba(29, 155, 240, 0.2) !important;
+    opacity: 1 !important;
+}
+
+body.tv-reading-active article.tv-reading-card.tv-focused[data-tv-focus-target="media"] .tv-reading-attachment::before {
+    content: "▶ 媒体已获焦";
+    position: absolute;
+    top: calc(16 * var(--tv-u));
+    right: calc(16 * var(--tv-u));
+    z-index: 50;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid #38bdf8;
+    color: #38bdf8;
+    font-size: calc(18 * var(--tv-u));
+    font-weight: 700;
+    padding: calc(4 * var(--tv-u)) calc(12 * var(--tv-u));
+    border-radius: calc(8 * var(--tv-u));
+    pointer-events: none;
+    box-shadow: 0 calc(2 * var(--tv-u)) calc(8 * var(--tv-u)) rgba(0, 0, 0, 0.6);
+    letter-spacing: 0.5px;
+    font-family: Roboto, "Noto Sans SC", sans-serif;
+}

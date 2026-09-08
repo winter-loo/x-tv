@@ -1,4 +1,9 @@
-[data-tv-media-selected] { outline: 4px solid #66c5ff !important; outline-offset: -4px; }
+[data-tv-media-selected] { outline: 4px solid #66c5ff !important; outline-offset: -4px; box-shadow: 0 0 25px rgba(102, 197, 255, 0.7) !important; }
+[data-testid="videoPlayer"]:has([data-tv-media-selected]),
+[data-testid="tweetPhoto"]:has([data-tv-media-selected]) {
+    outline: 3px solid #66c5ff !important;
+    outline-offset: -1px !important;
+}
 #tv-media-viewer { position:fixed; inset:0; z-index:2147483646; background:#090d14; display:flex; align-items:center; justify-content:center; overflow:auto; }
 #tv-media-viewer img { width:92vw; height:84vh; object-fit:contain; }
 #tv-media-viewer.tv-media-zoom { display:block; }
