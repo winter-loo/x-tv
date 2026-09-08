@@ -240,3 +240,12 @@ body.tv-detail-active .tv-detail-attachment :is([data-testid="tweetPhoto"], [dat
     background: #182230;
     color: #ffffff;
 }
+
+/* Logical comment focus follows the permalink when X recycles its rows. */
+body.tv-detail-active article.tv-detail-reply[data-tv-reply-selected="true"] {
+    outline:calc(4 * var(--tv-u)) solid #66c5ff !important;
+    outline-offset:calc(-4 * var(--tv-u));
+    background:#111c2d !important;
+}
+
+body.tv-detail-active article.tv-detail-context { display:none !important; }

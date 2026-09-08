@@ -7,6 +7,10 @@ window.TvXDetail = window.TvXDetail || (function() {
     let chrome = null;
     let savedPostScroll = 0;
     let savedCommentsScroll = 0;
+    let replyAnchor = null;
+    let replyEntry = false;
+    let pendingReplyMove = null;
+    let openingReply = false;
     const marked = new Set();
 
     let overlay = null;
@@ -42,8 +46,9 @@ window.TvXDetail = window.TvXDetail || (function() {
         }
         chrome = document.createElement('div');
         chrome.id = 'tv-detail-chrome';
-        chrome.innerHTML = '<div id="tv-detail-header">←　帖子详情</div><div id="tv-detail-comments-title">评论　　↓ 更多</div><div id="tv-detail-post-focus"></div><div id="tv-detail-comments-focus"></div><div id="tv-detail-status" role="status"></div><div id="tv-detail-reply-status" role="status"></div><div id="tv-detail-entry"><button disabled><img alt="" hidden>写评论…</button></div><div id="tv-detail-guidance">←→ 切换正文 / 评论　　↑↓ 滚动当前栏　　返回 回到时间线</div>';
+        chrome.innerHTML = '<div id="tv-detail-header">←　帖子详情</div><div id="tv-detail-comments-title">评论　　↓ 更多</div><div id="tv-detail-post-focus"></div><div id="tv-detail-comments-focus"></div><div id="tv-detail-status" role="status"></div><div id="tv-detail-reply-status" role="status"></div><div id="tv-detail-entry"><button disabled><img alt="" hidden>写评论…</button></div><div id="tv-detail-guidance">←→ 切换正文 / 评论　　↑↓ 滚动当前栏　　返回 上一层</div>';
         document.body.appendChild(chrome);
+        document.addEventListener('click', handleReplyClick, true);
         const entryBtn = chrome.querySelector('#tv-detail-entry button');
         entryBtn.addEventListener('click', () => {
             if (!entryBtn.disabled) openComposer();
@@ -80,6 +85,120 @@ window.TvXDetail = window.TvXDetail || (function() {
             mark(node, 'part');
             for (let parent = node.parentElement; parent && parent !== article; parent = parent.parentElement) mark(parent, 'branch');
         }
+    }
+
+    function replyPath(article) {
+        return article && window.TvXPostIdentity.canonicalPath(ownStatusLink(article));
+    }
+
+    function replies() {
+        if (!root) return [];
+        return Array.from(document.querySelectorAll('article.tv-detail-reply')).filter(article =>
+            article.getBoundingClientRect().height > 0 && replyPath(article));
+    }
+
+    function currentReply() {
+        return replies().find(article => replyPath(article) === replyAnchor) || null;
+    }
+
+    function visibleReply(items = replies()) {
+        const u = window.innerWidth / 1920;
+        return items.find(article => {
+            const rect = article.getBoundingClientRect();
+            return rect.bottom > 228 * u + 8 && rect.top < 832 * u;
+        }) || items[0];
+    }
+
+    function renderReplyFocus() {
+        const current = column === 'comments' && !replyEntry ? currentReply() : null;
+        for (const article of document.querySelectorAll('[data-tv-reply-selected]')) {
+            if (article !== current) article.removeAttribute('data-tv-reply-selected');
+        }
+        if (current) current.setAttribute('data-tv-reply-selected', 'true');
+        const entry = chrome?.querySelector('#tv-detail-entry button');
+        entry?.classList.toggle('tv-detail-focused', column === 'comments' && replyEntry);
+        const guidance = chrome?.querySelector('#tv-detail-guidance');
+        if (guidance) guidance.textContent = column === 'post'
+            ? '↑↓ 滚动正文　　→ 选择评论　　返回 上一层'
+            : replyEntry ? '确认 写评论　　↑↓ 返回评论列表　　← 正文　　返回 上一层'
+            : '↑↓ 选择 / 翻阅评论　　确认 查看详情　　→ 写评论　　← 正文　　返回 上一层';
+    }
+
+    function selectReply(article, align = true) {
+        if (!article) return;
+        replyAnchor = replyPath(article);
+        replyEntry = false;
+        const entry = chrome?.querySelector('#tv-detail-entry button');
+        if (document.activeElement === entry) entry.blur();
+        renderReplyFocus();
+        if (align) {
+            const rect = article.getBoundingClientRect();
+            const top = 228 * window.innerWidth / 1920;
+            const bottom = 832 * window.innerWidth / 1920;
+            if (rect.top < top || rect.bottom > bottom) window.scrollBy({top:rect.top - top,behavior:'instant'});
+            savedCommentsScroll = window.scrollY;
+        }
+    }
+
+    function moveReply(direction) {
+        const items = replies();
+        if (!items.length) return;
+        const current = currentReply();
+        if (replyEntry || !current) {
+            pendingReplyMove = null;
+            selectReply(current || visibleReply(items));
+            return;
+        }
+        if (pendingReplyMove && direction === 'down') return;
+        pendingReplyMove = null;
+        const u = window.innerWidth / 1920;
+        const rect = current.getBoundingClientRect();
+        const top = 228 * u, bottom = 832 * u;
+        const remaining = direction === 'down' ? rect.bottom - bottom : top - rect.top;
+        if (remaining > 2) {
+            window.scrollBy({top:(direction === 'down' ? 1 : -1) * Math.min(remaining,604*u*.8),behavior:'instant'});
+            savedCommentsScroll = window.scrollY;
+            return;
+        }
+        const next = items[items.indexOf(current) + (direction === 'down' ? 1 : -1)];
+        if (next) selectReply(next);
+        else if (direction === 'down') {
+            pendingReplyMove = {anchor:replyAnchor,known:items.map(replyPath)};
+            window.scrollBy({top:604*u*.8,behavior:'instant'});
+            savedCommentsScroll = window.scrollY;
+        } else {
+            replyEntry = true;
+            renderReplyFocus();
+        }
+    }
+
+    function openReply(article) {
+        const path = replyPath(article);
+        if (!root || !article?.isConnected || !path || path === route) return;
+        selectReply(article, false);
+        savedCommentsScroll = window.scrollY;
+        savedPostScroll = root.scrollTop;
+        if (window.TvXNativeHost) window.TvXNativeHost.openPost(path);
+        else {
+            const link = ownStatusLink(article);
+            const original = link.getAttribute('href');
+            openingReply = true;
+            try { link.setAttribute('href',path); link.click(); }
+            finally { link.setAttribute('href',original); openingReply = false; }
+        }
+    }
+
+    function handleReplyClick(event) {
+        if (!route || openingReply || overlay || window.TvXActions?.isOpen?.()) return;
+        const article = event.target.closest?.('article.tv-detail-reply');
+        if (!article || event.target.closest('button,input,textarea,[contenteditable="true"]')) return;
+        const link = event.target.closest('a[href]');
+        if (link && window.TvXPostIdentity.canonicalPath(link) !== replyPath(article)) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        column = 'comments';
+        document.body.setAttribute('data-tv-detail-column',column);
+        openReply(article);
     }
 
     function escapeHtml(str) {
@@ -266,6 +385,8 @@ window.TvXDetail = window.TvXDetail || (function() {
         }
         isPending = false;
         column = 'comments';
+        replyEntry = true;
+        renderReplyFocus();
         document.body.setAttribute('data-tv-detail-column', 'comments');
         if (root && savedPostScroll) root.scrollTop = savedPostScroll;
         if (savedCommentsScroll) window.scrollTo({ top: savedCommentsScroll, behavior: 'instant' });
@@ -476,6 +597,10 @@ window.TvXDetail = window.TvXDetail || (function() {
             if (!route) return;
             route = null;
             root = null;
+            replyAnchor = null;
+            pendingReplyMove = null;
+            document.removeEventListener('click', handleReplyClick, true);
+            document.querySelectorAll('[data-tv-reply-selected]').forEach(node => node.removeAttribute('data-tv-reply-selected'));
             clearMarks();
             closeComposer(false);
             document.body.classList.remove('tv-detail-active');
@@ -494,6 +619,9 @@ window.TvXDetail = window.TvXDetail || (function() {
             savedPostScroll = 0;
             savedCommentsScroll = 0;
             savedDraft = '';
+            replyAnchor = null;
+            replyEntry = false;
+            pendingReplyMove = null;
             window.scrollTo({top:0,behavior:'instant'});
         }
         if (!chrome || !chrome.isConnected) mount();
@@ -516,9 +644,27 @@ window.TvXDetail = window.TvXDetail || (function() {
         for (const article of articles) {
             if (article === root) continue;
             article.classList.remove('tv-focused');
+            // A reply detail includes earlier conversation posts before its
+            // root. They are ancestors, not comments on the selected reply.
+            if (root && (article.compareDocumentPosition(root) & Node.DOCUMENT_POSITION_FOLLOWING)) {
+                mark(article, 'context');
+                continue;
+            }
             mark(article, 'reply');
             formatArticle(article);
         }
+        if (column === 'comments' && !replyEntry) {
+            const items = replies();
+            if (pendingReplyMove) {
+                const index = items.findIndex(article => replyPath(article) === pendingReplyMove.anchor);
+                const next = index >= 0 ? items[index + 1] : items.find(article => !pendingReplyMove.known.includes(replyPath(article)));
+                if (next) { pendingReplyMove = null; selectReply(next); }
+            } else if (!replyAnchor) {
+                const first = visibleReply(items);
+                if (first) selectReply(first, false);
+            }
+        }
+        renderReplyFocus();
         // Suppress native submission while #5 is not implemented. Keep React nodes intact.
         for (const input of primary?.querySelectorAll('[data-testid="tweetTextarea_0"]') || []) {
             let container = input;
@@ -563,7 +709,7 @@ window.TvXDetail = window.TvXDetail || (function() {
         const message = root ? '' : pending ? '正在加载帖子…' : '帖子暂不可用，请返回后重试';
         if (status.textContent !== message) status.textContent = message;
         const replyStatus = chrome.querySelector('#tv-detail-reply-status');
-        const replyMessage = articles.some(article => article !== root) ? '' : pending ? '正在加载评论…' : root ? '暂无已加载评论' : '';
+        const replyMessage = articles.some(article => article.classList.contains('tv-detail-reply')) ? '' : pending ? '正在加载评论…' : root ? '暂无已加载评论' : '';
         if (replyStatus.textContent !== replyMessage) replyStatus.textContent = replyMessage;
     }
 
@@ -588,16 +734,20 @@ window.TvXDetail = window.TvXDetail || (function() {
             return true;
         }
         if (direction === 'left' || direction === 'right') {
-            column = direction === 'left' ? 'post' : 'comments';
+            pendingReplyMove = null;
+            if (direction === 'left') column = 'post';
+            else if (column === 'comments') replyEntry = !replyEntry;
+            else { column = 'comments'; replyEntry = !replies().length; }
             document.body.setAttribute('data-tv-detail-column', column);
+            if (column === 'comments' && !replyEntry) selectReply(currentReply() || visibleReply());
+            renderReplyFocus();
         } else if (direction === 'up' || direction === 'down') {
             const step = (direction === 'down' ? 1 : -1) * (column === 'post' ? 716 : 604) * window.innerWidth / 1920 * 0.8;
             if (column === 'post' && root) {
                 root.scrollBy({top:step,behavior:'instant'});
                 savedPostScroll = root.scrollTop;
             } else if (column === 'comments') {
-                window.scrollBy({top:step,behavior:'instant'});
-                savedCommentsScroll = window.scrollY;
+                moveReply(direction);
             }
         }
         return true;
@@ -619,6 +769,12 @@ window.TvXDetail = window.TvXDetail || (function() {
                 closeComposer(false);
                 return true;
             }
+            return true;
+        }
+        if (column === 'comments' && !replyEntry) {
+            const current = currentReply();
+            if (current) openReply(current);
+            else if (chrome) chrome.querySelector('#tv-detail-guidance').textContent = '评论已更新，按上下键重新选择　　→ 写评论　　返回 上一层';
             return true;
         }
         if (column === 'comments') {

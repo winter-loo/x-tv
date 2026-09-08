@@ -15,7 +15,7 @@ export function post({ id = '101', text = 'Original fixture post text.', article
       </div></div></div></article></div>`;
 }
 export const tabs = '<div role="tablist"><div role="tab" aria-selected="true">For you</div><div role="tab" aria-selected="false">Following</div></div>';
-export async function mount(page, posts = [post()], extra = '', { styleDelay = 0 } = {}) {
+export async function mount(page, posts = [post()], extra = '', { styleDelay = 0, boot = false } = {}) {
     await page.route('https://x.com/**', async route => {
         const url = new URL(route.request().url());
         if (url.pathname.startsWith('/extension/')) {
@@ -44,7 +44,8 @@ export async function mount(page, posts = [post()], extra = '', { styleDelay = 0
         });
     });
     const manifest = JSON.parse(await readFile(new URL('manifest.json', extension), 'utf8'));
-    for (const path of manifest.content_scripts[0].js.filter(path => !['runtime/content.js', 'runtime/adapter-registry.js'].includes(path))) {
+    for (const path of manifest.content_scripts[0].css || []) await page.addStyleTag({path:fileURLToPath(new URL(path,extension))});
+    for (const path of manifest.content_scripts[0].js.filter(path => !['runtime/content.js', 'runtime/adapter-registry.js', ...(!boot ? ['sites/x/bootstrap.js'] : [])].includes(path))) {
         await page.addScriptTag({ path: fileURLToPath(new URL(path, extension)) });
     }
     await page.evaluate(() => window.TvXAdapter.init());

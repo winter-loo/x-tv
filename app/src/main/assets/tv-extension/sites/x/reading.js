@@ -45,7 +45,15 @@ window.TvXReading = window.TvXReading || (function() {
     function formatArticle(article, ownLink) {
         const name = article.querySelector('[data-testid="User-Name"]');
         const cover = article.querySelector('[data-testid="article-cover-image"]');
-        const attachment = cover ? cover.parentElement : article.querySelector('[data-testid="card.wrapper"], [data-testid="videoPlayer"], [data-testid="tweetPhoto"]')?.parentElement;
+        let attachment = cover ? cover.parentElement : article.querySelector('[data-testid="card.wrapper"], [data-testid="videoPlayer"], [data-testid="tweetPhoto"]');
+        if (!cover && attachment) {
+            // Stop before a wrapper shared with the text/author/actions. Flattening
+            // that wrapper would hide the media as an unmarked branch child.
+            while (attachment.parentElement && attachment.parentElement !== article &&
+                !attachment.parentElement.querySelector('[data-testid="User-Name"], [data-testid="tweetText"], [data-testid="reply"]')) {
+                attachment = attachment.parentElement;
+            }
+        }
         const reply = article.querySelector('[data-testid="reply"]');
         const parts = [
             [article.querySelector('[data-testid="Tweet-User-Avatar"]'), "avatar"],
@@ -123,11 +131,17 @@ window.TvXReading = window.TvXReading || (function() {
         syncHeader();
         const column = document.querySelector('[data-testid="primaryColumn"]');
         const input = column && column.querySelector('[data-testid="tweetTextarea_0"]');
-        if (input && articles.length) {
-            let composer = input;
+        let composer = input;
+        if (composer) {
             while (composer.parentElement && composer.parentElement !== column && !composer.parentElement.querySelector("article")) composer = composer.parentElement;
-            composer.classList.add("tv-native-composer");
         }
+        // X first mounts the composer into an otherwise empty timeline wrapper,
+        // then adds posts to that same wrapper. Reconcile the old annotation so
+        // a wrapper that now contains posts can become measurable again.
+        for (const previous of document.querySelectorAll(".tv-native-composer")) {
+            if (previous !== composer) previous.classList.remove("tv-native-composer");
+        }
+        if (composer && !composer.classList.contains("tv-native-composer")) composer.classList.add("tv-native-composer");
         const recognized = articles.some(article => article.classList.contains("tv-reading-card"));
         if (!recognized && column) {
             if (!status.isConnected) column.appendChild(status);
@@ -143,12 +157,18 @@ window.TvXReading = window.TvXReading || (function() {
         if (Math.abs(delta) > 1) article.scrollIntoView({ block: "start", inline: "nearest", behavior: "instant" });
         const overflow = Array.from(article.querySelectorAll(".tv-reading-text, .tv-reading-attachment"))
             .some(node => node.scrollHeight > node.clientHeight + 1);
-        const text = "↑↓ 切换帖子     确认 打开帖子" + (overflow ? "     ←→ 翻阅长内容" : "") + "     菜单 评论 / 喜欢     返回 回到顶部 / 退出";
+        const media = article.querySelector('video, [data-testid="tweetPhoto"] img');
+        const text = "↑↓ 切换帖子     确认 打开帖子" + (media ? "     → 图片 / 视频" + (overflow ? "     ← 翻阅正文" : "") : overflow ? "     ←→ 翻阅长内容" : "") + "     菜单 评论 / 喜欢     返回 回到顶部 / 退出";
         if (guidance.textContent !== text) guidance.textContent = text;
     }
 
     function scrollText(article, direction) {
         if (!article) return;
+        if (direction === 'left' && article.querySelector('video, [data-testid="tweetPhoto"] img')) {
+            const text = article.querySelector('.tv-reading-text');
+            if (text) text.scrollTop = text.scrollTop + text.clientHeight >= text.scrollHeight - 1 ? 0 : text.scrollTop + text.clientHeight * .8;
+            return;
+        }
         for (const node of article.querySelectorAll(".tv-reading-text, .tv-reading-attachment")) {
             node.scrollBy({ top: (direction === "right" ? 1 : -1) * node.clientHeight * 0.8, behavior: "instant" });
         }

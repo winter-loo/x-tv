@@ -96,7 +96,7 @@ public class TvKeyRouter {
                 return true;
 
             case KeyEvent.KEYCODE_BACK:
-                handleBackKey();
+                if (event.getRepeatCount() == 0) handleBackKey();
                 return true;
         }
 

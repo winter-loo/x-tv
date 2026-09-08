@@ -1,4 +1,4 @@
-// Canonical post identity for expanded native X articles. Home keeps its narrower lookup.
+// Canonical own-post identity, shared by home, detail and media controls.
 window.TvXPostIdentity = window.TvXPostIdentity || (function() {
     function canonicalPath(link) {
         const href = link?.getAttribute('href');
@@ -25,7 +25,7 @@ window.TvXPostIdentity = window.TvXPostIdentity || (function() {
         const timelineLink = findTimelineLink?.(article);
         if (isOwnTimestamp(timelineLink)) return timelineLink;
         // Native detail places the canonical timestamp below the body, outside
-        // User-Name. Keep this broader lookup local to detail presentation.
+        // User-Name. Exclude quotes before accepting a unique own-post path.
         const candidates = Array.from(article.querySelectorAll('a[href]')).filter(isOwnTimestamp);
         const paths = new Set(candidates.map(canonicalPath));
         return paths.size === 1 ? candidates[0] : null;

@@ -31,3 +31,25 @@ The device probe restarts the app into a local HTTP page. It creates and removes
 its own ADB forwarding rules and server. It preserves app data but leaves the PNG
 page open; launch the app's `/home` URL afterward. The probe uses the existing URL
 intent and Gecko remote debugger; it needs a debug build and does not load X.
+
+`tests/ux.spec.mjs` additionally covers native-port outages, edited home timestamps,
+startup masking until a real TV post is ready, image viewing, same-post DOM replacement, recycled media, and real Firefox
+video play/pause/seek/fullscreen/Back without replacing the video element.
+`remote-video.webm` is a 14-second, silent, synthetic blue frame generated with:
+
+```sh
+ffmpeg -f lavfi -i color=c=steelblue:s=160x90:d=14:r=10 -an -c:v libvpx -b:v 20k tests/fixtures/remote-video.webm
+```
+
+For live remote acceptance, start the debug APK on its signed-in home timeline and
+run `python3 scripts/check-projector-ux.py --serial <adb-device>`. It opens and returns
+from five real posts, verifies a separate detail document and restoration of the retained home document and focus, and looks for a real
+image and video within 45 posts. The final report explicitly identifies media types
+not encountered. Optional `--screenshots .scratch/ux` keeps private captures local.
+The script does not like, reply, submit forms, or change account data.
+
+Nested comment navigation is covered in `tests/detail.spec.mjs`, including own-post
+identity, recycled rows, long-comment pagination, ancestor exclusion and the write
+entry. `scripts/check-projector-comments.py --serial <adb-device>` verifies three
+retained detail levels and restoration of each parent's focus/scroll on live X.
+Select a home post with a populated discussion first; no content is published.

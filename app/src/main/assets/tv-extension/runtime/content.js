@@ -57,6 +57,12 @@
         }
 
         const cmd = request.command;
+        // The native host advertises itself before revealing the page. Custom
+        // navigation is then independent of the messaging port's lifetime.
+        window.TvXNativeHost = {
+            openPost(path) { location.href = 'tvx://post?url=' + encodeURIComponent('https://x.com' + path); },
+            closeDetail() { location.href = 'tvx://close-detail'; }
+        };
 
         if (cmd === "move") {
             adapter.move(request.direction);

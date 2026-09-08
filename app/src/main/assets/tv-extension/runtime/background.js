@@ -4,18 +4,23 @@ console.log("[TV-Extension] Background script loaded.");
 let nativePort = null;
 let reconnectTimer = null;
 let activeTabId = null;
+let lastPong = 0;
 
 function connectToNative() {
     try {
         console.log("[TV-Extension] Connecting to native port: browser_nav_bridge...");
         nativePort = browser.runtime.connectNative("browser_nav_bridge");
 
+        lastPong = Date.now();
         nativePort.onMessage.addListener((message) => {
+            if (message.command === "pong") { lastPong = Date.now(); return; }
             console.log("[TV-Extension] Native message received:", JSON.stringify(message));
             forwardToActiveTab(message);
         });
 
+        const connectedPort = nativePort;
         nativePort.onDisconnect.addListener((p) => {
+            if (nativePort !== connectedPort) return;
             console.warn("[TV-Extension] Native port disconnected.");
             nativePort = null;
             scheduleReconnect();
@@ -64,11 +69,13 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 });
 
 function injectContentScripts(tabId) {
-    browser.tabs.executeScript(tabId, { file: "runtime/navigation-runtime.js" })
+    return browser.tabs.executeScript(tabId, { file: "sites/x/bootstrap.js" })
+        .then(() => browser.tabs.executeScript(tabId, { file: "runtime/navigation-runtime.js" }))
         .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/post-identity.js" }))
         .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/reading.js" }))
         .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/detail.js" }))
         .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/actions.js" }))
+        .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/media.js" }))
         .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/adapter.js" }))
         .then(() => browser.tabs.executeScript(tabId, { file: "runtime/adapter-registry.js" }))
         .then(() => browser.tabs.executeScript(tabId, { file: "runtime/content.js" }))
@@ -99,6 +106,8 @@ function forwardToActiveTab(cmd) {
         }).catch((err) => {
             console.warn("[TV-Extension] Error sending message to tab " + targetTab.id + ":", err);
             // Attempt injection and retry once
+            // Reinstall listeners, but never replay an ambiguous activate: it
+            // might already have clicked a mutating action before failing.
             injectContentScripts(targetTab.id);
             if (cmd.command === "back") {
                 sendToNative({ event: "backResult", handled: false });
@@ -112,6 +121,10 @@ function forwardToActiveTab(cmd) {
 // Listen for direct events from content scripts
 browser.runtime.onMessage.addListener((message, sender) => {
     if (message.event === "tv_like_arm" || message.event === "tv_like_disarm") return;
+    if (sender?.tab?.active === false) return;
+    if (message.event === 'content_ready' && nativePort && sender?.tab) {
+        browser.tabs.sendMessage(sender.tab.id, {command:'hostMode'}, {frameId:0}).catch(() => {});
+    }
     console.log("[TV-Extension] Received message from content script:", JSON.stringify(message));
     if (sender && sender.tab) {
         activeTabId = sender.tab.id;
@@ -121,3 +134,14 @@ browser.runtime.onMessage.addListener((message, sender) => {
 
 // Start initial connection
 connectToNative();
+
+// A surviving background page can retain a port owned by a destroyed Activity.
+// A heartbeat detects that half-open connection even without onDisconnect.
+setInterval(() => {
+    if (nativePort && Date.now() - lastPong > 6000) {
+        const stale = nativePort; nativePort = null;
+        try { stale.disconnect(); } catch (_) {}
+    }
+    if (!nativePort) connectToNative();
+    sendToNative({event:'ping'});
+}, 2000);

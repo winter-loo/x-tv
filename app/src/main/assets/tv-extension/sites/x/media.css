@@ -1,0 +1,14 @@
+[data-tv-media-selected] { outline: 4px solid #66c5ff !important; outline-offset: -4px; }
+#tv-media-viewer { position:fixed; inset:0; z-index:2147483646; background:#090d14; display:flex; align-items:center; justify-content:center; overflow:auto; }
+#tv-media-viewer img { width:92vw; height:84vh; object-fit:contain; }
+#tv-media-viewer.tv-media-zoom { display:block; }
+#tv-media-viewer.tv-media-zoom img { display:block; width:160vw; height:160vh; max-width:none; flex-shrink:0; }
+#tv-media-viewer > div { position:fixed; bottom:0; left:0; right:0; background:#090d14; color:#e8ebed; text-align:center; padding:2vh; font: max(16px,1.6vw)/1.5 sans-serif; }
+#tv-media-controls { position:fixed; bottom:2vh; left:5vw; right:5vw; z-index:2147483647; padding:1.5vh 2vw; background:#111c2d !important; border:2px solid #526a88; border-radius:12px; text-align:center; color:#e8ebed !important; font: max(15px,1.5vw)/1.6 sans-serif; }
+#tv-media-controls button { margin:1vh .5vw 0; padding:1vh 1.4vw; border:2px solid transparent; border-radius:8px; background:#263345 !important; color:#e8ebed !important; font:inherit; }
+#tv-media-controls button[aria-current="true"] { background:#e8ebed !important; color:#090d14 !important; border-color:#66c5ff; }
+html body .tv-media-fullscreen-root:fullscreen { display:block !important; position:fixed !important; inset:0 !important; margin:0 !important; padding:0 !important; width:100vw !important; height:100vh !important; max-width:none !important; max-height:none !important; background:#000 !important; overflow:hidden !important; transform:none !important; }
+html body .tv-media-fullscreen-root:fullscreen video.tv-media-fullscreen { position:fixed !important; inset:0 !important; width:100vw !important; height:100vh !important; max-width:none !important; max-height:none !important; object-fit:contain !important; background:#000 !important; outline:none !important; }
+
+#tv-media-controls [role="status"] { background:transparent !important; color:#e8ebed !important; }
+.tv-media-fullscreen-root:fullscreen #tv-media-controls { left:0 !important; right:0 !important; bottom:0 !important; border-radius:0 !important; }

@@ -25,6 +25,19 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
         void onTapRequested(int x, int y);
     }
 
+    private Runnable mReadyListener;
+    private Runnable mPresentationListener;
+    private Runnable mExitListener;
+    public void setExitListener(Runnable listener) { mExitListener = listener; }
+    public void whenReady(Runnable listener) {
+        mReadyListener = listener;
+        if (mExtension != null) { mReadyListener = null; listener.run(); }
+    }
+    public void setPresentationListener(Runnable listener) { mPresentationListener = listener; }
+    public void close() {
+        if (mPort != null) { mPort.disconnect(); mPort = null; }
+        mReadyListener = null; mPresentationListener = null; mExitListener = null;
+    }
     private WebExtension mExtension;
     private WebExtension.Port mPort;
     private GeckoSession mSession;
@@ -73,6 +86,7 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
                             Log.e(TAG, "Failed to attach MessageDelegate to GeckoSession", e);
                         }
                     }
+                    if (mReadyListener != null) { Runnable listener = mReadyListener; mReadyListener = null; listener.run(); }
                     return null;
                 }, throwable -> {
                     Log.e(TAG, "Failed to ensure built-in WebExtension", throwable);
@@ -112,7 +126,13 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
     private void handleJsonMessage(JSONObject json) {
         try {
             String event = json.optString("event");
-            if ("state".equals(event)) {
+            if ("ping".equals(event)) {
+                sendCommand("pong", null);
+            } else if ("exit_requested".equals(event)) {
+                if (mExitListener != null) mExitListener.run();
+            } else if ("presentation_ready".equals(event)) {
+                if (mPresentationListener != null) mPresentationListener.run();
+            } else if ("state".equals(event)) {
                 String pageType = json.optString("pageType", "unknown");
                 boolean hasOverlay = json.optBoolean("hasOverlay", false);
                 boolean canBack = json.optBoolean("canBack", false);

@@ -1,0 +1,8 @@
+html.tv-x-boot, html.tv-x-boot body { background:#090d14 !important; }
+html.tv-x-boot body > * { visibility:hidden !important; }
+html.tv-x-boot::after { content:'正在加载 X…'; position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:2147483647; background:#090d14; color:#d8e4f2; font: max(20px,2vw)/1.5 sans-serif; }
+
+/* Remain hidden even when X replaces its composer after the startup cover ends. */
+body.tv-reading-active [data-testid="tweetTextarea_0"],
+body.tv-reading-active [data-testid="tweetTextarea_0RichTextInputContainer"],
+body.tv-reading-active [data-testid="tweetButtonInline"] { visibility:hidden !important; }

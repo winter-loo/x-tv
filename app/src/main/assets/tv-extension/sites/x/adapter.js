@@ -13,6 +13,17 @@ window.TvXAdapter = window.TvXAdapter || (function() {
     let homeAnchor = null;
     let homeScroll = 0;
     let restoringHome = false;
+    let homeRestoreTimer = null;
+    let homeRestoreStarted = 0;
+    let homeRestoreStable = 0;
+
+    function scheduleHomeRestore() {
+        if (homeRestoreTimer || !restoringHome) return;
+        homeRestoreTimer = setTimeout(() => {
+            homeRestoreTimer = null;
+            if (restoringHome && isHome()) handlePageMode();
+        }, 100);
+    }
     let previousMode = "";
     let timelineTab = "";
     let topRequested = false;
@@ -25,6 +36,7 @@ window.TvXAdapter = window.TvXAdapter || (function() {
     });
 
     function init() {
+        if (observer) return;
         console.log("[TvXAdapter] Initializing X adapter on:", window.location.href);
         if (isHome()) {
             try {
@@ -41,10 +53,11 @@ window.TvXAdapter = window.TvXAdapter || (function() {
 
         window.addEventListener("keydown", handleLoginKeyDown, true);
         window.addEventListener("keydown", handleActionKeyDown, true);
+        window.addEventListener("keydown", handleRemoteKeyDown, true);
         initialTimer = setTimeout(() => {
             initialTimer = null;
             handlePageMode();
-        }, 350);
+        }, 0);
     }
 
     function isHome() {
@@ -56,6 +69,8 @@ window.TvXAdapter = window.TvXAdapter || (function() {
     }
 
     function handlePageMode() {
+        if (!document.body) return;
+        window.TvXMedia?.update();
         window.TvXActions?.update();
         updateTimelineLayout();
         const mode = isLoginMode() ? "login" : (isHome() ? "home" : "other");
@@ -85,6 +100,8 @@ window.TvXAdapter = window.TvXAdapter || (function() {
             if (mode === "home" && previousMode !== "home" && homeAnchor) {
                 lastAnchorId = homeAnchor;
                 restoringHome = true;
+                homeRestoreStarted = Date.now();
+                homeRestoreStable = 0;
             }
             if (mode !== previousMode && mode !== "home") {
                 lastAnchorId = null;
@@ -96,10 +113,24 @@ window.TvXAdapter = window.TvXAdapter || (function() {
                 // The URL can change before React replaces the outgoing detail DOM.
                 if (!selectedTab) {
                     previousMode = mode;
+                    scheduleHomeRestore();
                     return;
                 }
-                if (focusedArticle()) restoringHome = false;
-                else pageScroller().scrollTo({ top: homeScroll, behavior: "instant" });
+                const now = Date.now();
+                if (focusedArticle()) {
+                    if (!homeRestoreStable) homeRestoreStable = now;
+                    // X can apply its cached scroll a second time after the row
+                    // first appears. Keep the anchor until that handoff settles.
+                    if (now - homeRestoreStable >= 1200) restoringHome = false;
+                } else {
+                    homeRestoreStable = 0;
+                    pageScroller().scrollTo({ top: homeScroll, behavior: "instant" });
+                }
+                if (now - homeRestoreStarted >= 5000) {
+                    restoringHome = false;
+                    if (!focusedArticle()) window.TvXReading?.waiting("原帖暂未恢复，按上下键继续浏览");
+                }
+                scheduleHomeRestore();
             }
             if (topRequested) {
                 const first = articles[0];
@@ -178,6 +209,20 @@ window.TvXAdapter = window.TvXAdapter || (function() {
         console.log("[TvXAdapter] Injected tv.css successfully.");
     }
 
+    function handleHomeScroll(event) {
+        // Only the page viewport: text, image zoom and fullscreen media own
+        // their internal scrolling. Explicit D-pad moves own virtual loading.
+        if (!isHome() || document.fullscreenElement || pendingMove || topRequested || !lastAnchorId ||
+            ![document, document.body, document.documentElement].includes(event.target)) return;
+        if (!focusedArticle() && !restoringHome) {
+            restoringHome = true;
+            homeRestoreStarted = Date.now();
+            homeRestoreStable = 0;
+            scheduleHomeRestore();
+        }
+        refreshPage?.();
+    }
+
     function setupObserver() {
         if (observer) return;
         refreshPage = () => {
@@ -202,6 +247,7 @@ window.TvXAdapter = window.TvXAdapter || (function() {
         });
         window.addEventListener("popstate", refreshPage);
         window.addEventListener("resize", refreshPage);
+        window.addEventListener("scroll", handleHomeScroll, true);
     }
 
     /* =========================================================================
@@ -519,7 +565,7 @@ window.TvXAdapter = window.TvXAdapter || (function() {
 
     function statusLink(article) {
         if (!article) return null;
-        if (!isHome() && window.TvXPostIdentity) return window.TvXPostIdentity.statusLink(article);
+        if (window.TvXPostIdentity) return window.TvXPostIdentity.statusLink(article);
         const name = article.querySelector('[data-testid="User-Name"]');
         const links = Array.from((name || article).querySelectorAll('a[href*="/status/"]'));
         return links.find(link => {
@@ -530,7 +576,7 @@ window.TvXAdapter = window.TvXAdapter || (function() {
 
     function extractArticleAnchor(article) {
         const link = statusLink(article);
-        if (link && !isHome() && window.TvXPostIdentity) return window.TvXPostIdentity.canonicalPath(link);
+        if (link && window.TvXPostIdentity) return window.TvXPostIdentity.canonicalPath(link);
         return link ? new URL(link.getAttribute("href"), location.href).pathname : article.getAttribute("data-tweet-id");
     }
 
@@ -562,6 +608,9 @@ window.TvXAdapter = window.TvXAdapter || (function() {
                 target.querySelectorAll(".tv-reading-text, .tv-reading-attachment").forEach(node => { node.scrollTop = 0; });
             }
             window.TvXReading.focus(target);
+            // Keep the latest aligned offset, including X's row measurements,
+            // so a subsequent native scroll cannot lose the logical post.
+            homeScroll = pageScrollY();
         } else if (changed) TvNavigationRuntime.setFocus(target);
         if (changed) reportState();
     }
@@ -646,6 +695,48 @@ window.TvXAdapter = window.TvXAdapter || (function() {
        D-pad Movement & Action Dispatcher
        ========================================================================= */
 
+    // Also works when native messaging is reconnecting. Android forwards a full
+    // trusted key pair, so media playback has a real user gesture.
+    function handleRemoteKeyDown(event) {
+        if (event.defaultPrevented) return;
+        if (event.key === 'Escape' || event.key === 'BrowserBack') {
+            if (!event.repeat && !handleBack().handled) browser.runtime.sendMessage({event:'exit_requested'}).catch(() => {});
+            event.preventDefault(); event.stopImmediatePropagation(); return;
+        }
+        if (isLoginMode()) return;
+        if (event.target.closest?.('input, textarea, [contenteditable=true]')) {
+            // Down/up leaves a TV composer field; horizontal keys still move
+            // the caret and Enter still belongs to the input method.
+            if (window.TvXDetail?.isOpen() && ['ArrowDown','ArrowUp'].includes(event.key)) {
+                window.TvXDetail.move(event.key === 'ArrowDown' ? 'down' : 'up');
+                event.preventDefault(); event.stopImmediatePropagation();
+            }
+            return;
+        }
+        const direction = {ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right'}[event.key];
+        if (direction) move(direction);
+        else if (event.key === 'Enter' || event.key === ' ' || event.key === 'MediaPlayPause') {
+            if (!event.repeat) activate();
+        } else return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+    }
+
+    function openStatus(link) {
+        const path = window.TvXPostIdentity?.canonicalPath(link);
+        if (!path) return;
+        if (isHome() && window.TvXNativeHost) {
+            window.TvXNativeHost.openPost(path);
+            return;
+        }
+        // React must receive a normal unmodified click. Edited timestamps point
+        // to history; temporarily give that same native link its canonical URL.
+        const original = link.getAttribute('href');
+        if (new URL(original, location.href).pathname !== path) link.setAttribute('href', path);
+        link.click();
+        if (link.isConnected && link.getAttribute('href') === path && original !== path) link.setAttribute('href', original);
+    }
+
     function handleActionKeyDown(event) {
         if (window.TvXActions?.key(event)) return;
         if (!event.repeat && !event.ctrlKey && !event.altKey && !event.metaKey &&
@@ -681,7 +772,7 @@ window.TvXAdapter = window.TvXAdapter || (function() {
                 if (!isHome() && location.pathname === post.path) return;
                 const article = getArticles().find(item => extractArticleAnchor(item) === post.path);
                 const link = statusLink(article);
-                if (link) { if (isHome()) homeScroll = pageScrollY(); link.click(); }
+                if (link) { if (isHome()) homeScroll = pageScrollY(); openStatus(link); }
             },
             restore: () => { verifyOrRestoreFocus(); reportState(); }
         });
@@ -691,6 +782,8 @@ window.TvXAdapter = window.TvXAdapter || (function() {
 
     function move(direction) {
         if (window.TvXActions?.move(direction)) return;
+        if (window.TvXMedia?.move(direction)) return;
+        if (isHome() && direction === "right" && window.TvXMedia?.select(focusedArticle())) return;
         if (isLoginMode()) {
             const elements = getCustomInteractiveElements();
             if (elements.length === 0) return;
@@ -716,6 +809,7 @@ window.TvXAdapter = window.TvXAdapter || (function() {
 
     function activate() {
         if (window.TvXActions?.activate()) return;
+        if (window.TvXMedia?.activate()) return;
         if (isLoginMode()) {
             const elements = getCustomInteractiveElements();
             if (elements.length === 0 || customLoginFocusIndex >= elements.length) return;
@@ -732,20 +826,24 @@ window.TvXAdapter = window.TvXAdapter || (function() {
             return;
         }
 
-        if (window.TvXDetail && isPostDetail()) return;
+        if (window.TvXDetail && isPostDetail()) { window.TvXDetail.activate(); return; }
         const current = focusedArticle();
         const link = statusLink(current);
         if (link) {
             cancelPendingMove();
             if (isHome()) homeScroll = pageScrollY();
-            link.click();
+            openStatus(link);
         } else if (current && current.classList.contains("timeline-card")) {
             TvNavigationRuntime.clickElement(current);
+        } else if (isHome()) {
+            window.TvXReading?.waiting("帖子位置已更新，请按上下键重新选择");
         }
     }
 
     function handleBack() {
         console.log("[TvXAdapter] handleBack requested.");
+        if (window.TvXMedia?.back()) return { event: "backResult", handled: true };
+        if (window.TvXDetail?.isOpen()) { window.TvXDetail.closeComposer(false); return { event: "backResult", handled: true }; }
         if (window.TvXActions?.close()) return { event: "backResult", handled: true };
         restoringHome = false;
         cancelPendingMove();
@@ -784,7 +882,22 @@ window.TvXAdapter = window.TvXAdapter || (function() {
         }
 
         if (window.location.pathname.includes("/status/")) {
-            window.history.back();
+            if (window.TvXNativeDetail && window.TvXNativeHost) {
+                window.TvXNativeHost.closeDetail();
+                return { event: "backResult", handled: true };
+            }
+            if (homeAnchor) {
+                lastAnchorId = homeAnchor;
+                restoringHome = true;
+                homeRestoreStarted = Date.now();
+                homeRestoreStable = 0;
+                scheduleHomeRestore();
+            }
+            // Use X's router Back button so its virtual timeline cache and
+            // scroll restoration run before the adapter restores the anchor.
+            const nativeBack = document.querySelector('[data-testid="app-bar-back"]');
+            if (nativeBack) nativeBack.click();
+            else window.history.back();
             return { event: "backResult", handled: true };
         }
 
@@ -802,6 +915,7 @@ window.TvXAdapter = window.TvXAdapter || (function() {
     }
 
     function reportState() {
+        window.TvXBoot?.report();
         const isLogin = isLoginMode();
         const isDetail = window.location.pathname.includes("/status/");
         const state = {
@@ -819,6 +933,7 @@ window.TvXAdapter = window.TvXAdapter || (function() {
 
     function unmount() {
         restoringHome = false;
+        clearTimeout(homeRestoreTimer); homeRestoreTimer = null;
         if (observer) observer.disconnect();
         observer = null;
         clearTimeout(initialTimer);
@@ -828,8 +943,11 @@ window.TvXAdapter = window.TvXAdapter || (function() {
         cancelPendingMove();
         window.removeEventListener("popstate", refreshPage);
         window.removeEventListener("resize", refreshPage);
+        window.removeEventListener("scroll", handleHomeScroll, true);
         window.removeEventListener("keydown", handleLoginKeyDown, true);
         window.removeEventListener("keydown", handleActionKeyDown, true);
+        window.removeEventListener("keydown", handleRemoteKeyDown, true);
+        window.TvXMedia?.reset();
         window.TvXActions?.close();
         refreshPage = null;
         if (window.TvXReading) window.TvXReading.update(false, []);

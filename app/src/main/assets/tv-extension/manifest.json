@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "TV X Extension",
-  "version": "1.1",
+  "version": "1.2",
   "description": "Remote-first TV navigation and CSS adapter for X",
   "browser_specific_settings": {
     "gecko": {
@@ -31,17 +31,22 @@
       "match_about_blank": true,
       "all_frames": false,
       "js": [
+        "sites/x/bootstrap.js",
         "runtime/navigation-runtime.js",
         "sites/x/post-identity.js",
         "sites/x/reading.js",
-        "sites/x/post-identity.js",
         "sites/x/detail.js",
         "sites/x/actions.js",
+        "sites/x/media.js",
         "sites/x/adapter.js",
         "runtime/adapter-registry.js",
         "runtime/content.js"
       ],
-      "run_at": "document_start"
+      "run_at": "document_start",
+      "css": [
+        "sites/x/bootstrap.css",
+        "sites/x/media.css"
+      ]
     }
   ],
   "web_accessible_resources": [
@@ -49,6 +54,7 @@
     "sites/x/reading.css",
     "sites/x/detail.css",
     "sites/x/actions.css",
-    "sites/x/icons/*.svg"
+    "sites/x/icons/*.svg",
+    "sites/x/media.css"
   ]
 }

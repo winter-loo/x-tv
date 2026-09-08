@@ -188,6 +188,7 @@ test('detail composer opens from reply entry with signed-in identity and correct
     await openDetail(page, [post({ id: '201' })]);
     await expect(page.getByRole('button', { name: '写评论…' })).toBeEnabled();
     await move(page, 'right');
+    await move(page, 'right'); // Focus the fixed write-comment entry.
     await activate(page);
     const dialog = page.locator('#tv-detail-composer-dialog');
     await expect(dialog).toBeVisible();
@@ -223,6 +224,7 @@ test('detail composer opens from reply entry with signed-in identity and correct
 test('composer supports remote-only navigation, focus cycling, and suppresses empty submission', async ({ page }) => {
     await openDetail(page, [post({ id: '201' })]);
     await move(page, 'right');
+    await move(page, 'right'); // Focus the fixed write-comment entry.
     await activate(page);
 
     const input = page.locator('#tv-composer-input');
@@ -285,6 +287,7 @@ test('real X reply flow: submits to native composer, enters pending, suppresses 
     });
 
     await move(page, 'right');
+    await move(page, 'right'); // Focus the fixed write-comment entry.
     await activate(page);
     await page.locator('#tv-composer-input').fill('Native reply content from TV');
     await move(page, 'down');
@@ -352,6 +355,7 @@ test('failed submission preserves draft, displays error, and provides retry path
     });
 
     await move(page, 'right');
+    await move(page, 'right'); // Focus the fixed write-comment entry.
     await activate(page);
     const input = page.locator('#tv-composer-input');
     await input.fill('Draft to retry on failure');
@@ -389,7 +393,8 @@ test('cancellation leaves without publishing, preserves draft on reopen, and res
     const commentsScroll = await page.evaluate(() => window.scrollY);
     expect(commentsScroll).toBeGreaterThan(400);
 
-    // Open composer
+    // Open composer without changing the selected comment's scroll position.
+    await move(page, 'right');
     await activate(page);
     await expect(page.locator('#tv-detail-composer-dialog')).toBeVisible();
     await page.locator('#tv-composer-input').fill('Cancelled draft thought');
@@ -409,4 +414,71 @@ test('cancellation leaves without publishing, preserves draft on reopen, and res
     await expect(page.locator('#tv-composer-submit')).toHaveAttribute('aria-disabled', 'false');
     await back(page);
     await expect(page.locator('#tv-detail-composer-overlay')).toHaveCount(0);
+});
+
+
+test('remote selects a comment and opens its canonical detail instead of the composer', async ({ page }) => {
+    await openDetail(page,[post({id:'201'}),post({id:'202'})]);
+    await page.evaluate(()=>{window.TvXNativeHost={openPost:path=>window.__openedComment=path};});
+    await move(page,'right');
+    await expect(page.locator('[data-fixture-id="201"]')).toHaveAttribute('data-tv-reply-selected','true');
+    await move(page,'down');
+    await expect(page.locator('[data-fixture-id="202"]')).toHaveAttribute('data-tv-reply-selected','true');
+    await activate(page);
+    await expect.poll(()=>page.evaluate(()=>window.__openedComment)).toBe('/fixture/status/202');
+    await expect(page.locator('#tv-detail-composer-overlay')).toHaveCount(0);
+    await expect(page).toHaveURL('https://x.com/fixture/status/102');
+});
+
+test('comment identity survives DOM replacement and refuses a recycled row', async ({page}) => {
+    await openDetail(page,[post({id:'201'})]);
+    await page.evaluate(()=>{window.TvXNativeHost={openPost:path=>window.__openedComment=path};});
+    await move(page,'right');
+    await page.locator('[data-fixture-id="201"]').evaluate((n,html)=>n.parentElement.outerHTML=html,post({id:'201',text:'Updated same comment'}));
+    await expect(page.locator('[data-fixture-id="201"]')).toHaveAttribute('data-tv-reply-selected','true');
+    await page.locator('[data-fixture-id="201"] a[href="/fixture/status/201"]').evaluate(n=>n.setAttribute('href','/fixture/status/299'));
+    await activate(page);
+    expect(await page.evaluate(()=>window.__openedComment)).toBeUndefined();
+    await move(page,'down');await activate(page);
+    await expect.poll(()=>page.evaluate(()=>window.__openedComment)).toBe('/fixture/status/299');
+});
+
+test('a second Right selects the write-comment entry without opening a comment', async ({page}) => {
+    await openDetail(page,[post({id:'201'})]);
+    await move(page,'right');await move(page,'right');await activate(page);
+    await expect(page.locator('#tv-detail-composer-dialog')).toBeVisible();
+    await back(page);
+    await move(page,'up');
+    await expect(page.locator('[data-fixture-id="201"]')).toHaveAttribute('data-tv-reply-selected','true');
+});
+
+test('clicking comment text opens its own edited permalink without following quoted identity', async ({page}) => {
+    await openDetail(page,[post({id:'201'})]);
+    await page.evaluate(()=>{window.TvXNativeHost={openPost:path=>window.__openedComment=path};});
+    await page.locator('[data-fixture-id="201"] a[href="/fixture/status/201"]').evaluate(n=>n.setAttribute('href','/fixture/status/201/history'));
+    await page.locator('[data-fixture-id="201"]').evaluate(node => node.insertAdjacentHTML('afterbegin','<div role="link"><div data-testid="User-Name"><a href="/quoted/status/999"><time>Quoted time</time></a></div></div>'));
+    await page.locator('[data-fixture-id="201"] [data-testid="tweetText"]').click();
+    await expect.poll(()=>page.evaluate(()=>window.__openedComment)).toBe('/fixture/status/201');
+});
+
+
+test('long comment scrolls before advancing and late pagination selects the newly loaded comment', async ({page}) => {
+    await openDetail(page,[post({id:'201',text:'Long reply. '.repeat(200)})]);
+    await move(page,'right');await move(page,'down');
+    await expect(page.locator('[data-fixture-id="201"]')).toHaveAttribute('data-tv-reply-selected','true');
+    expect(await page.evaluate(()=>scrollY)).toBeGreaterThan(400);
+    for (let i=0;i<20;i++) await move(page,'down');
+    await page.locator('#timeline').evaluate((node,html)=>node.insertAdjacentHTML('beforeend',html),post({id:'202'}));
+    await expect(page.locator('[data-fixture-id="202"]')).toHaveAttribute('data-tv-reply-selected','true');
+});
+
+
+test('ancestor context is not presented as a child comment in a reply detail', async ({page}) => {
+    await openDetail(page,[post({id:'201'})]);
+    await page.locator('[data-fixture-id="102"]').evaluate((node,html)=>node.parentElement.insertAdjacentHTML('beforebegin',html),post({id:'100',text:'Parent context'}));
+    await expect(page.locator('[data-fixture-id="100"]')).toBeHidden();
+    await move(page,'right');
+    await expect(page.locator('[data-fixture-id="201"]')).toHaveAttribute('data-tv-reply-selected','true');
+    await page.locator('[data-fixture-id="201"]').evaluate(node=>node.parentElement.remove());
+    await expect(page.locator('#tv-detail-reply-status')).toHaveText('暂无已加载评论');
 });
