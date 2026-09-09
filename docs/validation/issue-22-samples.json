@@ -1,0 +1,255 @@
+[
+ {
+  "at": "2026-09-09T22:26:27.718Z",
+  "step": "cold-start",
+  "foreground": "reader",
+  "surfaces": {
+   "reader": "V",
+   "gecko": "absent",
+   "loading": "V"
+  },
+  "scene": {
+   "title": "X · 时间线",
+   "toolbar": "X · 时间线上次时间线 2026/9/10 上午6:25:40 · 正在更新1 / 35刷新 | help: ↑↓ 切换帖子 确认 帖子详情 → 查看媒体 菜单 更多操作",
+   "freshness": "上次时间线 2026/9/10 上午6:25:40 · 正在更新",
+   "position": "1 / 35",
+   "detail": false,
+   "comment": "",
+   "author": "Kin",
+   "bodyY": 0,
+   "external": false,
+   "posts": 1
+  },
+  "msToTimeline": 3394,
+  "marks": [
+   "home cached ms=1180"
+  ],
+  "cache": "warm"
+ },
+ {
+  "at": "2026-09-09T22:26:29.215Z",
+  "step": "sample",
+  "post": "2091922092543402349",
+  "path": "/pepeller/status/2091922092543402349",
+  "links": [
+   {
+    "url": "https://1milliontaps.lol/",
+    "title": "1,000,000 taps. Then everything freezes.",
+    "domain": "1milliontaps.lol"
+   }
+  ]
+ },
+ {
+  "at": "2026-09-09T22:26:41.502Z",
+  "step": "timeline-return",
+  "foreground": "reader",
+  "before": {
+   "title": "X · 时间线",
+   "toolbar": "X · 时间线刚刚更新1 / 35刷新 | help: ↑↓ 切换帖子 确认 帖子详情 → 查看媒体 菜单 更多操作",
+   "freshness": "刚刚更新",
+   "position": "1 / 35",
+   "detail": false,
+   "comment": "",
+   "author": "Petr",
+   "bodyY": 0,
+   "external": false,
+   "posts": 1
+  },
+  "after": {
+   "title": "X · 时间线",
+   "toolbar": "X · 时间线刚刚更新1 / 35刷新 | help: ↑↓ 切换帖子 确认 帖子详情 → 查看媒体 菜单 更多操作",
+   "freshness": "刚刚更新",
+   "position": "1 / 35",
+   "detail": false,
+   "comment": "",
+   "author": "Petr",
+   "bodyY": 0,
+   "external": false,
+   "posts": 1
+  },
+  "stages": [
+   "open kind=EXTERNAL gen=1 target=https://1milliontaps.lol/",
+   "loading url=about:blank",
+   "loading url=https://1milliontaps.lol/",
+   "shown kind=EXTERNAL target=https://1milliontaps.lol/ at=https://1milliontaps.lol/",
+   "closed kind=EXTERNAL gen=1"
+  ]
+ },
+ {
+  "at": "2026-09-09T22:26:48.036Z",
+  "step": "timeline-scroll-return",
+  "scrolledTo": 600,
+  "after": {
+   "title": "X · 时间线",
+   "toolbar": "X · 时间线刚刚更新1 / 1刷新 | help: ↑↓ 切换帖子 确认 帖子详情 → 查看媒体 菜单 更多操作",
+   "freshness": "刚刚更新",
+   "position": "1 / 1",
+   "detail": false,
+   "comment": "",
+   "author": "Longread",
+   "bodyY": 600,
+   "external": false,
+   "posts": 1
+  },
+  "stages": [
+   "open kind=EXTERNAL gen=3 target=https://1milliontaps.lol/",
+   "loading url=https://1milliontaps.lol/",
+   "shown kind=EXTERNAL target=https://1milliontaps.lol/ at=https://1milliontaps.lol/",
+   "closed kind=EXTERNAL gen=3"
+  ]
+ },
+ {
+  "at": "2026-09-09T22:27:12.826Z",
+  "step": "cancel-and-repeat",
+  "owners": [
+   "reader",
+   "reader",
+   "reader",
+   "reader",
+   "reader",
+   "reader"
+  ],
+  "settled": {
+   "title": "X · 时间线",
+   "toolbar": "X · 时间线刚刚更新1 / 1刷新 | help: ↑↓ 切换帖子 确认 帖子详情 → 查看媒体 菜单 更多操作",
+   "freshness": "刚刚更新",
+   "position": "1 / 1",
+   "detail": false,
+   "comment": "",
+   "author": "Probe",
+   "bodyY": 0,
+   "external": false,
+   "posts": 1
+  },
+  "foreground": "reader",
+  "stages": [
+   "open kind=EXTERNAL gen=5 target=https://10.255.255.1/hangs",
+   "closed kind=EXTERNAL gen=5",
+   "open kind=EXTERNAL gen=7 target=https://10.255.255.1/hangs",
+   "closed kind=EXTERNAL gen=7",
+   "open kind=EXTERNAL gen=9 target=https://10.255.255.1/hangs",
+   "closed kind=EXTERNAL gen=9"
+  ]
+ },
+ {
+  "at": "2026-09-09T22:27:23.098Z",
+  "step": "detail-return",
+  "foreground": "reader",
+  "before": {
+   "title": "← 帖子详情",
+   "toolbar": "← 帖子详情刷新 | help: ↑↓ 阅读评论 确认 打开评论 ← 正文 菜单 更多操作 返回 上一层",
+   "freshness": "",
+   "position": "",
+   "detail": true,
+   "comment": "Petr @pepeller@nbrempel ",
+   "author": "Petr",
+   "bodyY": 0,
+   "external": false,
+   "posts": 1
+  },
+  "after": {
+   "title": "← 帖子详情",
+   "toolbar": "← 帖子详情刷新 | help: ↑↓ 阅读评论 确认 打开评论 ← 正文 菜单 更多操作 返回 上一层",
+   "freshness": "",
+   "position": "",
+   "detail": true,
+   "comment": "Petr @pepeller@nbrempel ",
+   "author": "Petr",
+   "bodyY": 0,
+   "external": false,
+   "posts": 1
+  },
+  "stages": [
+   "open kind=EXTERNAL gen=11 target=https://1milliontaps.lol/",
+   "loading url=https://1milliontaps.lol/",
+   "shown kind=EXTERNAL target=https://1milliontaps.lol/ at=https://1milliontaps.lol/",
+   "closed kind=EXTERNAL gen=11"
+  ]
+ },
+ {
+  "at": "2026-09-09T22:27:36.517Z",
+  "step": "explicit-x-handoff",
+  "handedOver": true,
+  "surfaces": {
+   "reader": "G",
+   "gecko": "V",
+   "loading": "G"
+  },
+  "stages": [
+   "open kind=POST gen=13 target=/pepeller/status/2091922092543402349",
+   "loading url=https://x.com/pepeller/status/2091922092543402349",
+   "loading url=https://x.com/pepeller/status/2091922092543402349",
+   "shown kind=POST target=/pepeller/status/2091922092543402349 at=https://x.com/pepeller/status/2091922092543402349"
+  ]
+ },
+ {
+  "at": "2026-09-09T22:27:43.189Z",
+  "step": "explicit-x-return",
+  "foreground": "reader",
+  "presses": 2,
+  "scene": {
+   "title": "X · 时间线",
+   "toolbar": "X · 时间线刚刚更新1 / 35刷新 | help: ↑↓ 切换帖子 确认 帖子详情 → 查看媒体 菜单 更多操作",
+   "freshness": "刚刚更新",
+   "position": "1 / 35",
+   "detail": false,
+   "comment": "",
+   "author": "Petr",
+   "bodyY": 0,
+   "external": false,
+   "posts": 1
+  },
+  "stages": [
+   "closed kind=POST gen=13"
+  ]
+ },
+ {
+  "at": "2026-09-09T22:27:53.586Z",
+  "step": "login-handoff",
+  "surfaces": {
+   "reader": "G",
+   "gecko": "V",
+   "loading": "G"
+  },
+  "stages": [
+   "open kind=LOGIN gen=15 target=https://x.com/home",
+   "shown kind=LOGIN target=https://x.com/home at=https://x.com/pepeller/status/2091922092543402349",
+   "loading url=https://x.com/home",
+   "loading url=https://x.com/home"
+  ]
+ },
+ {
+  "at": "2026-09-09T22:27:58.063Z",
+  "step": "login-return",
+  "foreground": "reader",
+  "presses": 1,
+  "scene": {
+   "title": "X · 时间线",
+   "toolbar": "X · 时间线刚刚更新1 / 35刷新 | help: ↑↓ 切换帖子 确认 帖子详情 → 查看媒体 菜单 更多操作",
+   "freshness": "刚刚更新",
+   "position": "1 / 35",
+   "detail": false,
+   "comment": "",
+   "author": "Petr",
+   "bodyY": 0,
+   "external": false,
+   "posts": 1
+  },
+  "stages": [
+   "closed kind=LOGIN gen=15"
+  ]
+ },
+ {
+  "at": "2026-09-09T22:27:58.181Z",
+  "step": "reading-budget",
+  "msToTimeline": 3394,
+  "cache": "warm",
+  "coldMarks": [
+   "home cached ms=1180"
+  ],
+  "detailMarks": [
+   "detail reused ms=45"
+  ],
+  "geckoSessionsOpened": 1
+ }
+]

@@ -64,3 +64,9 @@ system WebView is Chromium 66.
 installed debug build, fetches one post through the app's own client, replays it, and
 drives the remote through open, scroll, return, cancel, t.co redirect and failure,
 writing `docs/validation/issue-20-samples.json`. Read-only against X.
+
+`scripts/check-reader-foreground.mjs` covers issue #22 on the device: it compares the
+cold-start foreground with the one after an external return, restores timeline, scroll,
+detail and comment focus, hammers cancel/repeat with an unroutable target, exercises the
+explicit X and login handoffs, and records the reading budget and Gecko session count into
+`docs/validation/issue-22-samples.json`. Read-only against X.

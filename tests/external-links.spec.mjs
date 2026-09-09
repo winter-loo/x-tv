@@ -91,6 +91,27 @@ test('a link card contributes its title and publisher domain, not the t.co wrapp
     }]);
 });
 
+test('a card wrapping the same t.co as the body link is listed once', async () => {
+    // Real X shape: summary_large_image puts the t.co wrapper in card_url, not the publisher URL.
+    const [parsed] = await parse([post('101', 'Read this', {
+        ...card('https://t.co/jY4O5OeWz0', {
+            title: '1,000,000 taps. Then everything freezes.',
+            domain: '1milliontaps.lol',
+            vanity_url: '1milliontaps.lol',
+            card_url: 'https://t.co/jY4O5OeWz0'
+        })
+    }, entities([{
+        url: 'https://t.co/jY4O5OeWz0',
+        expanded_url: 'https://1milliontaps.lol/',
+        display_url: '1milliontaps.lol'
+    }]))]);
+    expect(parsed.links).toEqual([{
+        url: 'https://1milliontaps.lol/',
+        title: '1,000,000 taps. Then everything freezes.',
+        domain: '1milliontaps.lol'
+    }]);
+});
+
 test('links back into X are never offered as external targets', async () => {
     const [parsed] = await parse([post('101', 'Quoting', {}, entities([{
         url: 'https://t.co/q',
@@ -293,6 +314,57 @@ test('a failed open explains itself and retries on confirm', async ({page}) => {
     await expect(status).not.toContainText('未能打开');
     await key(page, 'back');
     await expect(page.locator('.external-status')).toHaveCount(0);
+});
+
+const linked = entities([{url: 'https://t.co/2', expanded_url: 'https://github.com/a/b', display_url: 'github.com/a/b'}]);
+const scrollTop = page => page.evaluate(() => document.querySelector('.body').scrollTop);
+
+test('returning to the timeline restores the selected post and its reading position', async ({page}) => {
+    await mount(page);
+    await page.evaluate(data => TvXReader.receive('r0', data, ''), payload([
+        post('101', 'First'),
+        post('102', 'A very long post\n'.repeat(200), {}, linked)
+    ]));
+    await key(page, 'down');
+    await expect(page.locator('#position')).toHaveText('2 / 2');
+    await page.evaluate(() => document.querySelector('.body').scrollTop = 400);
+    const at = await scrollTop(page);
+    expect(at).toBeGreaterThan(0);
+    await key(page, 'menu');
+    await key(page, 'down');
+    await key(page, 'down');
+    await key(page, 'ok');
+    expect(await calls(page, 'openExternal')).toEqual([['openExternal', 'https://github.com/a/b']]);
+    await page.evaluate(() => TvXReader.externalClosed());
+    await expect(page.locator('#position')).toHaveText('2 / 2');
+    expect(await scrollTop(page)).toBe(at);
+});
+
+test('returning to a detail restores the post, the comment focus and both scroll positions', async ({page}) => {
+    await mount(page);
+    await page.evaluate(data => TvXReader.receive('r0', data, ''), payload([post('101', 'Root', {}, linked)]));
+    await key(page, 'ok');
+    await page.evaluate(data => TvXReader.receive('r1', data, ''), payload([
+        post('101', 'A very long root\n'.repeat(200), {}, linked),
+        post('201', 'First reply', {}, {in_reply_to_status_id_str: '101'}),
+        post('202', 'Second reply', {}, {in_reply_to_status_id_str: '101'})
+    ]));
+    await expect(page.locator('.detail-post')).toHaveCount(1);
+    await page.evaluate(() => document.querySelector('.body').scrollTop = 300);
+    const at = await scrollTop(page);
+    expect(at).toBeGreaterThan(0);
+    await key(page, 'right');
+    await key(page, 'down');
+    await expect(page.locator('.comment.selected')).toContainText('Second reply');
+    await key(page, 'menu');
+    await key(page, 'down');
+    await key(page, 'down');
+    await key(page, 'ok');
+    expect(await calls(page, 'openExternal')).toEqual([['openExternal', 'https://github.com/a/b']]);
+    await page.evaluate(() => TvXReader.externalClosed());
+    await expect(page.locator('.detail-post')).toHaveCount(1);
+    await expect(page.locator('.comment.selected')).toContainText('Second reply');
+    expect(await scrollTop(page)).toBe(at);
 });
 
 test('a late page callback never overwrites a reader the user already came back to', async ({page}) => {

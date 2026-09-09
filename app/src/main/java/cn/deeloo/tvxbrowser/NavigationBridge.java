@@ -26,12 +26,17 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
     }
 
     public interface ReaderReadyListener { void ready(String path); }
+    public interface ContentReadyListener { void ready(String url); }
+    private ContentReadyListener mContentReadyListener;
+    /** Fires when a content script exists on a document and can accept reader commands. */
+    public void setContentReadyListener(ContentReadyListener listener) { mContentReadyListener=listener; }
     private java.util.function.Consumer<JSONObject> mReadTemplateListener;
-    private Runnable mReadClearListener, mReaderReturnListener;
+    private Runnable mReadClearListener;
+    private ReaderReadyListener mReaderReturnListener;
     private ReaderReadyListener mReaderReadyListener;
     public void setReadTemplateListener(java.util.function.Consumer<JSONObject> listener) { mReadTemplateListener=listener; }
     public void setReadClearListener(Runnable listener) { mReadClearListener=listener; }
-    public void setReaderReturnListener(Runnable listener) { mReaderReturnListener=listener; }
+    public void setReaderReturnListener(ReaderReadyListener listener) { mReaderReturnListener=listener; }
     public void setReaderReadyListener(ReaderReadyListener listener) { mReaderReadyListener=listener; }
     public void openReaderAction(String path,String action) {
         if(mPort==null)return;
@@ -69,6 +74,7 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
         if (mPort != null) { mPort.disconnect(); mPort = null; }
         mReadyListener = null; mPresentationListener = null; mExitListener = null;
         mReadTemplateListener=null;mReadClearListener=null;mReaderReturnListener=null;mReaderReadyListener=null;
+        mContentReadyListener=null;
     }
     private WebExtension mExtension;
     private WebExtension.Port mPort;
@@ -172,7 +178,9 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
             } else if ("reader_browser_ready".equals(event)) {
                 if(mReaderReadyListener!=null)mReaderReadyListener.ready(json.optString("path"));
             } else if ("reader_browser_return".equals(event)) {
-                if(mReaderReturnListener!=null)mReaderReturnListener.run();
+                if(mReaderReturnListener!=null)mReaderReturnListener.ready(json.optString("path"));
+            } else if ("content_ready".equals(event)) {
+                if(mContentReadyListener!=null)mContentReadyListener.ready(json.optString("url"));
             } else if ("ping".equals(event)) {
                 sendCommand("pong", null);
             } else if ("exit_requested".equals(event)) {

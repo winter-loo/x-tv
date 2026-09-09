@@ -64,9 +64,11 @@ function links(t, legacy, note) {
         var reached = host(target);
         var domain = matched && matched.domain || (reached && reached !== 't.co' ? reached : shown);
         if (!domain || internal(domain) || internal(shown) || internal(reached)) return;
-        var url = target || https(entry.url || '');
-        if (!url || seen[url]) return;
+        var url = target || https(entry.url || ''), wrapper = entry.url || '';
+        // Dedupe on the wrapper too: a card repeats the t.co its body link already resolved.
+        if (!url || seen[url] || (wrapper && seen[wrapper])) return;
         seen[url] = true;
+        if (wrapper) seen[wrapper] = true;
         out.push({
             url: url,
             title: matched && matched.title || (shown === domain && display ? display : linkText(url)),

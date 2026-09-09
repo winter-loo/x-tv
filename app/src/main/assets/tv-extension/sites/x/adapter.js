@@ -951,8 +951,9 @@ window.TvXAdapter = window.TvXAdapter || (function() {
 
         if (window.location.pathname.includes("/status/")) {
             if(window.TvXReaderBrowser?.announced) {
+                const path=window.TvXReaderBrowser.path;
                 window.TvXReaderBrowser=null;
-                browser.runtime.sendMessage({event:'reader_browser_return'}).catch(()=>{});
+                browser.runtime.sendMessage({event:'reader_browser_return',path}).catch(()=>{});
                 return {event:'backResult',handled:true};
             }
             if (homeAnchor) {

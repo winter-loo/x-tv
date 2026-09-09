@@ -95,7 +95,7 @@ function assertRevealedOwnPage(lines) {
     lines.forEach(line => {
         if (line.startsWith('open ') || line.startsWith('closed ')) started = false;
         else if (line.startsWith('loading ')) started = true;
-        else if (line.startsWith('readable ') && !started)
+        else if (line.startsWith('shown ') && !started)
             throw new Error('reader stepped aside before its target began loading: ' + line);
     });
     return lines;
@@ -104,8 +104,8 @@ function assertRevealedOwnPage(lines) {
 function stages() {
     const lines = adb('logcat', '-d', '-s', 'BrowserActivity')
         .split('\n')
-        .filter(line => /external (open|loading|readable|failed|closed)/.test(line))
-        .map(line => line.replace(/^.*BrowserActivity: ===> external /, '').trim());
+        .filter(line => /handoff (open|loading|shown|failed|closed)/.test(line))
+        .map(line => line.replace(/^.*BrowserActivity: ===> handoff /, '').trim());
     adb('logcat', '-c');
     return lines;
 }

@@ -16,13 +16,22 @@ export async function connect(port = 9333) {
         const reply = new Promise(ok => waiting.set(mine, ok));
         ws.send(JSON.stringify({id: mine, method, params}));
         const msg = await Promise.race([reply,
-            new Promise((_, fail) => setTimeout(() => fail(new Error(method + ' timed out')), 20000))]);
+            new Promise((_, fail) => setTimeout(() => fail(new Error(method + ' timed out')), 45000))]);
         if (msg.error) throw new Error(method + ': ' + JSON.stringify(msg.error));
         return msg.result;
     }
-    async function evaluate(expression) {
-        const r = await send('Runtime.evaluate',
-            {expression, returnByValue: true, awaitPromise: true, allowUnsafeEvalBlockedByCSP: true});
+    // The projector's WebView occasionally stalls long enough to miss a reply; one retry is
+    // cheaper than failing a whole device journey over a transient stall.
+    async function evaluate(expression, retries = 1) {
+        let r;
+        try {
+            r = await send('Runtime.evaluate',
+                {expression, returnByValue: true, awaitPromise: true, allowUnsafeEvalBlockedByCSP: true});
+        } catch (error) {
+            if (!retries || !/timed out/.test(error.message)) throw error;
+            await new Promise(ok => setTimeout(ok, 2000));
+            return evaluate(expression, retries - 1);
+        }
         if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception?.description || 'eval failed');
         return r.result.value;
     }

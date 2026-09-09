@@ -19,10 +19,25 @@ final class ExternalTarget {
         String host = uri.getHost();
         if (!"https".equalsIgnoreCase(uri.getScheme()) || host == null || host.isEmpty())
             return null;
-        host = host.toLowerCase();
-        if (host.equals("x.com") || host.endsWith(".x.com") || host.equals("twitter.com")
-            || host.endsWith(".twitter.com"))
+        if (xHost(host))
             return null;
         return uri.toString();
+    }
+
+    /** True when the URL belongs to X itself, which is never an external reading target. */
+    static boolean isX(String url) {
+        if (url == null) return false;
+        try {
+            return xHost(new URI(url).getHost());
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private static boolean xHost(String host) {
+        if (host == null) return false;
+        host = host.toLowerCase();
+        return host.equals("x.com") || host.endsWith(".x.com") || host.equals("twitter.com")
+            || host.endsWith(".twitter.com");
     }
 }

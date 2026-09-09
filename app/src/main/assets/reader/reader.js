@@ -138,6 +138,7 @@ function preserveWrites(data, requestedAt) {
 }
 /** Opening an external target is modal: the reader stays put until the host reports back. */
 function openExternal(link) {
+    saveScroll();
     external = {url: link.url, title: link.title, domain: link.domain, failed: false};
     renderExternal();
     ReaderHost.openExternal(link.url);

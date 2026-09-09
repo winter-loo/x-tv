@@ -30,7 +30,7 @@ import java.nio.charset.StandardCharsets;
 public class BrowserActivity extends Activity {
     private static final String TAG = "BrowserActivity";
     public static final String X_HOME_URL = "https://x.com/home";
-    private static final long EXTERNAL_LOAD_TIMEOUT_MS = 25000;
+    private static final long HANDOFF_TIMEOUT_MS = 25000;
 
     private View mLoading;
     private boolean mWaitingForPresentation = true;
@@ -50,10 +50,10 @@ public class BrowserActivity extends Activity {
     private XReadClient mReadClient;
     private FastReader mReader;
     private XWriteClient mWriteClient;
-    private boolean mPrewarmScheduled, mBrowserRequested;
-    private String mReaderPath, mReaderAction, mExternalUrl, mExternalLoading;
-    private int mExternalToken;
-    private Runnable mExternalTimeout;
+    private boolean mPrewarmScheduled;
+    private final Handoff mHandoff = new Handoff();
+    private String mCommitted = "";
+    private Runnable mHandoffTimeout;
     private long mLaunchStarted;
 
     @Override
@@ -73,21 +73,18 @@ public class BrowserActivity extends Activity {
         mReadClient.accountChanged=()->{
             if(isFinishing()||isDestroyed())return;
             if(mReader!=null){((android.view.ViewGroup)mReader.getParent()).removeView(mReader);mReader.dispose();mReader=null;}
-            mBrowserRequested=false;initializeBrowser();loadXHome();
+            closeHandoff();initializeBrowser();loadXHome();
         };
         if(mReadClient.available()&&!getIntent().hasExtra("url")&&!getIntent().hasExtra("action")) {
             mReader=new FastReader(this,mReadClient,mWriteClient,new FastReader.Listener(){
                 public void rendered(){if(!mPrewarmScheduled){mPrewarmScheduled=true;mUiHandler.postDelayed(BrowserActivity.this::initializeBrowser,1500);}}
                 public void openBrowser(String path,String action){
-                    mBrowserRequested=true;mReaderPath=path;mReaderAction=action;mReader.browserWaiting();
-                    boolean starting=mSession==null;
-                    initializeBrowser();
-                    if(path.equals("/home")){if(!starting)mSession.loadUri(X_HOME_URL);mReader.setVisibility(View.GONE);}
-                    else if(mBridge!=null)mBridge.openReaderAction(path,action);
+                    beginHandoff(path.equals("/home")?Handoff.Kind.LOGIN:Handoff.Kind.POST,
+                        path.equals("/home")?X_HOME_URL:path,action);
                 }
-                public void cancelBrowser(){mBrowserRequested=false;mReader.browserReturned();}
-                public void openExternal(String url){BrowserActivity.this.openExternal(url);}
-                public void cancelExternal(){endExternal(true);}
+                public void cancelBrowser(){endHandoff();}
+                public void openExternal(String url){beginHandoff(Handoff.Kind.EXTERNAL,url,"");}
+                public void cancelExternal(){endHandoff();}
                 public void exit(){finish();}
             },mLaunchStarted);
             ((android.view.ViewGroup)mLoading.getParent()).addView(mReader,new android.view.ViewGroup.LayoutParams(-1,-1));
@@ -112,11 +109,18 @@ public class BrowserActivity extends Activity {
 
             mBridge = new NavigationBridge(TvXApplication.getRuntime(), mSession);
             mBridge.setPresentationListener(() -> runOnUiThread(this::showPresentation));
-            mBridge.setExitListener(() -> runOnUiThread(()->{if(mReader!=null&&mBrowserRequested){mBrowserRequested=false;mReader.browserReturned();}else finish();}));
+            // The page may ask to close only what it actually owns; a background X document
+            // firing this while the reader is in front must not exit the app.
+            mBridge.setExitListener(() -> runOnUiThread(()->{if(mHandoff.showing())endHandoff();else if(mReader==null)finish();}));
             mBridge.setReadTemplateListener(mReadClient::accept);
             mBridge.setReadClearListener(mReadClient::clear);
-            mBridge.setReaderReturnListener(()->{mBrowserRequested=false;if(mReader!=null)mReader.browserReturned();});
-            mBridge.setReaderReadyListener(path->{if(mReader!=null&&mBrowserRequested&&path.equals(mReaderPath)){mReader.setVisibility(View.GONE);showPresentation();}});
+            // A live content script is the real precondition for a post handoff, so drive it here
+            // rather than guessing from page-load events an SPA may not deliver in time.
+            mBridge.setContentReadyListener(url->{if(ExternalTarget.isX(url)){mCommitted=url;if(mHandoff.kind()==Handoff.Kind.POST)driveHandoff();}});
+            // Only the handoff that actually took the screen, for the post it was opened for, may
+            // be closed by the page. A stale return from an earlier document is ignored.
+            mBridge.setReaderReturnListener(path->{if(mHandoff.closedBy(path))endHandoff();});
+            mBridge.setReaderReadyListener(path->{mHandoff.announce(path);showHandoff();});
             mBridge.setTapListener((x, y) -> {
                 runOnUiThread(() -> {
                     if (mPopupSession != null) return;
@@ -151,7 +155,7 @@ public class BrowserActivity extends Activity {
 
                 @Override
                 public void onFirstContentfulPaint(GeckoSession session) {
-                    if (session == activeSession()) revealExternal();
+                    if (session == activeSession()) showHandoff();
                 }
             });
 
@@ -177,12 +181,12 @@ public class BrowserActivity extends Activity {
                 public void onPageStop(GeckoSession session, boolean success) {
                     if (session != activeSession()) return;
                     // A client-side redirect (t.co serves one) aborts the page it navigates away
-                    // from, so only a real load error or the timeout may fail an external target.
-                    if (mExternalUrl != null) {
-                        if (success) revealExternal();
+                    // from, so only a real load error or the timeout may fail a handoff.
+                    if (mHandoff.kind() == Handoff.Kind.EXTERNAL) {
+                        if (success) showHandoff();
                         return;
                     }
-                    if(mBrowserRequested&&mReader!=null)mBridge.openReaderAction(mReaderPath,mReaderAction);
+                    if (mHandoff.kind() == Handoff.Kind.POST) driveHandoff();
                     if (!mUsingTvAdapter) showPresentation();
                     else if (!success) { mLoadRetryAvailable = true; ((TextView) findViewById(R.id.loading_text)).setText("连接未完成，按确认重试\n返回退出"); }
                     Log.i(TAG, "===> Page stopped, success: " + success);
@@ -205,11 +209,13 @@ public class BrowserActivity extends Activity {
                 public void onLocationChange(GeckoSession session, String url,
                         java.util.List<GeckoSession.PermissionDelegate.ContentPermission> perms,
                         Boolean hasUserGesture) {
-                    if (session != activeSession() || mExternalUrl == null) return;
-                    // Committed, so paints from here belong to this document. X and about:blank
-                    // never qualify, which is what keeps a stale paint off the screen.
-                    mExternalLoading = ExternalTarget.normalize(url);
-                    if (mExternalLoading != null) Log.w(TAG, "===> external loading url=" + url);
+                    if (session != activeSession()) return;
+                    // Committed, so paints from here belong to this document. A document that
+                    // does not belong to the handoff never arms the screen.
+                    mCommitted = url;
+                    mHandoff.commit(url);
+                    if (mHandoff.settled()) clearHandoffTimeout();
+                    if (mHandoff.active()) Log.w(TAG, "===> handoff loading url=" + url);
                 }
 
                 @Override
@@ -255,7 +261,8 @@ public class BrowserActivity extends Activity {
                 @Override
                 public GeckoResult<String> onLoadError(GeckoSession session, String uri, WebRequestError error) {
                     Log.e(TAG, "===> Page load error for URI: " + uri + " (code=" + error.code + ", category=" + error.category + ")");
-                    if (session == activeSession()) failExternal(mExternalToken, "error-" + error.code);
+                    if (session == activeSession() && mHandoff.kind() == Handoff.Kind.EXTERNAL)
+                        failHandoff(mHandoff.generation(), "error-" + error.code);
                     return null;
                 }
             });
@@ -266,8 +273,7 @@ public class BrowserActivity extends Activity {
             TvXApplication.getRuntime().getWebExtensionController().setTabActive(mSession, true);
 
             mBridge.whenReady(() -> {
-                if(mExternalUrl!=null){mSession.loadUri(mExternalUrl);}
-                else if(mReader!=null&&mBrowserRequested){mSession.loadUri("https://x.com"+mReaderPath);}
+                if(mHandoff.active())driveHandoff();
                 else handleIntent(getIntent());
             });
             Log.e(TAG, "===> BrowserActivity.onCreate FINISHED <===");
@@ -276,53 +282,88 @@ public class BrowserActivity extends Activity {
         }
     }
 
-    /** Loads an external reading target while the reader stays on screen as the cancel surface. */
-    private void openExternal(String url) {
-        mExternalUrl = url;
-        mExternalLoading = null;
-        final int token = ++mExternalToken;
-        Log.w(TAG, "===> external open token=" + token + " url=" + url);
+    /** Every reader to browser handoff starts here; the reader stays in front and can cancel. */
+    private void beginHandoff(Handoff.Kind kind, String target, String action) {
+        if (mReader == null) return;
+        final int generation = mHandoff.begin(kind, target, action);
+        Log.w(TAG, "===> handoff open kind=" + kind + " gen=" + generation + " target=" + target);
+        if (kind != Handoff.Kind.EXTERNAL) mReader.browserWaiting();
         boolean starting = mSession == null;
         initializeBrowser();
-        if (!starting) mSession.loadUri(url);
-        mExternalTimeout = () -> failExternal(token, "timeout");
-        mUiHandler.postDelayed(mExternalTimeout, EXTERNAL_LOAD_TIMEOUT_MS);
+        if (!starting) driveHandoff();
+        mHandoffTimeout = () -> failHandoff(generation, "timeout");
+        mUiHandler.postDelayed(mHandoffTimeout, HANDOFF_TIMEOUT_MS);
+        showHandoff();
     }
 
-    /** Hands the screen to the external page, once a document of its own has committed. */
-    private void revealExternal() {
-        if (mExternalUrl == null || mExternalLoading == null || mReader == null) return;
-        Log.w(TAG, "===> external readable token=" + mExternalToken + " url=" + mExternalLoading);
-        clearExternalTimeout();
+    /** Points the session at the handoff target; safe to repeat once a page settles. */
+    private void driveHandoff() {
+        if (mSession == null) return;
+        switch (mHandoff.kind()) {
+            case EXTERNAL:
+            case LOGIN:
+                mSession.loadUri(mHandoff.target());
+                break;
+            case POST:
+                // Only a live X document can route to the post; otherwise load it and wait for
+                // the content script to report in.
+                boolean routable = ExternalTarget.isX(mCommitted) && mBridge != null;
+                Log.w(TAG, "===> handoff drive kind=POST routable=" + routable + " at=" + mCommitted);
+                if (routable)
+                    mBridge.openReaderAction(mHandoff.target(), mHandoff.action());
+                else
+                    mSession.loadUri("https://x.com" + mHandoff.target());
+                break;
+        }
+    }
+
+    /** Hands the screen over, once the handoff's own document is on it. */
+    private void showHandoff() {
+        if (!mHandoff.ready() || mReader == null) return;
+        Log.w(TAG, "===> handoff shown kind=" + mHandoff.kind() + " target=" + mHandoff.target()
+                + " at=" + mCommitted);
+        mHandoff.show();
+        if (mHandoff.settled()) clearHandoffTimeout();
         mReader.setVisibility(View.GONE);
-        showPresentation();
+        // Login has nothing loaded yet, so it keeps the loading overlay rather than a blank page.
+        if (mHandoff.kind() != Handoff.Kind.LOGIN) showPresentation();
     }
 
-    private void failExternal(int token, String reason) {
-        if (token != mExternalToken || mExternalUrl == null) return;
-        String url = mExternalUrl;
-        Log.w(TAG, "===> external failed token=" + token + " reason=" + reason + " url=" + url);
-        endExternal(false);
-        if (mReader != null) mReader.externalFailed(url);
+    /** The user came back, or the page asked to close. */
+    private void endHandoff() {
+        Handoff.Kind kind = closeHandoff();
+        if (mReader == null || kind == Handoff.Kind.NONE) return;
+        if (kind == Handoff.Kind.EXTERNAL) mReader.externalClosed();
+        else mReader.browserReturned();
     }
 
-    /** Drops the external page and invalidates every callback still in flight for it. */
-    private void endExternal(boolean notifyReader) {
-        if (mExternalUrl == null) return;
-        Log.w(TAG, "===> external closed token=" + mExternalToken + " url=" + mExternalUrl);
-        mExternalUrl = null;
-        mExternalLoading = null;
-        mExternalToken++;
-        clearExternalTimeout();
-        // Back to X: it stops the external page and leaves the session where post actions expect it.
-        if (mSession != null) loadXHome();
-        if (notifyReader && mReader != null) mReader.externalClosed();
+    private void failHandoff(int generation, String reason) {
+        if (!mHandoff.accepts(generation)) return;
+        String target = mHandoff.target();
+        Handoff.Kind kind = closeHandoff();
+        Log.w(TAG, "===> handoff failed kind=" + kind + " reason=" + reason + " target=" + target);
+        if (mReader == null) return;
+        if (kind == Handoff.Kind.EXTERNAL) mReader.externalFailed(target);
+        else mReader.browserReturned();
     }
 
-    private void clearExternalTimeout() {
-        if (mExternalTimeout == null) return;
-        mUiHandler.removeCallbacks(mExternalTimeout);
-        mExternalTimeout = null;
+    /** Tears the handoff down and invalidates every callback still in flight for it. */
+    private Handoff.Kind closeHandoff() {
+        if (!mHandoff.active()) return Handoff.Kind.NONE;
+        Handoff.Kind kind = mHandoff.kind();
+        Log.w(TAG, "===> handoff closed kind=" + kind + " gen=" + mHandoff.generation());
+        mHandoff.end();
+        clearHandoffTimeout();
+        // Leave the engine on a blank page: it stops the external document and keeps none of
+        // its callbacks pointed at the foreground. X is reloaded on demand by the next handoff.
+        if (kind == Handoff.Kind.EXTERNAL && mSession != null) mSession.loadUri("about:blank");
+        return kind;
+    }
+
+    private void clearHandoffTimeout() {
+        if (mHandoffTimeout == null) return;
+        mUiHandler.removeCallbacks(mHandoffTimeout);
+        mHandoffTimeout = null;
     }
 
     /** Engine-level scrolling, so the remote reads any page regardless of its own key handling. */
@@ -340,7 +381,13 @@ public class BrowserActivity extends Activity {
     private void showPresentation() {
         mWaitingForPresentation = false;
         mUiHandler.removeCallbacks(mLoadTimeout);
-        if (mLoading.getVisibility() == View.GONE) return;
+        // A hidden page becoming ready may clear the overlay, but never take focus from the reader.
+        if (mReader != null && !mHandoff.showing()) {
+            mLoading.setVisibility(View.GONE);
+            return;
+        }
+        // Revealing is idempotent on purpose: a page that cleared the overlay while the reader
+        // was in front must not leave a later handoff stuck on a transparent GeckoView.
         mGeckoView.setAlpha(1f);
         mGeckoView.postOnAnimation(() -> mGeckoView.postOnAnimation(() -> {
             if (mWaitingForPresentation || isFinishing()) return;
@@ -355,6 +402,7 @@ public class BrowserActivity extends Activity {
         setIntent(intent);
         // A launcher resume must not reload /home and discard the current post.
         if (intent.hasExtra("url") || intent.hasExtra("action")) {
+            closeHandoff();
             if(mReader!=null)mReader.setVisibility(View.GONE);
             initializeBrowser();
             mBridge.whenReady(() -> handleIntent(intent));
@@ -473,9 +521,9 @@ public class BrowserActivity extends Activity {
         if(mReader!=null&&mReader.getVisibility()==View.VISIBLE&&mReader.handleKey(event))return true;
         int code = event.getKeyCode();
         if(mGeckoView==null)return super.dispatchKeyEvent(event);
-        if(mExternalUrl!=null&&mReader!=null&&mReader.getVisibility()!=View.VISIBLE){
+        if(mHandoff.showing()&&mHandoff.kind()==Handoff.Kind.EXTERNAL){
             if(code==KeyEvent.KEYCODE_BACK){
-                if(event.getAction()==KeyEvent.ACTION_DOWN&&event.getRepeatCount()==0)endExternal(true);
+                if(event.getAction()==KeyEvent.ACTION_DOWN&&event.getRepeatCount()==0)endHandoff();
                 return true;
             }
             if(code==KeyEvent.KEYCODE_DPAD_UP||code==KeyEvent.KEYCODE_DPAD_DOWN){

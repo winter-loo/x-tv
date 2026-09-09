@@ -40,6 +40,14 @@ python3 scripts/check-projector-ux.py --serial 192.168.10.100:5555
 
 回归测试 `tests/external-links.spec.mjs`，真机验收 `node scripts/check-external-links.mjs`（只读，不点赞不评论）。验证记录见 [外链阅读验收](docs/validation/issue-20-external-links.md)。
 
+## 启动与返回界面统一（GitHub #22）
+
+冷启动、外链返回、取消加载都停在同一套本地阅读器上：返回首页恢复原来选中的帖子和滚动位置，返回详情恢复评论焦点。等待网页期间前台仍属于阅读器，返回即取消。
+
+阅读器交给浏览器只有三种情形——打开外链、打开原帖、登录——同时最多一次，由 `Handoff` 记录代次；交接结束后到达的绘制、adapter 就绪或退出请求一律作废，不会顶掉已经恢复的阅读界面。显式选择原网站仍然会把整屏交给 X，与正常返回区分。
+
+回归测试 `app/src/test/.../HandoffTest.java` 与 `tests/external-links.spec.mjs`，真机验收 `node scripts/check-reader-foreground.mjs`（只读）。验证记录见 [启动与返回界面验收](docs/validation/issue-22-reader-foreground.md)。
+
 ## 当前进度（2026-09-07）
 
 #1 平衡阅读布局已完成验收：9 项 Firefox DOM 回归、150 条真实帖子连续导航、真实 X Article 显示、详情往返、返回顶部、Google 登录与冷启动登录保持均通过。GeckoView 已更新至 `155.0.20260903215306`，修复真机 RGB PNG 解码崩溃。详见 [验收记录](docs/validation/issue-1.md)。

@@ -26,4 +26,12 @@ public class ExternalTargetTest {
         assertNull(ExternalTarget.normalize("https:///nohost"));
         assertNull(ExternalTarget.normalize("https://example.org/" + "x".repeat(4000)));
     }
+    @Test public void xPagesAreRecognisedWhereverTheSessionIs() {
+        assertTrue(ExternalTarget.isX("https://x.com/home"));
+        assertTrue(ExternalTarget.isX("https://mobile.twitter.com/i/flow/login"));
+        assertFalse(ExternalTarget.isX("https://example.org/x.com"));
+        assertFalse(ExternalTarget.isX("about:blank"));
+        assertFalse(ExternalTarget.isX(""));
+        assertFalse(ExternalTarget.isX(null));
+    }
 }
