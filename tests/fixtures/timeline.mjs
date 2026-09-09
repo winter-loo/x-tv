@@ -58,7 +58,7 @@ export async function mount(page, posts = [post()], extra = '', { styleDelay = 0
         await page.addScriptTag({ path: fileURLToPath(new URL(path, extension)) });
     }
     await page.evaluate(() => window.TvXAdapter.init());
-    await page.locator('#tv-reading-header').waitFor();
+    await page.locator('#tv-reading-header').waitFor({ state: 'attached' });
     await page.waitForFunction(() => Array.from(document.styleSheets).some(sheet => sheet.href?.endsWith('reading.css')));
 }
 export const move = (page, direction) => page.evaluate(direction => window.TvXAdapter.move(direction), direction);

@@ -39,7 +39,7 @@ test('Aero Dark action menu renders symmetrical SVG icons and sky-blue focus sty
     await expect(menu).toBeVisible();
     await expect(page.getByRole('button', { name: '评论', exact: true })).toBeFocused();
 
-    const styles = await page.evaluate(() => {
+    const readStyles = () => page.evaluate(() => {
         const commentBtn = document.querySelector('#tv-action-menu button.tv-action-btn-comment');
         const likeBtn = document.querySelector('#tv-action-menu button.tv-action-btn-like');
         const commentBefore = window.getComputedStyle(commentBtn, '::before');
@@ -53,6 +53,9 @@ test('Aero Dark action menu renders symmetrical SVG icons and sky-blue focus sty
             commentFocusedBg: window.getComputedStyle(commentBtn).backgroundColor
         };
     });
+    await expect.poll(async () => (await readStyles()).commentFocusedBoxShadow).toContain('56, 189, 248');
+    await expect.poll(async () => (await readStyles()).commentFocusedBg).toContain('42, 55, 74');
+    const styles = await readStyles();
     expect(styles.commentBg).toContain('comments.svg');
     expect(styles.commentWidth).toBe('24px');
     expect(styles.likeBg).toContain('like.svg');
@@ -62,6 +65,19 @@ test('Aero Dark action menu renders symmetrical SVG icons and sky-blue focus sty
 });
 
 import { mountActions, bootFreshActions } from './fixtures/actions.mjs';
+
+test('reader like entry selects the real like control without executing a mutation', async ({page}) => {
+    await mountActions(page);
+    await page.evaluate(() => TvXAdapter.menu('like'));
+    await expect(page.getByRole('button', {name: '喜欢', exact: true})).toBeFocused();
+    expect(await page.evaluate(() => nativeRequests.length)).toBe(0);
+    await back(page);
+    await page.keyboard.press('m');
+    await expect(page.getByRole('button', {name: '评论', exact: true})).toBeFocused();
+    await page.evaluate(() => TvXAdapter.menu('like'));
+    await expect(page.getByRole('button', {name: '喜欢', exact: true})).toBeFocused();
+    expect(await page.evaluate(() => nativeRequests.length)).toBe(0);
+});
 
 test('Like waits for the matching native response, suppresses duplicates and returns after 800 ms', async ({ page }) => {
     await mountActions(page);

@@ -1,5 +1,4 @@
 // This is injected at document_start, before X can paint its native composer.
-window.TvXNativeDetail = window.TvXNativeDetail || new URLSearchParams(location.search).get('tvx_detail') === '1';
 window.TvXBoot = window.TvXBoot || (() => {
     const supported = /(^|\.)(x\.com|twitter\.com)$/.test(location.hostname);
     let ready = false, pending = false;
@@ -23,6 +22,7 @@ window.TvXBoot = window.TvXBoot || (() => {
             pending = false;
             if (home && !document.querySelector('.tv-reading-card.tv-focused')) return;
             ready = true;
+            window.TvXLoadMetrics?.mark('presentation_ready');
             document.documentElement.classList.remove('tv-x-boot');
             browser.runtime.sendMessage({event:'presentation_ready'}).catch(() => {});
         }));

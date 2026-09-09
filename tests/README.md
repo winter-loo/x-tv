@@ -53,3 +53,14 @@ identity, recycled rows, long-comment pagination, ancestor exclusion and the wri
 entry. `scripts/check-projector-comments.py --serial <adb-device>` verifies three
 retained detail levels and restoration of each parent's focus/scroll on live X.
 Select a home post with a populated discussion first; no content is published.
+
+`tests/external-links.spec.mjs` drives the local reader's own document
+(`app/src/main/assets/reader/`) rather than the X adapter: link extraction from real
+GraphQL shapes, the action menu, the link cards, and the opening/cancel/failure state
+machine against a stubbed `ReaderHost`. Reader assets must stay ES5 — the projector's
+system WebView is Chromium 66.
+
+`scripts/check-external-links.mjs` is the real-device counterpart. It restarts the
+installed debug build, fetches one post through the app's own client, replays it, and
+drives the remote through open, scroll, return, cancel, t.co redirect and failure,
+writing `docs/validation/issue-20-samples.json`. Read-only against X.

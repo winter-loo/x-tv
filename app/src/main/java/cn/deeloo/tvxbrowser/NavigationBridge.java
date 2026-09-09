@@ -25,6 +25,36 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
         void onTapRequested(int x, int y);
     }
 
+    public interface ReaderReadyListener { void ready(String path); }
+    private java.util.function.Consumer<JSONObject> mReadTemplateListener;
+    private Runnable mReadClearListener, mReaderReturnListener;
+    private ReaderReadyListener mReaderReadyListener;
+    public void setReadTemplateListener(java.util.function.Consumer<JSONObject> listener) { mReadTemplateListener=listener; }
+    public void setReadClearListener(Runnable listener) { mReadClearListener=listener; }
+    public void setReaderReturnListener(Runnable listener) { mReaderReturnListener=listener; }
+    public void setReaderReadyListener(ReaderReadyListener listener) { mReaderReadyListener=listener; }
+    public void openReaderAction(String path,String action) {
+        if(mPort==null)return;
+        try {JSONObject msg=new JSONObject();msg.put("command","readerAction");msg.put("path",path);msg.put("action",action);mPort.postMessage(msg);}catch(JSONException ignored){}
+    }
+    private final android.os.Handler writeHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private String writeId;
+    private java.util.function.Consumer<JSONObject> writeCallback;
+    public void prepareWrite(String operation, java.util.function.Consumer<JSONObject> callback) {
+        if (writeCallback != null || mPort == null || mPort.sender.session != null) { callback.accept(null); return; }
+        writeId = java.util.UUID.randomUUID().toString();
+        writeCallback = callback;
+        final String id = writeId;
+        try {
+            mPort.postMessage(new JSONObject().put("command", "writePrepare").put("id", id).put("operation", operation));
+        } catch (Exception e) { finishWriteMetadata(null); return; }
+        writeHandler.postDelayed(() -> { if (id.equals(writeId)) finishWriteMetadata(null); }, 3000);
+    }
+    private void finishWriteMetadata(JSONObject result) {
+        java.util.function.Consumer<JSONObject> callback = writeCallback;
+        writeCallback = null; writeId = null;
+        if (callback != null) callback.accept(result);
+    }
     private Runnable mReadyListener;
     private Runnable mPresentationListener;
     private Runnable mExitListener;
@@ -35,8 +65,10 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
     }
     public void setPresentationListener(Runnable listener) { mPresentationListener = listener; }
     public void close() {
+        finishWriteMetadata(null);
         if (mPort != null) { mPort.disconnect(); mPort = null; }
         mReadyListener = null; mPresentationListener = null; mExitListener = null;
+        mReadTemplateListener=null;mReadClearListener=null;mReaderReturnListener=null;mReaderReadyListener=null;
     }
     private WebExtension mExtension;
     private WebExtension.Port mPort;
@@ -108,8 +140,14 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
     // WebExtension.PortDelegate
     @Override
     public void onPortMessage(Object message, WebExtension.Port port) {
-        Log.e(TAG, "===> Received onPortMessage: " + message);
-        if (message instanceof JSONObject) {
+        // Never log message bodies: extension requests can carry session headers.
+        if (message instanceof JSONObject && port == mPort) {
+            JSONObject incoming = (JSONObject) message;
+            if ("write_metadata".equals(incoming.optString("event"))) {
+                if (port.sender.session == null && incoming.optString("id").equals(writeId))
+                    finishWriteMetadata(incoming.optJSONObject("result"));
+                return;
+            }
             JSONObject json = (JSONObject) message;
             handleJsonMessage(json);
         }
@@ -120,13 +158,22 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
         Log.w(TAG, "WebExtension Port disconnected!");
         if (mPort == port) {
             mPort = null;
+            finishWriteMetadata(null);
         }
     }
 
     private void handleJsonMessage(JSONObject json) {
         try {
             String event = json.optString("event");
-            if ("ping".equals(event)) {
+            if ("read_api_template".equals(event)) {
+                if(mReadTemplateListener!=null)mReadTemplateListener.accept(json);
+            } else if ("read_session_clear".equals(event)) {
+                if(mReadClearListener!=null)mReadClearListener.run();
+            } else if ("reader_browser_ready".equals(event)) {
+                if(mReaderReadyListener!=null)mReaderReadyListener.ready(json.optString("path"));
+            } else if ("reader_browser_return".equals(event)) {
+                if(mReaderReturnListener!=null)mReaderReturnListener.run();
+            } else if ("ping".equals(event)) {
                 sendCommand("pong", null);
             } else if ("exit_requested".equals(event)) {
                 if (mExitListener != null) mExitListener.run();
@@ -156,7 +203,7 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
                     mTapListener.onTapRequested(x, y);
                 }
             } else {
-                Log.i(TAG, "===> Received other extension event [" + event + "]: " + json.toString());
+                Log.i(TAG, "Received extension event: " + event);
             }
         } catch (Exception e) {
             Log.e(TAG, "Error handling extension message", e);

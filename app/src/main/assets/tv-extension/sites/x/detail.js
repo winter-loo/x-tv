@@ -2,7 +2,8 @@
 // so its virtual list and pagination continue receiving actual scroll events.
 window.TvXDetail = window.TvXDetail || (function() {
     let route = null;
-    let routeMountedAt = 0;
+    let loadTimer = null;
+    let loadSlow = false;
     let column = 'post';
     let root = null;
     let chrome = null;
@@ -192,6 +193,16 @@ window.TvXDetail = window.TvXDetail || (function() {
             if (!html) continue;
             const temp = document.createElement('div');
             temp.innerHTML = html;
+            // Preview copies are inert: no cloned controls, scripts or autoplay.
+            temp.querySelectorAll('script,iframe,object,embed,style,link').forEach(node => node.remove());
+            for (const node of temp.querySelectorAll('*')) {
+                for (const attr of Array.from(node.attributes)) {
+                    if (/^on/i.test(attr.name) || ['srcdoc', 'autoplay', 'contenteditable'].includes(attr.name) ||
+                        (['href', 'src', 'action', 'formaction', 'xlink:href'].includes(attr.name) && /^\s*(javascript|vbscript):/i.test(attr.value))) node.removeAttribute(attr.name);
+                }
+                if (node.matches('a,button,input,textarea,select')) { node.setAttribute('tabindex', '-1'); node.setAttribute('aria-disabled', 'true'); }
+                if (node.matches('video,audio,source')) node.removeAttribute('src');
+            }
             const child = temp.firstElementChild;
             if (child) {
                 child.classList.add('tv-detail-' + kind, 'tv-detail-part');
@@ -319,8 +330,7 @@ window.TvXDetail = window.TvXDetail || (function() {
         selectReply(article, false);
         savedCommentsScroll = window.scrollY;
         savedPostScroll = root.scrollTop;
-        if (window.TvXNativeHost) window.TvXNativeHost.openPost(path);
-        else {
+        {
             const link = ownStatusLink(article);
             const original = link.getAttribute('href');
             openingReply = true;
@@ -783,6 +793,9 @@ window.TvXDetail = window.TvXDetail || (function() {
         if (!enabled) {
             if (!route) return;
             route = null;
+            clearTimeout(loadTimer);
+            loadTimer = null;
+            loadSlow = false;
             root = null;
             if (instantRoot) {
                 instantRoot.remove();
@@ -809,7 +822,15 @@ window.TvXDetail = window.TvXDetail || (function() {
                 instantRoot = null;
             }
             route = nextRoute;
-            routeMountedAt = Date.now();
+            clearTimeout(loadTimer);
+            loadSlow = false;
+            const loadingRoute = route;
+            loadTimer = setTimeout(() => {
+                loadTimer = null;
+                if (route !== loadingRoute || root) return;
+                loadSlow = true;
+                update(true);
+            }, 25000);
             root = null;
             column = 'post';
             savedPostScroll = 0;
@@ -820,7 +841,6 @@ window.TvXDetail = window.TvXDetail || (function() {
             pendingReplyMove = null;
             window.scrollTo({top:0,behavior:'instant'});
         }
-        if (!routeMountedAt) routeMountedAt = Date.now();
         if (!chrome || !chrome.isConnected) mount();
         document.body.classList.add('tv-detail-active');
         document.body.setAttribute('data-tv-detail-column', column);
@@ -837,6 +857,10 @@ window.TvXDetail = window.TvXDetail || (function() {
                 instantRoot.remove();
                 instantRoot = null;
             }
+            clearTimeout(loadTimer);
+            loadTimer = null;
+            loadSlow = false;
+            window.TvXLoadMetrics?.mark('detail_readable');
             clearSnapshot(id);
             mark(root, 'post');
             root.classList.remove('tv-focused');
@@ -849,6 +873,7 @@ window.TvXDetail = window.TvXDetail || (function() {
                 const snapshot = getSnapshot(id);
                 if (snapshot) {
                     renderInstantRoot(snapshot);
+                    window.TvXLoadMetrics?.mark('detail_preview');
                     if (savedPostScroll && instantRoot) instantRoot.scrollTop = savedPostScroll;
                 }
             } else if (tombstone && instantRoot) {
@@ -913,7 +938,7 @@ window.TvXDetail = window.TvXDetail || (function() {
 
         const entryBtn = chrome.querySelector('#tv-detail-entry button');
         if (entryBtn) {
-            entryBtn.disabled = !root && !hasInstant;
+            entryBtn.disabled = !root;
             if (!entryBtn._hasReplyListener) {
                 entryBtn._hasReplyListener = true;
                 entryBtn.addEventListener('click', () => {
@@ -927,10 +952,10 @@ window.TvXDetail = window.TvXDetail || (function() {
         const titleText = '评论 ' + count + '　　↓ 更多';
         if (title.textContent !== titleText) title.textContent = titleText;
         const pending = !!primary?.querySelector('[role="progressbar"]');
-        const isInitialGrace = (Date.now() - routeMountedAt < 6000) && (articles.length === 0);
-        const isPostLoading = !root && !hasInstant && (pending || isInitialGrace) && !tombstone;
+        // Absence of the target (including replies arriving first) is not a deletion signal.
+        const isPostLoading = !root && !hasInstant && !tombstone;
         const status = chrome.querySelector('#tv-detail-status');
-        const message = (root || hasInstant) ? '' : isPostLoading ? '正在加载帖子…' : '帖子暂不可用，请返回后重试';
+        const message = (root || hasInstant) ? '' : isPostLoading ? (loadSlow ? '加载较慢，确认重试 · 返回上一层' : '正在加载帖子…') : '帖子暂不可用，请返回后重试';
         if (status.textContent !== message) status.textContent = message;
         status.classList.toggle('tv-loading-shimmer', isPostLoading);
         status.classList.toggle('tv-status-error', !root && !hasInstant && !isPostLoading);
@@ -951,7 +976,7 @@ window.TvXDetail = window.TvXDetail || (function() {
             if (!errorCard) {
                 errorCard = document.createElement('div');
                 errorCard.id = 'tv-detail-error-card';
-                errorCard.innerHTML = '<div class="tv-error-icon"><svg viewBox="0 0 24 24" width="40" height="40"><path fill="#f87171" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></div><div class="tv-error-title">帖子暂不可用</div><div class="tv-error-desc">该帖子可能已被作者删除或链接失效</div><button id="tv-detail-error-back" type="button" class="tv-error-back-btn">返回上一页</button>';
+                errorCard.innerHTML = '<div class="tv-error-icon"><svg viewBox="0 0 24 24" width="40" height="40"><path fill="#f87171" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></div><div class="tv-error-title">帖子暂不可用</div><div class="tv-error-desc">暂时无法显示这条帖子，请返回后重试</div><button id="tv-detail-error-back" type="button" class="tv-error-back-btn">返回上一页</button>';
                 chrome.appendChild(errorCard);
                 errorCard.querySelector('#tv-detail-error-back')?.addEventListener('click', () => {
                     if (window.TvXAdapter?.handleBack) window.TvXAdapter.handleBack();
@@ -962,6 +987,17 @@ window.TvXDetail = window.TvXDetail || (function() {
             if (skeletonCard) skeletonCard.remove();
             if (errorCard) errorCard.remove();
         }
+
+        let previewStatus = chrome.querySelector('#tv-detail-preview-status');
+        if (!previewStatus) {
+            previewStatus = document.createElement('div');
+            previewStatus.id = 'tv-detail-preview-status';
+            previewStatus.setAttribute('role', 'status');
+            chrome.appendChild(previewStatus);
+        }
+        previewStatus.hidden = !hasInstant;
+        const previewMessage = hasInstant ? (loadSlow ? '时间线预览 · 完整帖子加载较慢，确认重试' : '时间线预览 · 正在加载完整帖子…') : '';
+        if (previewStatus.textContent !== previewMessage) previewStatus.textContent = previewMessage;
 
         const replyStatus = chrome.querySelector('#tv-detail-reply-status');
         const hasReplies = articles.some(article => article.classList.contains('tv-detail-reply'));
@@ -1028,6 +1064,10 @@ window.TvXDetail = window.TvXDetail || (function() {
                 closeComposer(false);
                 return true;
             }
+            return true;
+        }
+        if (column === 'post' && !root && loadSlow && !chrome?.querySelector('#tv-detail-error-card')) {
+            location.reload();
             return true;
         }
         if (column === 'post' && !root && chrome?.querySelector('#tv-detail-error-card')) {

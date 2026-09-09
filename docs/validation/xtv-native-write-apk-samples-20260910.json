@@ -1,0 +1,94 @@
+{
+  "date": "2026-09-10",
+  "apk": {
+    "versionName": "0.2.0",
+    "versionCode": 2,
+    "extensionVersion": "1.6.3",
+    "sha256": "06e639d50aade064225f64a7d04519580bcc2cc45e92167d8ddbd713e481de31",
+    "buildType": "debug"
+  },
+  "writes": {
+    "like": {
+      "httpMs": 808,
+      "readbackHttpMs": 368,
+      "nativeTotalMs": 1495
+    },
+    "unlike": {
+      "httpMs": 649,
+      "readbackHttpMs": 331,
+      "nativeTotalMs": 1286
+    },
+    "reply": {
+      "httpMs": 426,
+      "nativeTotalMs": 834,
+      "visibleInReader": true
+    }
+  },
+  "replyReadbackAndCleanup": {
+    "phase": "complete",
+    "readback": {
+      "metrics": {
+        "status": 200,
+        "prepareMs": 6,
+        "httpMs": 375,
+        "totalMs": 381,
+        "errors": []
+      },
+      "found": true,
+      "authorMatches": true,
+      "parentMatches": true,
+      "textMatches": true
+    },
+    "delete": {
+      "status": 200,
+      "prepareMs": 3,
+      "httpMs": 321,
+      "totalMs": 324,
+      "errors": [],
+      "acknowledged": true
+    },
+    "firstAbsent": true,
+    "secondAbsent": true,
+    "originalExists": true,
+    "originalLiked": false,
+    "sameDocument": true
+  },
+  "finalOriginalPostState": {
+    "found": true,
+    "liked": false
+  },
+  "reading": {
+    "cold": {
+      "engine": "reader",
+      "mode": "cold",
+      "full_content_seconds": 3.134,
+      "live_content_seconds": 3.806,
+      "cache_used": true,
+      "content_source": "cached",
+      "native_content_seconds": 1.444,
+      "budget_seconds": 5.0,
+      "require_fresh": true,
+      "passed": true
+    },
+    "detail": {
+      "engine": "reader",
+      "mode": "detail",
+      "full_content_seconds": 0.696,
+      "live_content_seconds": 2.113,
+      "cache_used": false,
+      "content_source": "reused",
+      "native_content_seconds": 0.025,
+      "budget_seconds": 5.0,
+      "require_fresh": true,
+      "passed": true
+    }
+  },
+  "validation": {
+    "webTests": 40,
+    "javaTests": 6,
+    "loginStateChecks": true,
+    "lintDebug": "passed with warnings",
+    "remoteDraftRestoration": true,
+    "remoteDownToSend": true
+  }
+}

@@ -1,0 +1,328 @@
+--- /dev/null
++++ b/app/src/main/java/cn/deeloo/tvxbrowser/RfcProbe.java
+@@ -0,0 +1,56 @@
++package cn.deeloo.tvxbrowser;
++
++import android.os.SystemClock;
++import android.util.Log;
++import org.json.JSONObject;
++import org.mozilla.geckoview.GeckoSession;
++import org.mozilla.geckoview.WebExtension;
++import java.util.IdentityHashMap;
++import java.util.Map;
++
++/** Isolated research instrumentation. Never a production bridge. */
++public final class RfcProbe {
++    private static final Map<GeckoSession, WebExtension.Port> ports = new IdentityHashMap<>();
++    private static int sequence;
++    public static boolean silent;
++    public static String id(Object o) { return o == null ? "null" : Integer.toHexString(System.identityHashCode(o)); }
++    public static void log(String event, GeckoSession session, String detail) {
++        Log.e("RfcProbe", "t=" + SystemClock.elapsedRealtime() + " event=" + event + " session=" + id(session) + " " + detail);
++    }
++    public static void attach(WebExtension extension, GeckoSession session) {
++        log("delegate",session,"");
++        session.getWebExtensionController().setMessageDelegate(extension,new WebExtension.MessageDelegate() {
++            @Override public void onConnect(WebExtension.Port port) {
++                int connection=++sequence;
++                GeckoSession owner=port.sender.session;
++                ports.put(owner,port);
++                log("connect",owner,"connection="+connection+" port="+id(port)+" env="+port.sender.environmentType+" top="+port.sender.isTopLevel());
++                port.setDelegate(new WebExtension.PortDelegate() {
++                    @Override public void onPortMessage(Object message, WebExtension.Port source) {
++                        if (!(message instanceof JSONObject)) return;
++                        JSONObject j=(JSONObject)message;
++                        log("message",owner,"connection="+connection+" port="+id(source)+" data="+j);
++                        if (silent) return;
++                        try {
++                            JSONObject ack=new JSONObject();
++                            ack.put("event","probe_ack"); ack.put("connection",connection);
++                            ack.put("echo",j.optString("event")); ack.put("documentId",j.optString("documentId"));
++                            source.postMessage(ack);
++                        } catch(Exception e) { log("send_error",owner,e.getClass().getSimpleName()); }
++                    }
++                    @Override public void onDisconnect(WebExtension.Port source) {
++                        log("disconnect",owner,"connection="+connection+" port="+id(source)+" current="+(ports.get(owner)==source));
++                        if(ports.get(owner)==source) ports.remove(owner);
++                    }
++                });
++            }
++        },"rfc_probe");
++    }
++    public static void command(GeckoSession session, String op) {
++        WebExtension.Port port=ports.get(session);
++        log("command",session,"op="+op+" port="+id(port));
++        if(port==null)return;
++        try { JSONObject j=new JSONObject();j.put("command",op);port.postMessage(j); }
++        catch(Exception e) {log("command_error",session,e.getClass().getSimpleName());}
++    }
++}
+--- a/app/src/main/java/cn/deeloo/tvxbrowser/BrowserActivity.java
++++ b/app/src/main/java/cn/deeloo/tvxbrowser/BrowserActivity.java
+@@ -52,6 +52,7 @@
+     @Override
+     protected void onCreate(Bundle savedInstanceState) {
+         super.onCreate(savedInstanceState);
++        RfcProbe.log("activity_create",null,"activity="+RfcProbe.id(this));
+         Log.e(TAG, "===> BrowserActivity.onCreate START <===");
+ 
+         setContentView(R.layout.activity_browser);
+@@ -111,6 +112,7 @@
+             mSession.setProgressDelegate(new GeckoSession.ProgressDelegate() {
+                 @Override
+                 public void onPageStart(GeckoSession session, String url) {
++                    RfcProbe.log("page_start",session,"active="+RfcProbe.id(activeSession())+" host="+Uri.parse(url).getHost());
+                     if (session != activeSession() || "about:blank".equals(url)) return;
+                     String host = Uri.parse(url).getHost();
+                     mWaitingForPresentation = "x.com".equals(host) || "twitter.com".equals(host);
+@@ -127,6 +129,7 @@
+ 
+                 @Override
+                 public void onPageStop(GeckoSession session, boolean success) {
++                    RfcProbe.log("page_stop",session,"active="+RfcProbe.id(activeSession())+" success="+success);
+                     if (session != activeSession()) return;
+                     if (!mUsingTvAdapter) showPresentation();
+                     else if (!success) { mLoadRetryAvailable = true; ((TextView) findViewById(R.id.loading_text)).setText("连接未完成，按确认重试\n返回退出"); }
+@@ -259,6 +262,7 @@
+     }
+ 
+     private void showPresentation() {
++        RfcProbe.log("show_requested",activeSession(),"popup="+RfcProbe.id(mPopupSession));
+         mWaitingForPresentation = false;
+         mUiHandler.removeCallbacks(mLoadTimeout);
+         if (mLoading.getVisibility() == View.GONE) return;
+@@ -266,6 +270,7 @@
+         mGeckoView.postOnAnimation(() -> mGeckoView.postOnAnimation(() -> {
+             if (mWaitingForPresentation || isFinishing()) return;
+             mLoading.setVisibility(View.GONE);
++            RfcProbe.log("visible",activeSession(),"alpha="+mGeckoView.getAlpha());
+             mGeckoView.requestFocus();
+         }));
+     }
+@@ -274,11 +279,40 @@
+     protected void onNewIntent(Intent intent) {
+         super.onNewIntent(intent);
+         setIntent(intent);
++        if(intent.hasExtra("rfc")) { handleRfc(intent); return; }
+         // A launcher resume must not reload /home and discard the current post.
+         if (intent.hasExtra("url") || intent.hasExtra("action")) {
+             while (!mDetailSessions.isEmpty()) closeDetail();
+             mBridge.whenReady(() -> handleIntent(intent));
+         }
++    }
++
++    private void handleRfc(Intent intent) {
++        String op=intent.getStringExtra("rfc");
++        RfcProbe.log("control",activeSession(),"op="+op);
++        if("snapshot".equals(op)) {
++            RfcProbe.log("native_snapshot",activeSession(),"loading="+mLoading.getVisibility()+" alpha="+mGeckoView.getAlpha()+" popup="+RfcProbe.id(mPopupSession)+" adapter="+mUsingTvAdapter);
++            RfcProbe.command(activeSession(),"snapshot");
++        } else if("reload".equals(op)) activeSession().reload();
++        else if("recreate".equals(op)) recreate();
++        else if("close_detail".equals(op)) closeDetail();
++        else if("hide".equals(op)) activeSession().setActive(false);
++        else if("show".equals(op)) activeSession().setActive(true);
++        else if("silent".equals(op)) RfcProbe.silent=true;
++        else if("responsive".equals(op)) RfcProbe.silent=false;
++        else if("open_test_detail".equals(op)) {
++            GeckoSession parent=activeSession();
++            GeckoSession detail=new GeckoSession(parent.getSettings());
++            mDetailSessions.addLast(detail);
++            detail.setContentDelegate(mSession.getContentDelegate());
++            detail.setProgressDelegate(mSession.getProgressDelegate());
++            detail.setNavigationDelegate(mSession.getNavigationDelegate());
++            detail.open(TvXApplication.getRuntime());
++            TvXApplication.getRuntime().getWebExtensionController().setTabActive(parent,false);
++            mGeckoView.setSession(detail);mBridge.setSession(detail);
++            TvXApplication.getRuntime().getWebExtensionController().setTabActive(detail,true);
++            detail.loadUri(intent.getStringExtra("target"));
++        } else RfcProbe.command(activeSession(),op);
+     }
+ 
+     private void handleIntent(Intent intent) {
+@@ -350,12 +384,14 @@
+ 
+     @Override
+     protected void onResume() {
++        RfcProbe.log("activity_resume",activeSession(),"");
+         super.onResume();
+         Log.d(TAG, "BrowserActivity.onResume");
+     }
+ 
+     @Override
+     protected void onPause() {
++        RfcProbe.log("activity_pause",activeSession(),"");
+         super.onPause();
+         Log.d(TAG, "BrowserActivity.onPause");
+     }
+@@ -368,6 +404,7 @@
+ 
+     @Override
+     protected void onDestroy() {
++        RfcProbe.log("activity_destroy",activeSession(),"");
+         Log.e(TAG, "===> BrowserActivity.onDestroy START <===");
+         if (mPopupSession != null && mPopupSession.isOpen()) {
+             mPopupSession.close();
+@@ -392,6 +429,7 @@
+     @Override
+     public boolean dispatchKeyEvent(KeyEvent event) {
+         int code = event.getKeyCode();
++        RfcProbe.log("key",activeSession(),"code="+code+" action="+event.getAction()+" repeat="+event.getRepeatCount()+" adapter="+mUsingTvAdapter+" popup="+RfcProbe.id(mPopupSession)+" loading="+mLoading.getVisibility());
+         if (mPopupSession == null && mLoading.getVisibility() == View.VISIBLE &&
+                 (code == KeyEvent.KEYCODE_BACK || code == KeyEvent.KEYCODE_ENTER || code == KeyEvent.KEYCODE_DPAD_CENTER ||
+                 code == KeyEvent.KEYCODE_DPAD_UP || code == KeyEvent.KEYCODE_DPAD_DOWN || code == KeyEvent.KEYCODE_DPAD_LEFT || code == KeyEvent.KEYCODE_DPAD_RIGHT)) {
+--- a/app/src/main/java/cn/deeloo/tvxbrowser/NavigationBridge.java
++++ b/app/src/main/java/cn/deeloo/tvxbrowser/NavigationBridge.java
+@@ -63,6 +63,7 @@
+         if (mExtension != null && mSession != null) {
+             try {
+                 mSession.getWebExtensionController().setMessageDelegate(mExtension, this, PORT_NAME);
++                RfcProbe.attach(mExtension, mSession);
+                 Log.e(TAG, "Attached MessageDelegate to GeckoSession");
+             } catch (Exception e) {
+                 Log.e(TAG, "Failed to attach MessageDelegate to GeckoSession", e);
+@@ -81,6 +82,7 @@
+                     if (mSession != null) {
+                         try {
+                             mSession.getWebExtensionController().setMessageDelegate(mExtension, this, PORT_NAME);
++                RfcProbe.attach(mExtension, mSession);
+                             Log.e(TAG, "Attached MessageDelegate to GeckoSession successfully");
+                         } catch (Exception e) {
+                             Log.e(TAG, "Failed to attach MessageDelegate to GeckoSession", e);
+@@ -97,6 +99,7 @@
+     // WebExtension.MessageDelegate
+     @Override
+     public void onConnect(WebExtension.Port port) {
++        RfcProbe.log("legacy_connect",port.sender.session,"port="+RfcProbe.id(port));
+         Log.e(TAG, "WebExtension Port connected! Name=" + port.name);
+         mPort = port;
+         mPort.setDelegate(this);
+@@ -111,6 +114,7 @@
+         Log.e(TAG, "===> Received onPortMessage: " + message);
+         if (message instanceof JSONObject) {
+             JSONObject json = (JSONObject) message;
++            RfcProbe.log("legacy_receive",port.sender.session,"event="+json.optString("event")+" port="+RfcProbe.id(port));
+             handleJsonMessage(json);
+         }
+     }
+--- /dev/null
++++ b/app/src/main/assets/tv-extension/runtime/rfc-probe.js
+@@ -0,0 +1,46 @@
++(() => {
++  const injected = Number(document.documentElement?.dataset.rfcInject || 0) + 1;
++  const mark = () => { if (document.documentElement) document.documentElement.dataset.rfcInject = String(injected); };
++  mark();
++  if (!document.documentElement) new MutationObserver((_,o)=>{mark();if(document.documentElement)o.disconnect();}).observe(document,{childList:true});
++  if (window.__rfcProbeInstalled) { console.error('[RFC] duplicate_injection'); return; }
++  window.__rfcProbeInstalled=true;
++  let documentId;
++  try { documentId=browser.runtime.getDocumentId(window); } catch(e) { documentId='unavailable:'+e.name; }
++  const origin=performance.timeOrigin;
++  let port,connected=0;
++  const activePorts=[];
++  const log=(event,extra={})=>{
++    const row={event,documentId,origin,at:performance.now(),host:location.hostname,kind:location.protocol==='data:'?'data':location.pathname==='/home'?'home':location.pathname.includes('/status/')?'detail':'other',hidden:document.hidden,readyState:document.readyState,...extra};
++    console.error('[RFC] content '+JSON.stringify(row));
++    if(document.documentElement)document.documentElement.dataset.rfcDocument=documentId;
++    if(port)try{port.postMessage(row);}catch(e){console.error('[RFC] post_error '+e.name);}
++  };
++  function connect() {
++    try {
++      port=browser.runtime.connectNative('rfc_probe');activePorts.push(port);connected++;
++      const source=port;
++      source.onMessage.addListener(message=>{
++        if(message.command==='reconnect') connect();
++        else if(message.command==='old_disconnect'){if(activePorts.length>1)activePorts[activePorts.length-2].disconnect();}
++        else if(message.command==='snapshot') log('snapshot',{connections:connected,bootCovered:document.documentElement.classList.contains('tv-x-boot'),hostReady:!!window.TvXNativeHost});
++        else if(message.command==='late_on_pagehide') window.__rfcLate=true;
++        else if(message.command==='query_current') {
++          browser.runtime.sendMessage({event:'rfc_doc_query',documentId}).then(result=>log('query_result',{result})).catch(e=>log('query_error',{error:e.name}));
++        } else if(message.event==='probe_ack'){
++          if(document.documentElement)document.documentElement.dataset.rfcAck=String(message.connection);
++        }
++      });
++      source.onDisconnect.addListener(()=>{console.error('[RFC] port_disconnect '+JSON.stringify({documentId,origin,at:performance.now(),error:source.error?.message||null,current:source===port}));if(source===port)port=null;});
++      log('connected',{connections:connected});
++    } catch(e) {log('connect_error',{error:e.name});}
++  }
++  connect();
++  for(const event of ['DOMContentLoaded','load','pageshow','pagehide','visibilitychange']){
++    addEventListener(event,e=>{
++      log(event,{persisted:!!e.persisted});
++      if(event==='pagehide'&&window.__rfcLate)connect();
++    });
++  }
++  for(const event of ['keydown','keyup'])addEventListener(event,e=>log(event,{key:e.key,code:e.code,trusted:e.isTrusted,repeat:e.repeat}),true);
++})();
+--- a/app/src/main/assets/tv-extension/runtime/background.js
++++ b/app/src/main/assets/tv-extension/runtime/background.js
+@@ -43,6 +43,7 @@
+ }
+ 
+ function sendToNative(msg) {
++    if(msg.event!=='ping') console.error('[RFC] relay_send '+JSON.stringify({event:msg.event,port:!!nativePort,at:Date.now()}));
+     if (nativePort) {
+         try {
+             nativePort.postMessage(msg);
+@@ -69,7 +70,7 @@
+ });
+ 
+ function injectContentScripts(tabId) {
+-    return browser.tabs.executeScript(tabId, { file: "sites/x/bootstrap.js" })
++    return browser.tabs.executeScript(tabId, { file: "runtime/rfc-probe.js" }).then(() => browser.tabs.executeScript(tabId, { file: "sites/x/bootstrap.js" }))
+         .then(() => browser.tabs.executeScript(tabId, { file: "runtime/navigation-runtime.js" }))
+         .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/post-identity.js" }))
+         .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/reading.js" }))
+@@ -122,7 +123,9 @@
+ // Listen for direct events from content scripts
+ browser.runtime.onMessage.addListener((message, sender) => {
+     if (message.event === "tv_like_arm" || message.event === "tv_like_disarm") return;
+-    if (sender?.tab?.active === false) return;
++    if (message.event?.startsWith('rfc_')) return;
++    console.error('[RFC] relay '+JSON.stringify({event:message.event,tabId:sender?.tab?.id,active:sender?.tab?.active,frameId:sender?.frameId,port:!!nativePort,at:Date.now()}));
++    if (sender?.tab?.active === false) { console.error('[RFC] dropped_inactive '+message.event); return; }
+     if (message.event === 'content_ready' && nativePort && sender?.tab) {
+         browser.tabs.sendMessage(sender.tab.id, {command:'hostMode'}, {frameId:0}).catch(() => {});
+     }
+@@ -210,3 +213,10 @@
+         ['blocking', 'responseHeaders']
+     );
+ }
++
++browser.runtime.onMessage.addListener((message,sender)=>{
++ if(message.event==='rfc_doc_query') return browser.webNavigation.getFrame({documentId:message.documentId,tabId:sender.tab.id,frameId:0}).then(frame=>({current:!!frame,documentId:frame?.documentId||null,tabId:sender.tab.id}));
++});
++for(const name of ['onBeforeNavigate','onCommitted','onCompleted','onErrorOccurred']){
++ browser.webNavigation[name].addListener(e=>{if(e.frameId===0)console.error('[RFC] webnav '+JSON.stringify({event:name,documentId:e.documentId,tabId:e.tabId,timeStamp:e.timeStamp}));});
++}
+--- a/app/src/main/assets/tv-extension/sites/x/bootstrap.js
++++ b/app/src/main/assets/tv-extension/sites/x/bootstrap.js
+@@ -23,6 +23,8 @@
+             pending = false;
+             if (home && !document.querySelector('.tv-reading-card.tv-focused')) return;
+             ready = true;
++            document.documentElement.dataset.rfcDomReady=String(performance.now());
++            console.error('[RFC] dom_ready '+JSON.stringify({at:performance.now(),origin:performance.timeOrigin}));
+             document.documentElement.classList.remove('tv-x-boot');
+             browser.runtime.sendMessage({event:'presentation_ready'}).catch(() => {});
+         }));
+--- a/app/src/main/assets/tv-extension/manifest.json
++++ b/app/src/main/assets/tv-extension/manifest.json
+@@ -15,7 +15,8 @@
+     "tabs",
+     "<all_urls>",
+     "webRequest",
+-    "webRequestBlocking"
++    "webRequestBlocking",
++    "webNavigation"
+   ],
+   "background": {
+     "scripts": [
+@@ -31,6 +32,7 @@
+       "match_about_blank": true,
+       "all_frames": false,
+       "js": [
++        "runtime/rfc-probe.js",
+         "sites/x/bootstrap.js",
+         "runtime/navigation-runtime.js",
+         "sites/x/post-identity.js",

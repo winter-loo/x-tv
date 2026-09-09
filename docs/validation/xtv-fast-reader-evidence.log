@@ -1,0 +1,76 @@
+--------- beginning of system
+--------- beginning of main
+09-09 21:24:08.029  9185  9185 W TvXReaderPerf: view ready ms=1009
+09-09 21:24:08.062  9185  9278 W TvXReaderPerf: home cache decoded
+09-09 21:24:08.569  9185  9185 W TvXReaderPerf: home cached ms=1549
+09-09 21:24:09.547  9185  9224 W TvXReaderPerf: home headers ms=2567 status=200 encoding=gzip
+09-09 21:24:09.704  9185  9185 W TvXReaderPerf: detail cached ms=71
+09-09 21:24:10.117  9185  9224 W TvXReaderPerf: home request ms=3137 result=ok
+09-09 21:24:12.721  9185  9278 W TvXReaderPerf: detail headers ms=3083 status=200 encoding=gzip
+09-09 21:24:13.769  9185  9278 W TvXReaderPerf: detail request ms=4131 result=ok
+09-09 21:24:13.869  9185  9185 W TvXReaderPerf: detail live ms=4236
+09-09 21:26:32.688 10204 10204 W TvXReaderPerf: view ready ms=1005
+09-09 21:26:32.745 10204 10295 W TvXReaderPerf: home cache decoded
+09-09 21:26:33.187 10204 10204 W TvXReaderPerf: home cached ms=1504
+09-09 21:26:33.258 10204 10257 W TvXReaderPerf: home headers ms=1618 status=200 encoding=gzip
+09-09 21:26:34.263 10204 10257 W TvXReaderPerf: home request ms=2623 result=ok
+09-09 21:26:34.485 10204 10204 W TvXReaderPerf: home live ms=2802
+09-09 21:26:36.402 10204 10204 W TvXReaderPerf: detail reused ms=422
+09-09 21:26:37.411 10204 10295 W TvXReaderPerf: detail headers ms=1427 status=200 encoding=gzip
+09-09 21:26:37.471 10204 10295 W TvXReaderPerf: detail request ms=1487 result=ok
+09-09 21:26:37.804 10204 10204 W TvXReaderPerf: detail live ms=1824
+09-09 21:26:38.410 10204 10204 W TvXReaderPerf: home restored ms=33
+09-09 21:26:41.612 10465 10465 W TvXReaderPerf: view ready ms=1007
+09-09 21:26:41.727 10465 10527 W TvXReaderPerf: home cache decoded
+09-09 21:26:41.952 10465 10465 W TvXReaderPerf: home cached ms=1348
+09-09 21:26:42.377 10465 10488 W TvXReaderPerf: home headers ms=1815 status=200 encoding=gzip
+09-09 21:26:43.487 10465 10488 W TvXReaderPerf: home request ms=2926 result=ok
+09-09 21:26:43.637 10465 10465 W TvXReaderPerf: home live ms=3033
+09-09 21:26:45.555 10465 10465 W TvXReaderPerf: detail reused ms=63
+09-09 21:26:47.128 10465 10527 W TvXReaderPerf: detail headers ms=1634 status=200 encoding=gzip
+09-09 21:26:47.567 10465 10527 W TvXReaderPerf: detail request ms=2072 result=ok
+09-09 21:26:47.822 10465 10465 W TvXReaderPerf: detail live ms=2329
+09-09 21:26:48.462 10465 10465 W TvXReaderPerf: home restored ms=41
+09-09 21:26:51.430 10815 10876 W TvXReaderPerf: home cache decoded
+09-09 21:26:51.486 10815 10815 W TvXReaderPerf: view ready ms=954
+09-09 21:26:51.687 10815 10815 W TvXReaderPerf: home cached ms=1154
+09-09 21:26:52.131 10815 10837 W TvXReaderPerf: home headers ms=1640 status=200 encoding=gzip
+09-09 21:26:52.521 10815 10837 W TvXReaderPerf: home request ms=2031 result=ok
+09-09 21:26:52.704 10815 10815 W TvXReaderPerf: home live ms=2171
+09-09 21:26:54.169 10815 10815 W TvXReaderPerf: detail reused ms=57
+09-09 21:26:55.358 10815 10876 W TvXReaderPerf: detail headers ms=1243 status=200 encoding=gzip
+09-09 21:26:55.423 10815 10876 W TvXReaderPerf: detail request ms=1308 result=ok
+09-09 21:26:55.602 10815 10815 W TvXReaderPerf: detail live ms=1490
+09-09 21:26:56.290 10815 10815 W TvXReaderPerf: home restored ms=26
+09-09 21:26:59.342 11092 11092 W TvXReaderPerf: view ready ms=829
+09-09 21:26:59.406 11092 11158 W TvXReaderPerf: home cache decoded
+09-09 21:26:59.637 11092 11092 W TvXReaderPerf: home cached ms=1124
+09-09 21:27:00.900 11092 11117 W TvXReaderPerf: home headers ms=2432 status=200 encoding=gzip
+09-09 21:27:01.474 11092 11117 W TvXReaderPerf: home request ms=3007 result=ok
+09-09 21:27:01.636 11092 11092 W TvXReaderPerf: home live ms=3123
+09-09 21:27:03.135 11092 11092 W TvXReaderPerf: detail reused ms=64
+09-09 21:27:05.206 11092 11158 W TvXReaderPerf: detail headers ms=2132 status=200 encoding=gzip
+09-09 21:27:05.519 11092 11158 W TvXReaderPerf: detail request ms=2445 result=ok
+09-09 21:27:05.675 11092 11092 W TvXReaderPerf: detail live ms=2604
+09-09 21:27:06.322 11092 11092 W TvXReaderPerf: home restored ms=25
+09-09 21:27:09.358 11440 11440 W TvXReaderPerf: view ready ms=902
+09-09 21:27:09.414 11440 11502 W TvXReaderPerf: home cache decoded
+09-09 21:27:09.636 11440 11440 W TvXReaderPerf: home cached ms=1180
+09-09 21:27:10.771 11440 11461 W TvXReaderPerf: home headers ms=2356 status=200 encoding=gzip
+09-09 21:27:11.391 11440 11461 W TvXReaderPerf: home request ms=2976 result=ok
+09-09 21:27:11.554 11440 11440 W TvXReaderPerf: home live ms=3098
+09-09 21:27:13.489 11440 11440 W TvXReaderPerf: detail reused ms=47
+09-09 21:27:14.833 11440 11502 W TvXReaderPerf: detail headers ms=1388 status=200 encoding=gzip
+09-09 21:27:15.196 11440 11502 W TvXReaderPerf: detail request ms=1751 result=ok
+09-09 21:27:15.352 11440 11440 W TvXReaderPerf: detail live ms=1910
+09-09 21:27:16.060 11440 11440 W TvXReaderPerf: home restored ms=31
+09-09 21:28:41.238 11440 11440 W TvXReaderPerf: detail reused ms=65
+09-09 21:28:43.505 11440 11461 W TvXReaderPerf: detail headers ms=2329 status=200 encoding=gzip
+09-09 21:28:43.919 11440 11461 W TvXReaderPerf: detail request ms=2743 result=ok
+09-09 21:28:44.185 11440 11440 W TvXReaderPerf: detail live ms=3012
+09-09 21:30:14.119 11440 11440 W TvXReaderPerf: detail reused ms=54
+09-09 21:30:15.278 11440 11502 W TvXReaderPerf: detail headers ms=1210 status=200 encoding=gzip
+09-09 21:30:15.287 11440 11502 W TvXReaderPerf: detail request ms=1220 result=ok
+09-09 21:30:15.369 11440 11440 W TvXReaderPerf: detail live ms=1304
+09-09 21:30:15.970 11440 11440 W TvXReaderPerf: detail restored ms=34
+09-09 21:30:16.788 11440 11440 W TvXReaderPerf: home restored ms=34

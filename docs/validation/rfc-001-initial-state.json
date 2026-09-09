@@ -1,0 +1,17 @@
+{
+  "source": "Initial RDP observation before any restart, copied from captured tool output",
+  "host": "x.com",
+  "path": "home",
+  "readyState": "complete",
+  "hidden": false,
+  "timeOrigin": 1788886392933,
+  "performanceNow": 15829050,
+  "articles": 3,
+  "cards": 2,
+  "focused": true,
+  "bootCovered": false,
+  "domContentLoadedEventEnd": 1265,
+  "loadEventEnd": 2807,
+  "navigationType": "reload",
+  "nativeCover": "timeout text visible in original screenshot"
+}

@@ -1,0 +1,42 @@
+[
+  {
+    "round": 1,
+    "mainHiddenDuringDetail": true,
+    "detailVisible": true,
+    "distinctDocuments": true,
+    "mainDocumentRestored": true,
+    "mainVisibleAfterBack": true
+  },
+  {
+    "round": 2,
+    "mainHiddenDuringDetail": true,
+    "detailVisible": true,
+    "distinctDocuments": true,
+    "mainDocumentRestored": true,
+    "mainVisibleAfterBack": true
+  },
+  {
+    "round": 3,
+    "mainHiddenDuringDetail": true,
+    "detailVisible": true,
+    "distinctDocuments": true,
+    "mainDocumentRestored": true,
+    "mainVisibleAfterBack": true
+  },
+  {
+    "round": 4,
+    "mainHiddenDuringDetail": true,
+    "detailVisible": true,
+    "distinctDocuments": true,
+    "mainDocumentRestored": true,
+    "mainVisibleAfterBack": true
+  },
+  {
+    "round": 5,
+    "mainHiddenDuringDetail": true,
+    "detailVisible": true,
+    "distinctDocuments": true,
+    "mainDocumentRestored": true,
+    "mainVisibleAfterBack": true
+  }
+]

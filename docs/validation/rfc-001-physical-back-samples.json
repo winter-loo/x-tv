@@ -1,0 +1,123 @@
+{
+  "apk": "original",
+  "initial": [
+    {
+      "host": "x.com",
+      "path": "home",
+      "readyState": "complete",
+      "hidden": false,
+      "visibility": "visible",
+      "origin": 1788904441491,
+      "now": 288528,
+      "articles": 3,
+      "cards": 2,
+      "focused": true,
+      "bootCovered": false,
+      "navigation": [
+        {
+          "startTime": 0,
+          "domContentLoaded": 5534,
+          "load": 8025,
+          "type": "navigate"
+        }
+      ],
+      "probe": {}
+    }
+  ],
+  "beforePhysicalBack": [
+    {
+      "host": "x.com",
+      "path": "home",
+      "readyState": "complete",
+      "hidden": true,
+      "visibility": "hidden",
+      "origin": 1788904441491,
+      "now": 301909,
+      "articles": 3,
+      "cards": 2,
+      "focused": true,
+      "bootCovered": false,
+      "navigation": [
+        {
+          "startTime": 0,
+          "domContentLoaded": 5534,
+          "load": 8025,
+          "type": "navigate"
+        }
+      ],
+      "probe": {}
+    },
+    {
+      "host": "x.com",
+      "path": "detail",
+      "readyState": "complete",
+      "hidden": false,
+      "visibility": "visible",
+      "origin": 1788904730884,
+      "now": 12866,
+      "articles": 7,
+      "cards": 0,
+      "focused": false,
+      "bootCovered": false,
+      "navigation": [
+        {
+          "startTime": 0,
+          "domContentLoaded": 1280,
+          "load": 2921,
+          "type": "navigate"
+        }
+      ],
+      "probe": {}
+    }
+  ],
+  "manualWindowStart": 1788904744.7772715,
+  "note": "One automated ENTER before manual window; no automated BACK.",
+  "afterPhysicalBack": [
+    {
+      "host": "x.com",
+      "path": "home",
+      "readyState": "complete",
+      "hidden": false,
+      "visibility": "visible",
+      "origin": 1788904441491,
+      "now": 1003117,
+      "articles": 3,
+      "cards": 2,
+      "focused": true,
+      "bootCovered": false,
+      "navigation": [
+        {
+          "startTime": 0,
+          "domContentLoaded": 5534,
+          "load": 8025,
+          "type": "navigate"
+        }
+      ],
+      "probe": {}
+    }
+  ],
+  "userObservation": "回到时间线了",
+  "result": "PASS: one physical short BACK closes detail and restores original main document with focus",
+  "webEventObservation": "RDP-installed page listener produced no captured event; isTrusted and exact Web event pair not established in this run.",
+  "hardwareEvents": [
+    "[   71384.904298] /dev/input/event4: EV_MSC       MSC_SCAN             00070029            ",
+    "[   71384.904298] /dev/input/event4: EV_KEY       KEY_ESC              DOWN                ",
+    "[   71384.904298] /dev/input/event4: EV_SYN       SYN_REPORT           00000000            ",
+    "[   71385.045153] /dev/input/event4: EV_MSC       MSC_SCAN             00070029            ",
+    "[   71385.045153] /dev/input/event4: EV_KEY       KEY_ESC              UP                  ",
+    "[   71385.045153] /dev/input/event4: EV_SYN       SYN_REPORT           00000000            "
+  ],
+  "pressDurationMs": 140.855,
+  "keyLayout": {
+    "inputDevice": "Dangbei /dev/input/event4",
+    "activeFile": "/system/usr/keylayout/Generic.kl",
+    "scanCodeMapping": "key 1     BACK",
+    "evidence": "device dumpsys input and actual Generic.kl; no Android dispatch entry in original APK for this fast path"
+  },
+  "cleanup": {
+    "pageListenerRemoved": true,
+    "captureStopped": true,
+    "forwardRemoved": true,
+    "apkReplaced": false
+  }
+}

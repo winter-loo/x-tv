@@ -10,8 +10,8 @@ android {
         applicationId = "cn.deeloo.tvxbrowser"
         minSdk = 28
         targetSdk = 28
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.2.0"
 
         ndk {
             abiFilters.addAll(listOf("armeabi-v7a"))
@@ -33,6 +33,8 @@ android {
 }
 
 dependencies {
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20240303")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.core:core:1.13.1")
     implementation("org.mozilla.geckoview:geckoview-omni-armeabi-v7a:155.0.20260903215306")

@@ -24,7 +24,6 @@
         return activeAdapter;
     }
 
-    // Initial check
     ensureAdapter();
 
     window.addEventListener("pagehide", () => {
@@ -45,6 +44,7 @@
 
     // Listen for incoming commands from background script (from Android Native Messaging)
     browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        if (request.command === "writePrepare") return undefined;
         console.log("[TV-Extension] Content script received command:", JSON.stringify(request));
         const adapter = ensureAdapter();
 
@@ -57,13 +57,19 @@
         }
 
         const cmd = request.command;
-        // The native host advertises itself before revealing the page. Custom
-        // navigation is then independent of the messaging port's lifetime.
-        window.TvXNativeHost = {
-            openPost(path) { location.href = 'tvx://post?url=' + encodeURIComponent('https://x.com' + path); },
-            closeDetail() { location.href = 'tvx://close-detail'; }
-        };
-
+        if(cmd==='readerAction' && /^\/[^/]+\/status\/\d+$/.test(request.path)) {
+            if(window.TvXReaderBrowser?.path===request.path && window.TvXReaderBrowser.action===request.action && window.TvXReaderBrowser.announced) {
+                browser.runtime.sendMessage({event:'reader_browser_ready',path:request.path}).catch(()=>{});
+                return Promise.resolve({event:'ack',command:cmd});
+            }
+            window.TvXReaderBrowser={path:request.path,action:request.action,announced:false};
+            if(location.pathname!==request.path) {
+                const link=Array.from(document.querySelectorAll('a[href]')).find(a=>window.TvXPostIdentity?.canonicalPath(a)===request.path);
+                if(link)link.click();else location.href='https://x.com'+request.path;
+            }
+            window.dispatchEvent(new PopStateEvent('popstate'));
+            return Promise.resolve({event:'ack',command:cmd});
+        }
         if (cmd === "move") {
             adapter.move(request.direction);
             return Promise.resolve({ event: "ack", command: "move" });

@@ -54,7 +54,7 @@ test('loading, empty and unavailable details retain column focus and never activ
     await page.locator('#timeline').evaluate(node => {node.innerHTML='<div role="progressbar"></div>';});
     await expect(page.locator('#tv-detail-status')).toHaveText('正在加载帖子…');
     await page.locator('#timeline').evaluate((node,html) => {node.innerHTML=html;},post({id:'201'}));
-    await expect(page.locator('#tv-detail-status')).toContainText('暂不可用');
+    await expect(page.locator('#tv-detail-status')).toContainText('正在加载');
     await expect(page.locator('body')).toHaveAttribute('data-tv-detail-column','comments');
     await activate(page);
     await expect(page).toHaveURL('https://x.com/fixture/status/102');
@@ -129,8 +129,8 @@ test('timeline Enter navigation instantly displays main post (<100ms) before net
     // 5. Comments column shows smooth loading placeholder
     await expect(page.locator('#tv-detail-reply-status')).toHaveText('正在加载评论…');
 
-    // 6. Action entry "写评论…" is ready
-    await expect(page.getByRole('button', { name: '写评论…' })).toBeEnabled();
+    // 6. Preview is read-only until the live target is available.
+    await expect(page.getByRole('button', { name: '写评论…' })).toBeDisabled();
 });
 
 test('scrolling instant root is preserved when live native post and replies mount seamlessly', async ({ page }) => {
@@ -261,7 +261,7 @@ test('detail identifies its own footer timestamp without mistaking a quoted post
     expect(await selected.evaluate(node=>node.scrollTop)).toBeGreaterThan(400);
     // If the real root disappears, the quoted timestamp must never take its place.
     await selected.evaluate(node=>node.remove());
-    await expect(page.locator('#tv-detail-status')).toContainText('暂不可用');
+    await expect(page.locator('#tv-detail-status')).toContainText('正在加载');
     await page.locator('[data-fixture-id="201"] [data-testid="User-Name"] a').first().evaluate(node=>node.remove());
     await move(page,'up');
     await expect(page.locator('[data-fixture-id="201"]')).not.toHaveClass(/tv-detail-post/);
@@ -331,7 +331,7 @@ test('edited post history timestamps identify the root without adopting a quoted
     await expect(page.locator('#tv-detail-status')).toHaveText('');
     await root.evaluate(node=>node.remove());
     await move(page,'up');
-    await expect(page.locator('#tv-detail-status')).toContainText('暂不可用');
+    await expect(page.locator('#tv-detail-status')).toContainText('正在加载');
     await expect(page.locator('[data-fixture-id="201"]')).not.toHaveClass(/tv-detail-post/);
 });
 
@@ -616,28 +616,25 @@ test('cancellation leaves without publishing, preserves draft on reopen, and res
 
 test('remote selects a comment and opens its canonical detail instead of the composer', async ({ page }) => {
     await openDetail(page,[post({id:'201'}),post({id:'202'})]);
-    await page.evaluate(()=>{window.TvXNativeHost={openPost:path=>window.__openedComment=path};});
     await move(page,'right');
     await expect(page.locator('[data-fixture-id="201"]')).toHaveAttribute('data-tv-reply-selected','true');
     await move(page,'down');
     await expect(page.locator('[data-fixture-id="202"]')).toHaveAttribute('data-tv-reply-selected','true');
     await activate(page);
-    await expect.poll(()=>page.evaluate(()=>window.__openedComment)).toBe('/fixture/status/202');
+    await expect(page).toHaveURL('https://x.com/fixture/status/202');
     await expect(page.locator('#tv-detail-composer-overlay')).toHaveCount(0);
-    await expect(page).toHaveURL('https://x.com/fixture/status/102');
 });
 
 test('comment identity survives DOM replacement and refuses a recycled row', async ({page}) => {
     await openDetail(page,[post({id:'201'})]);
-    await page.evaluate(()=>{window.TvXNativeHost={openPost:path=>window.__openedComment=path};});
     await move(page,'right');
     await page.locator('[data-fixture-id="201"]').evaluate((n,html)=>n.parentElement.outerHTML=html,post({id:'201',text:'Updated same comment'}));
     await expect(page.locator('[data-fixture-id="201"]')).toHaveAttribute('data-tv-reply-selected','true');
     await page.locator('[data-fixture-id="201"] a[href="/fixture/status/201"]').evaluate(n=>n.setAttribute('href','/fixture/status/299'));
     await activate(page);
-    expect(await page.evaluate(()=>window.__openedComment)).toBeUndefined();
+    await expect(page).toHaveURL('https://x.com/fixture/status/102');
     await move(page,'down');await activate(page);
-    await expect.poll(()=>page.evaluate(()=>window.__openedComment)).toBe('/fixture/status/299');
+    await expect(page).toHaveURL('https://x.com/fixture/status/299');
 });
 
 test('a second Right selects the write-comment entry without opening a comment', async ({page}) => {
@@ -651,11 +648,10 @@ test('a second Right selects the write-comment entry without opening a comment',
 
 test('clicking comment text opens its own edited permalink without following quoted identity', async ({page}) => {
     await openDetail(page,[post({id:'201'})]);
-    await page.evaluate(()=>{window.TvXNativeHost={openPost:path=>window.__openedComment=path};});
     await page.locator('[data-fixture-id="201"] a[href="/fixture/status/201"]').evaluate(n=>n.setAttribute('href','/fixture/status/201/history'));
     await page.locator('[data-fixture-id="201"]').evaluate(node => node.insertAdjacentHTML('afterbegin','<div role="link"><div data-testid="User-Name"><a href="/quoted/status/999"><time>Quoted time</time></a></div></div>'));
     await page.locator('[data-fixture-id="201"] [data-testid="tweetText"]').click();
-    await expect.poll(()=>page.evaluate(()=>window.__openedComment)).toBe('/fixture/status/201');
+    await expect(page).toHaveURL('https://x.com/fixture/status/201');
 });
 
 

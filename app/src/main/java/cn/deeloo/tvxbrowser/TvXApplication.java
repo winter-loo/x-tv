@@ -8,6 +8,8 @@ import org.mozilla.geckoview.GeckoRuntimeSettings;
 public class TvXApplication extends Application {
     private static final String TAG = "TvXApplication";
     private static GeckoRuntime sRuntime;
+    private static TvXApplication sApplication;
+    private static XReadClient sInitialReadClient;
 
     @Override
     public void onCreate() {
@@ -23,21 +25,28 @@ public class TvXApplication extends Application {
             return;
         }
 
-        try {
-            GeckoRuntimeSettings.Builder builder = new GeckoRuntimeSettings.Builder()
-                    .javaScriptEnabled(true)
-                    .consoleOutput(true)
-                    .debugLogging(true)
-                    .remoteDebuggingEnabled(true);
+        sApplication = this;
+        sInitialReadClient = new XReadClient(this);
+        if(sInitialReadClient.available())sInitialReadClient.primeHome();
+    }
 
-            sRuntime = GeckoRuntime.create(this, builder.build());
-            Log.e(TAG, "===> GeckoRuntime created successfully in main process <===");
-        } catch (Throwable t) {
-            Log.e(TAG, "===> Failed to create GeckoRuntime <===", t);
-        }
+    static XReadClient takeReadClient() {
+        XReadClient client=sInitialReadClient;
+        sInitialReadClient=null;
+        return client!=null?client:new XReadClient(sApplication);
     }
 
     public static synchronized GeckoRuntime getRuntime() {
+        if (sRuntime == null) {
+            GeckoRuntimeSettings settings = new GeckoRuntimeSettings.Builder()
+                    .javaScriptEnabled(true)
+                    .consoleOutput(true)
+                    .debugLogging(false)
+                    .remoteDebuggingEnabled(BuildConfig.DEBUG)
+                    .build();
+            sRuntime = GeckoRuntime.create(sApplication, settings);
+            Log.i(TAG, "GeckoRuntime created in main process");
+        }
         return sRuntime;
     }
 }

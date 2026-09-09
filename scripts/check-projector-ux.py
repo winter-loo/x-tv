@@ -71,7 +71,7 @@ def run():
   if not current.get('focus'):key(20);continue
   if i%3==0:
    key(23);opened=until(lambda s:s['path']==current['focus'] and s['detail'])
-   assert opened['origin']!=current['origin'],'APK did not retain home in a separate session'
+   assert opened['origin']==current['origin'],'Opening detail restarted the X document'
    key(4)
    # Native row measurements can follow the URL change. Require the original
    # post and alignment to remain stable, not just appear in one sample.

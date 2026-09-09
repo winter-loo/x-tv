@@ -14,7 +14,8 @@ function connectToNative() {
         lastPong = Date.now();
         nativePort.onMessage.addListener((message) => {
             if (message.command === "pong") { lastPong = Date.now(); return; }
-            console.log("[TV-Extension] Native message received:", JSON.stringify(message));
+            if (message.command === 'writePrepare') { prepareWrite(message); return; }
+            console.log("[TV-Extension] Native command:", message.command);
             forwardToActiveTab(message);
         });
 
@@ -34,6 +35,23 @@ function connectToNative() {
     }
 }
 
+// Explicit, read-only preparation for a correlated native write. Never forwards a mutation to the page.
+async function prepareWrite(message) {
+    const port = nativePort;
+    if (!/^[a-f0-9-]{36}$/.test(message.id || '') ||
+        !['FavoriteTweet','UnfavoriteTweet','CreateTweet'].includes(message.operation)) return;
+    let result = {error:'not_ready'};
+    try {
+        const tabs = (await browser.tabs.query({})).filter(t => {
+            try { return new URL(t.url).origin === 'https://x.com'; } catch (_) { return false; }
+        });
+        const tab = tabs.find(t => new URL(t.url).pathname === '/home') || tabs[0];
+        if (tab) result = await browser.tabs.sendMessage(tab.id,
+            {command:'writePrepare',operation:message.operation}, {frameId:0});
+    } catch (_) {}
+    if (nativePort === port && port) port.postMessage({event:'write_metadata',id:message.id,result:result || {error:'not_ready'}});
+}
+
 function scheduleReconnect() {
     if (reconnectTimer) return;
     reconnectTimer = setTimeout(() => {
@@ -50,7 +68,7 @@ function sendToNative(msg) {
             console.error("[TV-Extension] Failed to postMessage to native:", e);
         }
     } else {
-        console.warn("[TV-Extension] Cannot sendToNative, port is null:", msg);
+        console.warn("[TV-Extension] Native port unavailable for event:", msg.event);
     }
 }
 
@@ -69,7 +87,8 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 });
 
 function injectContentScripts(tabId) {
-    return browser.tabs.executeScript(tabId, { file: "sites/x/bootstrap.js" })
+    return browser.tabs.executeScript(tabId, { file: "sites/x/write-api.js" })
+        .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/bootstrap.js" }))
         .then(() => browser.tabs.executeScript(tabId, { file: "runtime/navigation-runtime.js" }))
         .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/post-identity.js" }))
         .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/reading.js" }))
@@ -121,7 +140,7 @@ function forwardToActiveTab(cmd) {
 
 // Listen for direct events from content scripts
 browser.runtime.onMessage.addListener((message, sender) => {
-    if (message.event === "tv_like_arm" || message.event === "tv_like_disarm") return;
+    if (["tv_like_arm", "tv_like_disarm"].includes(message.event)) return;
     if (sender?.tab?.active === false) return;
     if (message.event === 'content_ready' && nativePort && sender?.tab) {
         browser.tabs.sendMessage(sender.tab.id, {command:'hostMode'}, {frameId:0}).catch(() => {});
@@ -135,6 +154,37 @@ browser.runtime.onMessage.addListener((message, sender) => {
 
 // Start initial connection
 connectToNative();
+
+// Capture successful read-query templates so native reading can start before Gecko.
+// This listener never starts a write or exports session headers outside the app.
+if (browser.webRequest?.onBeforeSendHeaders) {
+    const requests = new Map();
+    const filter = {urls:['https://x.com/i/api/graphql/*'],types:['xmlhttprequest']};
+    function operation(details) {
+        const url = new URL(details.url);
+        return url.hostname === 'x.com' && /^\/i\/api\/graphql\/[^/]+\/(HomeTimeline|HomeLatestTimeline|TweetDetail)$/.test(url.pathname);
+    }
+    browser.webRequest.onBeforeRequest.addListener(details => {
+        if (!operation(details) || !['GET','POST'].includes(details.method)) return;
+        const raw=details.requestBody?.raw || [];
+        if(raw.reduce((n,x)=>n+(x.bytes?.byteLength||0),0)>200000)return;
+        const decoder=new TextDecoder();
+        const body=raw.map(x=>decoder.decode(x.bytes,{stream:true})).join('')+decoder.decode();
+        while(requests.size>=20)requests.delete(requests.keys().next().value);
+        requests.set(details.requestId,{url:details.url,method:details.method,body});
+    },filter,['requestBody']);
+    browser.webRequest.onBeforeSendHeaders.addListener(details => {
+        const request=requests.get(details.requestId);
+        if(request)request.headers=details.requestHeaders;
+    },filter,['requestHeaders']);
+    browser.webRequest.onCompleted.addListener(details => {
+        const request=requests.get(details.requestId);requests.delete(details.requestId);
+        if(details.statusCode===200 && request?.headers)sendToNative({event:'read_api_template',...request});
+    },filter);
+    browser.webRequest.onErrorOccurred.addListener(details=>requests.delete(details.requestId),filter);
+    browser.webRequest.onBeforeRequest.addListener(()=>sendToNative({event:'read_session_clear'}),
+        {urls:['https://x.com/logout*','https://x.com/i/api/1.1/account/logout.json*']});
+}
 
 // A surviving background page can retain a port owned by a destroyed Activity.
 // A heartbeat detects that half-open connection even without onDisconnect.

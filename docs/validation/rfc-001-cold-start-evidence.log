@@ -1,0 +1,99 @@
+instrumented-01.log 1788902689.695 23398 23398 E RfcProbe: t=68719192 event=page_start session=af6844 active=af6844 host=null
+instrumented-01.log 1788902689.696 23398 23398 E RfcProbe: t=68719193 event=page_stop session=af6844 active=af6844 success=true
+instrumented-01.log 1788902690.322 23398 23398 E RfcProbe: t=68719819 event=page_start session=af6844 active=af6844 host=x.com
+instrumented-01.log 1788902690.351 23398 23398 E RfcProbe: t=68719848 event=legacy_connect session=null port=67ea122
+instrumented-01.log 1788902694.528 23398 23398 E RfcProbe: t=68724023 event=connect session=af6844 connection=1 port=35e7021 env=2 top=true
+instrumented-01.log 1788902698.088 23398 23398 E RfcProbe: t=68727585 event=page_stop session=af6844 active=af6844 success=true
+instrumented-01.log 1788902704.623 23398 23425 E GeckoConsole: [JavaScript Error: "[RFC] relay {"event":"presentation_ready","tabId":10001,"active":true,"frameId":0,"port":true,"at":1788902704623}"]
+instrumented-01.log 1788902704.646 23398 23398 E RfcProbe: t=68734151 event=legacy_receive session=null event=presentation_ready port=67ea122
+instrumented-01.log 1788902704.647 23398 23398 E RfcProbe: t=68734151 event=show_requested session=af6844 popup=null
+instrumented-01.log 1788902704.673 23398 23398 E RfcProbe: t=68734178 event=visible session=af6844 alpha=1.0
+instrumented-02.log 1788902726.314 23975 23975 E RfcProbe: t=68755819 event=page_start session=af6844 active=af6844 host=null
+instrumented-02.log 1788902726.316 23975 23975 E RfcProbe: t=68755821 event=page_stop session=af6844 active=af6844 success=true
+instrumented-02.log 1788902726.931 23975 23975 E RfcProbe: t=68756436 event=legacy_connect session=null port=1b4ae35
+instrumented-02.log 1788902726.953 23975 23975 E RfcProbe: t=68756458 event=page_start session=af6844 active=af6844 host=x.com
+instrumented-02.log 1788902731.273 23975 23975 E RfcProbe: t=68760778 event=connect session=af6844 connection=1 port=35e7021 env=2 top=true
+instrumented-02.log 1788902734.660 23975 23975 E RfcProbe: t=68764165 event=page_stop session=af6844 active=af6844 success=true
+instrumented-02.log 1788902740.883 23975 23999 E GeckoConsole: [JavaScript Error: "[RFC] relay {"event":"presentation_ready","tabId":10001,"active":true,"frameId":0,"port":true,"at":1788902740882}"]
+instrumented-02.log 1788902740.893 23975 23975 E RfcProbe: t=68770397 event=legacy_receive session=null event=presentation_ready port=1b4ae35
+instrumented-02.log 1788902740.893 23975 23975 E RfcProbe: t=68770398 event=show_requested session=af6844 popup=null
+instrumented-02.log 1788902740.923 23975 23975 E RfcProbe: t=68770427 event=visible session=af6844 alpha=1.0
+instrumented-03.log 1788902761.704 24510 24510 E RfcProbe: t=68791201 event=page_start session=af6844 active=af6844 host=null
+instrumented-03.log 1788902761.705 24510 24510 E RfcProbe: t=68791202 event=page_stop session=af6844 active=af6844 success=true
+instrumented-03.log 1788902762.363 24510 24510 E RfcProbe: t=68791861 event=legacy_connect session=null port=1b4ae35
+instrumented-03.log 1788902762.393 24510 24510 E RfcProbe: t=68791890 event=page_start session=af6844 active=af6844 host=x.com
+instrumented-03.log 1788902766.725 24510 24510 E RfcProbe: t=68796222 event=connect session=af6844 connection=1 port=35e7021 env=2 top=true
+instrumented-03.log 1788902770.020 24510 24510 E RfcProbe: t=68799517 event=page_stop session=af6844 active=af6844 success=true
+instrumented-03.log 1788902775.729 24510 24530 E GeckoConsole: [JavaScript Error: "[RFC] relay {"event":"presentation_ready","tabId":10001,"active":true,"frameId":0,"port":true,"at":1788902775729}"]
+instrumented-03.log 1788902775.738 24510 24510 E RfcProbe: t=68805235 event=legacy_receive session=null event=presentation_ready port=1b4ae35
+instrumented-03.log 1788902775.738 24510 24510 E RfcProbe: t=68805235 event=show_requested session=af6844 popup=null
+instrumented-03.log 1788902775.763 24510 24510 E RfcProbe: t=68805260 event=visible session=af6844 alpha=1.0
+instrumented-04.log 1788902798.956 25094 25094 E RfcProbe: t=68828453 event=page_start session=af6844 active=af6844 host=null
+instrumented-04.log 1788902798.957 25094 25094 E RfcProbe: t=68828454 event=page_stop session=af6844 active=af6844 success=true
+instrumented-04.log 1788902799.436 25094 25094 E RfcProbe: t=68828933 event=legacy_connect session=null port=1b4ae35
+instrumented-04.log 1788902799.508 25094 25094 E RfcProbe: t=68829005 event=page_start session=af6844 active=af6844 host=x.com
+instrumented-04.log 1788902803.839 25094 25094 E RfcProbe: t=68833336 event=connect session=af6844 connection=1 port=35e7021 env=2 top=true
+instrumented-04.log 1788902806.915 25094 25094 E RfcProbe: t=68836412 event=page_stop session=af6844 active=af6844 success=true
+instrumented-04.log 1788902812.584 25094 25114 E GeckoConsole: [JavaScript Error: "[RFC] relay {"event":"presentation_ready","tabId":10001,"active":true,"frameId":0,"port":true,"at":1788902812584}"]
+instrumented-04.log 1788902812.595 25094 25094 E RfcProbe: t=68842092 event=legacy_receive session=null event=presentation_ready port=1b4ae35
+instrumented-04.log 1788902812.596 25094 25094 E RfcProbe: t=68842093 event=show_requested session=af6844 popup=null
+instrumented-04.log 1788902812.613 25094 25094 E RfcProbe: t=68842111 event=visible session=af6844 alpha=1.0
+instrumented-05.log 1788902835.786 25649 25649 E RfcProbe: t=68865283 event=page_start session=af6844 active=af6844 host=null
+instrumented-05.log 1788902835.789 25649 25649 E RfcProbe: t=68865286 event=page_stop session=af6844 active=af6844 success=true
+instrumented-05.log 1788902836.342 25649 25649 E RfcProbe: t=68865838 event=legacy_connect session=null port=1b4ae35
+instrumented-05.log 1788902836.382 25649 25649 E RfcProbe: t=68865878 event=page_start session=af6844 active=af6844 host=x.com
+instrumented-05.log 1788902840.638 25649 25649 E RfcProbe: t=68870135 event=connect session=af6844 connection=1 port=35e7021 env=2 top=true
+instrumented-05.log 1788902845.626 25649 25649 E RfcProbe: t=68875123 event=page_stop session=af6844 active=af6844 success=true
+instrumented-05.log 1788902855.229 25649 25665 E GeckoConsole: [JavaScript Error: "[RFC] relay {"event":"presentation_ready","tabId":10001,"active":true,"frameId":0,"port":true,"at":1788902855230}"]
+instrumented-05.log 1788902855.252 25649 25649 E RfcProbe: t=68884749 event=legacy_receive session=null event=presentation_ready port=1b4ae35
+instrumented-05.log 1788902855.253 25649 25649 E RfcProbe: t=68884749 event=show_requested session=af6844 popup=null
+instrumented-05.log 1788902855.266 25649 25649 E RfcProbe: t=68884763 event=visible session=af6844 alpha=1.0
+instrumented-06.log 1788902873.856 26244 26244 E RfcProbe: t=68903353 event=page_start session=af6844 active=af6844 host=null
+instrumented-06.log 1788902873.859 26244 26244 E RfcProbe: t=68903356 event=page_stop session=af6844 active=af6844 success=true
+instrumented-06.log 1788902874.478 26244 26244 E RfcProbe: t=68903975 event=legacy_connect session=null port=1b4ae35
+instrumented-06.log 1788902874.506 26244 26244 E RfcProbe: t=68904003 event=page_start session=af6844 active=af6844 host=x.com
+instrumented-06.log 1788902878.910 26244 26244 E RfcProbe: t=68908407 event=connect session=af6844 connection=1 port=35e7021 env=2 top=true
+instrumented-06.log 1788902882.120 26244 26244 E RfcProbe: t=68911618 event=page_stop session=af6844 active=af6844 success=true
+instrumented-06.log 1788902887.817 26244 26287 E GeckoConsole: [JavaScript Error: "[RFC] relay {"event":"presentation_ready","tabId":10001,"active":true,"frameId":0,"port":true,"at":1788902887817}"]
+instrumented-06.log 1788902887.822 26244 26244 E RfcProbe: t=68917320 event=legacy_receive session=null event=presentation_ready port=1b4ae35
+instrumented-06.log 1788902887.822 26244 26244 E RfcProbe: t=68917320 event=show_requested session=af6844 popup=null
+instrumented-06.log 1788902887.846 26244 26244 E RfcProbe: t=68917344 event=visible session=af6844 alpha=1.0
+instrumented-07.log 1788902909.084 26733 26733 E RfcProbe: t=68938583 event=page_start session=af6844 active=af6844 host=null
+instrumented-07.log 1788902909.086 26733 26733 E RfcProbe: t=68938584 event=page_stop session=af6844 active=af6844 success=true
+instrumented-07.log 1788902909.745 26733 26733 E RfcProbe: t=68939243 event=page_start session=af6844 active=af6844 host=x.com
+instrumented-07.log 1788902909.975 26733 26733 E RfcProbe: t=68939473 event=legacy_connect session=null port=67ea122
+instrumented-07.log 1788902913.928 26733 26733 E RfcProbe: t=68943426 event=connect session=af6844 connection=1 port=35e7021 env=2 top=true
+instrumented-07.log 1788902916.824 26733 26733 E RfcProbe: t=68946323 event=page_stop session=af6844 active=af6844 success=true
+instrumented-07.log 1788902922.762 26733 26754 E GeckoConsole: [JavaScript Error: "[RFC] relay {"event":"presentation_ready","tabId":10001,"active":true,"frameId":0,"port":true,"at":1788902922761}"]
+instrumented-07.log 1788902922.770 26733 26733 E RfcProbe: t=68952268 event=legacy_receive session=null event=presentation_ready port=67ea122
+instrumented-07.log 1788902922.770 26733 26733 E RfcProbe: t=68952268 event=show_requested session=af6844 popup=null
+instrumented-07.log 1788902922.796 26733 26733 E RfcProbe: t=68952294 event=visible session=af6844 alpha=1.0
+instrumented-08.log 1788902944.492 27300 27300 E RfcProbe: t=68973989 event=page_start session=af6844 active=af6844 host=null
+instrumented-08.log 1788902944.493 27300 27300 E RfcProbe: t=68973990 event=page_stop session=af6844 active=af6844 success=true
+instrumented-08.log 1788902945.111 27300 27300 E RfcProbe: t=68974609 event=legacy_connect session=null port=1b4ae35
+instrumented-08.log 1788902945.137 27300 27300 E RfcProbe: t=68974634 event=page_start session=af6844 active=af6844 host=x.com
+instrumented-08.log 1788902949.519 27300 27300 E RfcProbe: t=68979017 event=connect session=af6844 connection=1 port=35e7021 env=2 top=true
+instrumented-08.log 1788902951.872 27300 27300 E RfcProbe: t=68981370 event=page_stop session=af6844 active=af6844 success=true
+instrumented-08.log 1788902958.371 27300 27321 E GeckoConsole: [JavaScript Error: "[RFC] relay {"event":"presentation_ready","tabId":10001,"active":true,"frameId":0,"port":true,"at":1788902958371}"]
+instrumented-08.log 1788902958.388 27300 27300 E RfcProbe: t=68987885 event=legacy_receive session=null event=presentation_ready port=1b4ae35
+instrumented-08.log 1788902958.389 27300 27300 E RfcProbe: t=68987886 event=show_requested session=af6844 popup=null
+instrumented-08.log 1788902958.413 27300 27300 E RfcProbe: t=68987910 event=visible session=af6844 alpha=1.0
+instrumented-09.log 1788902980.063 27851 27851 E RfcProbe: t=69009560 event=page_start session=af6844 active=af6844 host=null
+instrumented-09.log 1788902980.065 27851 27851 E RfcProbe: t=69009562 event=page_stop session=af6844 active=af6844 success=true
+instrumented-09.log 1788902980.636 27851 27851 E RfcProbe: t=69010133 event=legacy_connect session=null port=1b4ae35
+instrumented-09.log 1788902980.688 27851 27851 E RfcProbe: t=69010186 event=page_start session=af6844 active=af6844 host=x.com
+instrumented-09.log 1788902984.997 27851 27851 E RfcProbe: t=69014494 event=connect session=af6844 connection=1 port=35e7021 env=2 top=true
+instrumented-09.log 1788902989.867 27851 27851 E RfcProbe: t=69019364 event=page_stop session=af6844 active=af6844 success=true
+instrumented-09.log 1788902996.135 27851 27873 E GeckoConsole: [JavaScript Error: "[RFC] relay {"event":"presentation_ready","tabId":10001,"active":true,"frameId":0,"port":true,"at":1788902996135}"]
+instrumented-09.log 1788902996.139 27851 27851 E RfcProbe: t=69025636 event=legacy_receive session=null event=presentation_ready port=1b4ae35
+instrumented-09.log 1788902996.140 27851 27851 E RfcProbe: t=69025637 event=show_requested session=af6844 popup=null
+instrumented-09.log 1788902996.164 27851 27851 E RfcProbe: t=69025661 event=visible session=af6844 alpha=1.0
+instrumented-10.log 1788903016.151 28397 28397 E RfcProbe: t=69045650 event=page_start session=af6844 active=af6844 host=null
+instrumented-10.log 1788903016.152 28397 28397 E RfcProbe: t=69045651 event=page_stop session=af6844 active=af6844 success=true
+instrumented-10.log 1788903016.767 28397 28397 E RfcProbe: t=69046266 event=legacy_connect session=null port=1b4ae35
+instrumented-10.log 1788903016.775 28397 28397 E RfcProbe: t=69046274 event=page_start session=af6844 active=af6844 host=x.com
+instrumented-10.log 1788903021.067 28397 28397 E RfcProbe: t=69050566 event=connect session=af6844 connection=1 port=35e7021 env=2 top=true
+instrumented-10.log 1788903031.714 28397 28417 E GeckoConsole: [JavaScript Error: "[RFC] relay {"event":"presentation_ready","tabId":10001,"active":true,"frameId":0,"port":true,"at":1788903031714}"]
+instrumented-10.log 1788903031.743 28397 28397 E RfcProbe: t=69061243 event=legacy_receive session=null event=presentation_ready port=1b4ae35
+instrumented-10.log 1788903031.744 28397 28397 E RfcProbe: t=69061243 event=show_requested session=af6844 popup=null
+instrumented-10.log 1788903031.761 28397 28397 E RfcProbe: t=69061260 event=visible session=af6844 alpha=1.0

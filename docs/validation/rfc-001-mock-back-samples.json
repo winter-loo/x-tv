@@ -1,0 +1,40 @@
+[
+  {
+    "removedHiddenClose": false,
+    "before": {
+      "y": 500.23333740234375,
+      "hiddenClose": [
+        {
+          "visible": false
+        }
+      ],
+      "origin": 1788904342910
+    },
+    "after": {
+      "y": 500.23333740234375,
+      "hiddenClose": [
+        {
+          "visible": false
+        }
+      ],
+      "origin": 1788904342910
+    }
+  },
+  {
+    "removedHiddenClose": true,
+    "before": {
+      "y": 500.23333740234375,
+      "hiddenClose": [
+        {
+          "visible": false
+        }
+      ],
+      "origin": 1788904348032
+    },
+    "after": {
+      "y": 89.33333587646484,
+      "hiddenClose": [],
+      "origin": 1788904348032
+    }
+  }
+]

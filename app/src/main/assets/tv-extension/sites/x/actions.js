@@ -488,7 +488,13 @@ window.TvXActions = window.TvXActions || (function() {
     }
 
     function open(options) {
-        if (overlay) return true;
+        if (overlay) {
+            if (mode === 'menu' && context?.post.id === options.post.id && options.initialAction === 'like') {
+                selected = 1;
+                focus();
+            }
+            return true;
+        }
         if (!options.article()) return false;
         context = options;
         originalPath = location.pathname;
@@ -526,7 +532,7 @@ window.TvXActions = window.TvXActions || (function() {
         overlay.innerHTML = `<section id="tv-action-menu" role="dialog" aria-modal="true" aria-labelledby="tv-action-title"><div id="tv-action-heading"><h2 id="tv-action-title">帖子操作</h2><span id="tv-action-counts" aria-label="帖子互动计数"></span></div><button type="button" class="tv-action-btn-comment">评论</button><button type="button" class="tv-action-btn-like">喜欢</button>${linksHtml}<p id="tv-action-status" role="status">↑↓ 选择    确认 执行    返回 关闭</p></section>`;
         document.body.appendChild(overlay);
         buttons().forEach((button, index) => button.addEventListener('click', () => { selected = index; activate(); }));
-        selected = 0;
+        selected = options.initialAction === 'like' ? 1 : 0;
         document.addEventListener('focusin', trap, true);
         focus();
         update();

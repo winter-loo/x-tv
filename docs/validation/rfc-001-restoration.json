@@ -1,0 +1,37 @@
+{
+  "installedApkSha256": "c0f561b015ddf3b3143ce8ea38108ebecf802f059f5fec7068e6d38d1abb8341",
+  "matchesOriginal": true,
+  "installMethod": "adb install -r; no application data cleared",
+  "proxy": "192.168.10.104:6780",
+  "loadingAtEnd": false,
+  "last": {
+    "t": 31.699,
+    "states": [
+      {
+        "host": "x.com",
+        "path": "home",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788904441491,
+        "now": 26245,
+        "articles": 3,
+        "cards": 2,
+        "focused": true,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 5534,
+            "load": 8025,
+            "type": "navigate"
+          }
+        ],
+        "probe": {}
+      }
+    ]
+  },
+  "testForwardRemoved": true,
+  "testReverseRemoved": true,
+  "remoteTemporaryFilesRemoved": true
+}

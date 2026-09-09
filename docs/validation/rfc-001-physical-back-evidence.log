@@ -1,0 +1,12 @@
+[   71384.904298] /dev/input/event4: EV_MSC       MSC_SCAN             00070029            
+[   71384.904298] /dev/input/event4: EV_KEY       KEY_ESC              DOWN                
+[   71384.904298] /dev/input/event4: EV_SYN       SYN_REPORT           00000000            
+[   71385.045153] /dev/input/event4: EV_MSC       MSC_SCAN             00070029            
+[   71385.045153] /dev/input/event4: EV_KEY       KEY_ESC              UP                  
+[   71385.045153] /dev/input/event4: EV_SYN       SYN_REPORT           00000000            
+# Generic.kl: key 1     BACK
+         1788905355.573  1919  1919 E NavigationBridge: Attached MessageDelegate to GeckoSession
+         1788905355.581  1919  1919 E NavigationBridge: ===> Sending command to extension: {"command":"getState"} <===
+         1788905356.615  1919  1919 E NavigationBridge: ===> Received onPortMessage: {"event":"presentation_ready"}
+         1788905356.621  1919  1919 E NavigationBridge: ===> Received onPortMessage: {"event":"state","focusedIndex":0,"canBack":false,"pageType":"timeline","hasOverlay":false}
+         1788905356.622  1919  1919 E NavigationBridge: ===> Received onPortMessage: {"event":"ack","command":"getState"}

@@ -32,6 +32,14 @@ python3 scripts/check-projector-ux.py --serial 192.168.10.100:5555
 
 验证记录见 [评论详情验收](docs/validation/comment-details.md)。
 
+## 外链阅读（GitHub #20）
+
+带外链的帖子在正文下方显示外链卡片，一条链接一张，写明标题与域名；同一批链接也出现在菜单键打开的帖子操作里。卡片可直接点击，菜单项用遥控器确认打开。标题与域名优先取 X 的卡片数据，没有卡片时用链接的显示文本和目标主机名；解析后落回 x.com 的链接（例如引用推文）不会出现。
+
+确认后阅读器就地压一层「正在打开…」，返回即取消。t.co 会先加载 X 的中转页再跳到目标站，中转页不会闪出来。目标站打开后阅读器让出整屏，上下键在原生层滚动页面，返回回到发起的那条帖子。打不开时回到阅读器并提示，确认重试。
+
+回归测试 `tests/external-links.spec.mjs`，真机验收 `node scripts/check-external-links.mjs`（只读，不点赞不评论）。验证记录见 [外链阅读验收](docs/validation/issue-20-external-links.md)。
+
 ## 当前进度（2026-09-07）
 
 #1 平衡阅读布局已完成验收：9 项 Firefox DOM 回归、150 条真实帖子连续导航、真实 X Article 显示、详情往返、返回顶部、Google 登录与冷启动登录保持均通过。GeckoView 已更新至 `155.0.20260903215306`，修复真机 RGB PNG 解码崩溃。详见 [验收记录](docs/validation/issue-1.md)。

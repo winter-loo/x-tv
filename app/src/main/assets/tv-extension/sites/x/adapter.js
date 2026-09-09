@@ -85,6 +85,14 @@ window.TvXAdapter = window.TvXAdapter || (function() {
         const detail = mode !== "login" && isPostDetail();
         if (window.TvXDetail) window.TvXDetail.update(detail, statusLink);
         if (detail && window.TvXDetail) {
+            const request=window.TvXReaderBrowser;
+            if(request && !request.announced && request.path===location.pathname && document.querySelector('article.tv-detail-post:not(.tv-instant-post)')) {
+                request.announced=true;
+                if(request.action==='menu')menu();
+                else if(request.action==='like')menu('like');
+                else if(request.action==='reply')window.TvXDetail.openComposer();
+                browser.runtime.sendMessage({event:'reader_browser_ready',path:request.path}).catch(()=>{});
+            }
             unmountCustomTvLogin();
             cancelPendingMove();
             previousMode = "detail";
@@ -631,6 +639,7 @@ window.TvXAdapter = window.TvXAdapter || (function() {
             if (old !== target) old.classList.remove("tv-focused");
         }
         if (!target.classList.contains("tv-focused")) target.classList.add("tv-focused");
+        if (isHome()) window.TvXLoadMetrics?.mark("home_readable");
         if (isHome() && window.TvXReading) {
             if (changed) {
                 target.querySelectorAll(".tv-reading-text, .tv-reading-attachment").forEach(node => { node.scrollTop = 0; });
@@ -782,10 +791,6 @@ window.TvXAdapter = window.TvXAdapter || (function() {
         if (targetArticle && window.TvXDetail?.stash) {
             window.TvXDetail.stash(targetArticle, path);
         }
-        if (isHome() && window.TvXNativeHost) {
-            window.TvXNativeHost.openPost(path);
-            return;
-        }
         // React must receive a normal unmodified click. Edited timestamps point
         // to history; temporarily give that same native link its canonical URL.
         const original = link.getAttribute('href');
@@ -803,7 +808,7 @@ window.TvXAdapter = window.TvXAdapter || (function() {
         }
     }
 
-    function menu() {
+    function menu(initialAction) {
         if (isLoginMode() || !window.TvXActions) return false;
         const detailPath = /^\/[^/]+\/status\/\d+$/.test(location.pathname) ? location.pathname : null;
         if (!isHome() && !detailPath) return false;
@@ -814,6 +819,7 @@ window.TvXAdapter = window.TvXAdapter || (function() {
         cancelPendingMove();
         const opened = window.TvXActions.open({
             post,
+            initialAction,
             reloadPost: () => {
                 try {
                     if (isHome()) sessionStorage.setItem(recoveryHomeKey, JSON.stringify({ anchor: post.path, scroll: pageScrollY() }));
@@ -944,9 +950,10 @@ window.TvXAdapter = window.TvXAdapter || (function() {
         }
 
         if (window.location.pathname.includes("/status/")) {
-            if (window.TvXNativeDetail && window.TvXNativeHost) {
-                window.TvXNativeHost.closeDetail();
-                return { event: "backResult", handled: true };
+            if(window.TvXReaderBrowser?.announced) {
+                window.TvXReaderBrowser=null;
+                browser.runtime.sendMessage({event:'reader_browser_return'}).catch(()=>{});
+                return {event:'backResult',handled:true};
             }
             if (homeAnchor) {
                 lastAnchorId = homeAnchor;

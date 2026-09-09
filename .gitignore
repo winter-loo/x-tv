@@ -27,3 +27,6 @@ captures/
 node_modules/
 test-results/
 playwright-report/
+
+# Python bytecode from device scripts
+__pycache__/

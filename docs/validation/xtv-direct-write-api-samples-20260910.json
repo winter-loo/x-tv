@@ -1,0 +1,274 @@
+{
+  "date": "2026-09-10",
+  "scope": "single account; one post for two paired like/unlike trials; one user-selected own post for a reply/delete trial; warm Gecko metadata",
+  "gecko": {
+    "phase": "completed",
+    "steps": [
+      {
+        "step": "before",
+        "metrics": {
+          "status": 200,
+          "prepareMs": 4,
+          "httpMs": 523,
+          "totalMs": 527,
+          "errors": []
+        },
+        "found": true,
+        "liked": false
+      },
+      {
+        "step": "like",
+        "operation": "FavoriteTweet",
+        "status": 200,
+        "prepareMs": 2,
+        "httpMs": 800,
+        "totalMs": 802,
+        "errors": [],
+        "data": {
+          "favorite_tweet": "Done"
+        }
+      },
+      {
+        "step": "after-like",
+        "metrics": {
+          "status": 200,
+          "prepareMs": 2,
+          "httpMs": 418,
+          "totalMs": 420,
+          "errors": []
+        },
+        "found": true,
+        "liked": true
+      },
+      {
+        "step": "restore-check",
+        "metrics": {
+          "status": 200,
+          "prepareMs": 2,
+          "httpMs": 413,
+          "totalMs": 415,
+          "errors": []
+        },
+        "found": true,
+        "liked": true
+      },
+      {
+        "step": "unlike",
+        "operation": "UnfavoriteTweet",
+        "status": 200,
+        "prepareMs": 3,
+        "httpMs": 984,
+        "totalMs": 987,
+        "errors": [],
+        "data": {
+          "unfavorite_tweet": "Done"
+        }
+      },
+      {
+        "step": "after-unlike",
+        "metrics": {
+          "status": 200,
+          "prepareMs": 4,
+          "httpMs": 546,
+          "totalMs": 550,
+          "errors": []
+        },
+        "found": true,
+        "liked": false
+      }
+    ],
+    "restored": true,
+    "sameDocument": true,
+    "samePath": true
+  },
+  "nativeAndroid": {
+    "steps": [
+      {
+        "status": 200,
+        "httpMs": 655,
+        "errorCodes": [],
+        "found": true,
+        "liked": false,
+        "prepareMs": 3,
+        "step": "read"
+      },
+      {
+        "status": 200,
+        "httpMs": 901,
+        "errorCodes": [],
+        "done": true,
+        "prepareMs": 3,
+        "step": "like"
+      },
+      {
+        "status": 200,
+        "httpMs": 321,
+        "errorCodes": [],
+        "found": true,
+        "liked": true,
+        "prepareMs": 4,
+        "step": "read"
+      },
+      {
+        "status": 200,
+        "httpMs": 342,
+        "errorCodes": [],
+        "found": true,
+        "liked": true,
+        "prepareMs": 2,
+        "step": "read"
+      },
+      {
+        "status": 200,
+        "httpMs": 767,
+        "errorCodes": [],
+        "done": true,
+        "prepareMs": 3,
+        "step": "unlike"
+      },
+      {
+        "status": 200,
+        "httpMs": 348,
+        "errorCodes": [],
+        "found": true,
+        "liked": false,
+        "prepareMs": 4,
+        "step": "read"
+      }
+    ],
+    "restored": true
+  },
+  "metadata": {
+    "queries": [
+      {
+        "operation": "FavoriteTweet",
+        "queryId": "lI07N6Otwv1PhnEgXILM7A",
+        "featureCount": 0,
+        "fieldToggleCount": 0
+      },
+      {
+        "operation": "UnfavoriteTweet",
+        "queryId": "ZYKSe-w7KEslx3JhSIk5LA",
+        "featureCount": 0,
+        "fieldToggleCount": 0
+      },
+      {
+        "operation": "CreateTweet",
+        "queryId": "CUWCG7oBfrG71ZUXUtpwbw",
+        "featureCount": 36,
+        "fieldToggleCount": 8
+      },
+      {
+        "operation": "TweetResultByRestId",
+        "queryId": "snmujSvB_9WXyd8yjvZ24Q",
+        "featureCount": 37,
+        "fieldToggleCount": 8
+      }
+    ],
+    "samePath": true,
+    "sameDocument": true
+  },
+  "reply": {
+    "steps": [
+      {
+        "status": 200,
+        "httpMs": 714,
+        "errorCodes": [],
+        "errorMessages": [],
+        "found": true,
+        "hasData": true,
+        "parentMatches": false,
+        "textMatches": false,
+        "authorMatchesAccount": true,
+        "step": "read",
+        "prepareMs": 3
+      },
+      {
+        "status": 200,
+        "httpMs": 458,
+        "errorCodes": [],
+        "errorMessages": [],
+        "found": true,
+        "hasData": true,
+        "parentMatches": true,
+        "textMatches": true,
+        "authorMatchesAccount": true,
+        "step": "create",
+        "prepareMs": 3
+      },
+      {
+        "status": 200,
+        "httpMs": 302,
+        "errorCodes": [],
+        "errorMessages": [],
+        "found": true,
+        "hasData": true,
+        "parentMatches": true,
+        "textMatches": true,
+        "authorMatchesAccount": true,
+        "step": "read",
+        "prepareMs": 2
+      },
+      {
+        "status": 200,
+        "httpMs": 305,
+        "errorCodes": [],
+        "errorMessages": [],
+        "deleteAcknowledged": true,
+        "step": "delete",
+        "prepareMs": 85
+      },
+      {
+        "status": 200,
+        "httpMs": 308,
+        "errorCodes": [],
+        "errorMessages": [],
+        "found": false,
+        "hasData": true,
+        "step": "read",
+        "prepareMs": 3
+      },
+      {
+        "status": 200,
+        "httpMs": 289,
+        "errorCodes": [],
+        "errorMessages": [],
+        "found": false,
+        "hasData": true,
+        "step": "read",
+        "prepareMs": 6
+      },
+      {
+        "status": 200,
+        "httpMs": 416,
+        "errorCodes": [],
+        "errorMessages": [],
+        "found": true,
+        "hasData": true,
+        "parentMatches": false,
+        "textMatches": false,
+        "authorMatchesAccount": true,
+        "step": "read",
+        "prepareMs": 4
+      }
+    ],
+    "published": true,
+    "deleted": true,
+    "readbackVerified": true,
+    "deleteAcknowledged": true,
+    "absentAfterDelete": true,
+    "sameDocument": true,
+    "samePath": true,
+    "initialRejectedAttempt": {
+      "status": 422,
+      "httpMs": 677,
+      "errorCodes": [],
+      "found": false,
+      "hasData": false,
+      "step": "create",
+      "prepareMs": 4,
+      "errorCodeUnavailable": true
+    },
+    "requestCorrection": "Omit batch_compose for a single reply; boolean false was not a valid enum value."
+  }
+}

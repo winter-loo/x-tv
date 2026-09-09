@@ -397,3 +397,13 @@ body.tv-detail-active article.tv-detail-reply[data-tv-reply-selected="true"] {
 }
 
 body.tv-detail-active article.tv-detail-context { display:none !important; }
+
+/* A preview stays readable while the independently loaded post is preparing. */
+#tv-detail-preview-status { position:fixed; z-index:404; top:calc(116 * var(--tv-u)); left:calc(96 * var(--tv-u)); color:var(--tv-muted); font-size:calc(24 * var(--tv-u)); }
+#tv-detail-preview-status[hidden] { display:none; }
+#tv-detail-instant-root :is(a,button,input,textarea,select) { pointer-events:none !important; }
+#tv-detail-instant-root .tv-detail-text, #tv-detail-instant-root .tv-detail-text span { color:var(--tv-text) !important; }
+#tv-detail-instant-root .tv-detail-text a { color:#56b8f5 !important; }
+#tv-detail-instant-root .tv-detail-name { align-items:flex-start !important; justify-content:flex-start !important; text-align:start !important; }
+#tv-detail-instant-root .tv-detail-name :is(div,a) { justify-content:flex-start !important; }
+#tv-detail-entry button:disabled { opacity:.55; }

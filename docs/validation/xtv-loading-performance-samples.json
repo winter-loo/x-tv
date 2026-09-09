@@ -1,0 +1,2415 @@
+{
+  "original-home": {
+    "label": "original-home",
+    "mode": "cold",
+    "readable_seconds": 20.454,
+    "budget_seconds": 5.0,
+    "passed": false,
+    "samples": [
+      {
+        "elapsed": 10.614,
+        "origin": 1788950653228,
+        "now": 5453,
+        "kind": "home",
+        "hidden": false,
+        "readyState": "interactive",
+        "articles": 0,
+        "text": false,
+        "cards": 0,
+        "detailRoot": false,
+        "instant": false,
+        "focus": false,
+        "boot": true,
+        "detailChrome": false,
+        "unavailable": false,
+        "load": 0,
+        "dom": 0
+      },
+      {
+        "elapsed": 11.057,
+        "origin": 1788950653228,
+        "now": 5946,
+        "kind": "home",
+        "hidden": false,
+        "readyState": "interactive",
+        "articles": 0,
+        "text": false,
+        "cards": 0,
+        "detailRoot": false,
+        "instant": false,
+        "focus": false,
+        "boot": true,
+        "detailChrome": false,
+        "unavailable": false,
+        "load": 0,
+        "dom": 5479
+      },
+      {
+        "elapsed": 11.6,
+        "origin": 1788950653228,
+        "now": 6544,
+        "kind": "home",
+        "hidden": false,
+        "readyState": "interactive",
+        "articles": 0,
+        "text": false,
+        "cards": 0,
+        "detailRoot": false,
+        "instant": false,
+        "focus": false,
+        "boot": true,
+        "detailChrome": false,
+        "unavailable": false,
+        "load": 0,
+        "dom": 5479
+      },
+      {
+        "elapsed": 11.824,
+        "origin": 1788950653228,
+        "now": 6750,
+        "kind": "home",
+        "hidden": false,
+        "readyState": "interactive",
+        "articles": 0,
+        "text": false,
+        "cards": 0,
+        "detailRoot": false,
+        "instant": false,
+        "focus": false,
+        "boot": true,
+        "detailChrome": false,
+        "unavailable": false,
+        "load": 0,
+        "dom": 5479
+      },
+      {
+        "elapsed": 12.06,
+        "origin": 1788950653228,
+        "now": 6988,
+        "kind": "home",
+        "hidden": false,
+        "readyState": "interactive",
+        "articles": 0,
+        "text": false,
+        "cards": 0,
+        "detailRoot": false,
+        "instant": false,
+        "focus": false,
+        "boot": true,
+        "detailChrome": false,
+        "unavailable": false,
+        "load": 0,
+        "dom": 5479
+      },
+      {
+        "elapsed": 13.876,
+        "origin": 1788950653228,
+        "now": 8795,
+        "kind": "home",
+        "hidden": false,
+        "readyState": "interactive",
+        "articles": 0,
+        "text": false,
+        "cards": 0,
+        "detailRoot": false,
+        "instant": false,
+        "focus": false,
+        "boot": true,
+        "detailChrome": false,
+        "unavailable": false,
+        "load": 0,
+        "dom": 5479
+      },
+      {
+        "elapsed": 14.211,
+        "origin": 1788950653228,
+        "now": 9150,
+        "kind": "home",
+        "hidden": false,
+        "readyState": "complete",
+        "articles": 0,
+        "text": false,
+        "cards": 0,
+        "detailRoot": false,
+        "instant": false,
+        "focus": false,
+        "boot": true,
+        "detailChrome": false,
+        "unavailable": false,
+        "load": 9079,
+        "dom": 5479
+      },
+      {
+        "elapsed": 14.469,
+        "origin": 1788950653228,
+        "now": 9408,
+        "kind": "home",
+        "hidden": false,
+        "readyState": "complete",
+        "articles": 0,
+        "text": false,
+        "cards": 0,
+        "detailRoot": false,
+        "instant": false,
+        "focus": false,
+        "boot": true,
+        "detailChrome": false,
+        "unavailable": false,
+        "load": 9079,
+        "dom": 5479
+      },
+      {
+        "elapsed": 15.364,
+        "origin": 1788950653228,
+        "now": 10282,
+        "kind": "home",
+        "hidden": false,
+        "readyState": "complete",
+        "articles": 0,
+        "text": false,
+        "cards": 0,
+        "detailRoot": false,
+        "instant": false,
+        "focus": false,
+        "boot": true,
+        "detailChrome": false,
+        "unavailable": false,
+        "load": 9079,
+        "dom": 5479
+      },
+      {
+        "elapsed": 16.119,
+        "origin": 1788950653228,
+        "now": 11048,
+        "kind": "home",
+        "hidden": false,
+        "readyState": "complete",
+        "articles": 0,
+        "text": false,
+        "cards": 0,
+        "detailRoot": false,
+        "instant": false,
+        "focus": false,
+        "boot": true,
+        "detailChrome": false,
+        "unavailable": false,
+        "load": 9079,
+        "dom": 5479
+      },
+      {
+        "elapsed": 17.742,
+        "origin": 1788950653228,
+        "now": 12556,
+        "kind": "home",
+        "hidden": false,
+        "readyState": "complete",
+        "articles": 0,
+        "text": false,
+        "cards": 0,
+        "detailRoot": false,
+        "instant": false,
+        "focus": false,
+        "boot": true,
+        "detailChrome": false,
+        "unavailable": false,
+        "load": 9079,
+        "dom": 5479
+      },
+      {
+        "elapsed": 18.047,
+        "origin": 1788950653228,
+        "now": 12990,
+        "kind": "home",
+        "hidden": false,
+        "readyState": "complete",
+        "articles": 0,
+        "text": false,
+        "cards": 0,
+        "detailRoot": false,
+        "instant": false,
+        "focus": false,
+        "boot": true,
+        "detailChrome": false,
+        "unavailable": false,
+        "load": 9079,
+        "dom": 5479
+      },
+      {
+        "elapsed": 18.327,
+        "origin": 1788950653228,
+        "now": 13273,
+        "kind": "home",
+        "hidden": false,
+        "readyState": "complete",
+        "articles": 0,
+        "text": false,
+        "cards": 0,
+        "detailRoot": false,
+        "instant": false,
+        "focus": false,
+        "boot": true,
+        "detailChrome": false,
+        "unavailable": false,
+        "load": 9079,
+        "dom": 5479
+      },
+      {
+        "elapsed": 20.454,
+        "origin": 1788950653228,
+        "now": 15389,
+        "kind": "home",
+        "hidden": false,
+        "readyState": "complete",
+        "articles": 4,
+        "text": true,
+        "cards": 2,
+        "detailRoot": false,
+        "instant": false,
+        "focus": true,
+        "boot": false,
+        "detailChrome": false,
+        "unavailable": false,
+        "load": 9079,
+        "dom": 5479
+      },
+      {
+        "elapsed": 21.925,
+        "origin": 1788950653228,
+        "now": 16850,
+        "kind": "home",
+        "hidden": false,
+        "readyState": "complete",
+        "articles": 3,
+        "text": true,
+        "cards": 2,
+        "detailRoot": false,
+        "instant": false,
+        "focus": true,
+        "boot": false,
+        "detailChrome": false,
+        "unavailable": false,
+        "load": 9079,
+        "dom": 5479
+      },
+      {
+        "elapsed": 22.251,
+        "origin": 1788950653228,
+        "now": 17194,
+        "kind": "home",
+        "hidden": false,
+        "readyState": "complete",
+        "articles": 3,
+        "text": true,
+        "cards": 2,
+        "detailRoot": false,
+        "instant": false,
+        "focus": true,
+        "boot": false,
+        "detailChrome": false,
+        "unavailable": false,
+        "load": 9079,
+        "dom": 5479
+      },
+      {
+        "elapsed": 22.588,
+        "origin": 1788950653228,
+        "now": 17518,
+        "kind": "home",
+        "hidden": false,
+        "readyState": "complete",
+        "articles": 3,
+        "text": true,
+        "cards": 2,
+        "detailRoot": false,
+        "instant": false,
+        "focus": true,
+        "boot": false,
+        "detailChrome": false,
+        "unavailable": false,
+        "load": 9079,
+        "dom": 5479
+      }
+    ]
+  },
+  "original-detail": {
+    "label": "original-detail",
+    "mode": "detail",
+    "readable_seconds": 10.386,
+    "budget_seconds": 5.0,
+    "passed": false,
+    "samples": [
+      {
+        "elapsed": 1.27,
+        "origin": 1788950653228,
+        "now": 651431,
+        "kind": "home",
+        "hidden": true,
+        "readyState": "complete",
+        "articles": 3,
+        "text": true,
+        "cards": 2,
+        "detailRoot": false,
+        "instant": false,
+        "focus": true,
+        "boot": false,
+        "detailChrome": false,
+        "unavailable": false,
+        "load": 9079,
+        "dom": 5479
+      },
+      {
+        "elapsed": 1.699,
+        "origin": 1788951304562,
+        "now": 519,
+        "kind": "detail",
+        "hidden": false,
+        "readyState": "interactive",
+        "articles": 0,
+        "text": false,
+        "cards": 0,
+        "detailRoot": false,
+        "instant": false,
+        "focus": false,
+        "boot": true,
+        "detailChrome": true,
+        "unavailable": false,
+        "load": 0,
+        "dom": 0
+      },
+      {
+        "elapsed": 2.616,
+        "origin": 1788951304562,
+        "now": 1404,
+        "kind": "detail",
+        "hidden": false,
+        "readyState": "interactive",
+        "articles": 0,
+        "text": false,
+        "cards": 0,
+        "detailRoot": false,
+        "instant": false,
+        "focus": false,
+        "boot": false,
+        "detailChrome": true,
+        "unavailable": false,
+        "load": 0,
+        "dom": 1239
+      },
+      {
+        "elapsed": 2.892,
+        "origin": 1788951304562,
+        "now": 1738,
+        "kind": "detail",
+        "hidden": false,
+        "readyState": "interactive",
+        "articles": 0,
+        "text": false,
+        "cards": 0,
+        "detailRoot": false,
+        "instant": false,
+        "focus": false,
+        "boot": false,
+        "detailChrome": true,
+        "unavailable": false,
+        "load": 0,
+        "dom": 1239
+      },
+      {
+        "elapsed": 3.748,
+        "origin": 1788951304562,
+        "now": 2521,
+        "kind": "detail",
+        "hidden": false,
+        "readyState": "interactive",
+        "articles": 0,
+        "text": false,
+        "cards": 0,
+        "detailRoot": false,
+        "instant": false,
+        "focus": false,
+        "boot": false,
+        "detailChrome": true,
+        "unavailable": false,
+        "load": 0,
+        "dom": 1239
+      },
+      {
+        "elapsed": 4.331,
+        "origin": 1788951304562,
+        "now": 3147,
+        "kind": "detail",
+        "hidden": false,
+        "readyState": "complete",
+        "articles": 0,
+        "text": false,
+        "cards": 0,
+        "detailRoot": false,
+        "instant": false,
+        "focus": false,
+        "boot": false,
+        "detailChrome": true,
+        "unavailable": false,
+        "load": 2846,
+        "dom": 1239
+      },
+      {
+        "elapsed": 4.769,
+        "origin": 1788951304562,
+        "now": 3591,
+        "kind": "detail",
+        "hidden": false,
+        "readyState": "complete",
+        "articles": 0,
+        "text": false,
+        "cards": 0,
+        "detailRoot": false,
+        "instant": false,
+        "focus": false,
+        "boot": false,
+        "detailChrome": true,
+        "unavailable": false,
+        "load": 2846,
+        "dom": 1239
+      },
+      {
+        "elapsed": 5.002,
+        "origin": 1788951304562,
+        "now": 3833,
+        "kind": "detail",
+        "hidden": false,
+        "readyState": "complete",
+        "articles": 0,
+        "text": false,
+        "cards": 0,
+        "detailRoot": false,
+        "instant": false,
+        "focus": false,
+        "boot": false,
+        "detailChrome": true,
+        "unavailable": false,
+        "load": 2846,
+        "dom": 1239
+      },
+      {
+        "elapsed": 6.325,
+        "origin": 1788951304562,
+        "now": 4778,
+        "kind": "detail",
+        "hidden": false,
+        "readyState": "complete",
+        "articles": 0,
+        "text": false,
+        "cards": 0,
+        "detailRoot": false,
+        "instant": false,
+        "focus": false,
+        "boot": false,
+        "detailChrome": true,
+        "unavailable": false,
+        "load": 2846,
+        "dom": 1239
+      },
+      {
+        "elapsed": 6.649,
+        "origin": 1788951304562,
+        "now": 5513,
+        "kind": "detail",
+        "hidden": false,
+        "readyState": "complete",
+        "articles": 0,
+        "text": false,
+        "cards": 0,
+        "detailRoot": false,
+        "instant": false,
+        "focus": false,
+        "boot": false,
+        "detailChrome": true,
+        "unavailable": false,
+        "load": 2846,
+        "dom": 1239
+      },
+      {
+        "elapsed": 6.904,
+        "origin": 1788951304562,
+        "now": 5738,
+        "kind": "detail",
+        "hidden": false,
+        "readyState": "complete",
+        "articles": 0,
+        "text": false,
+        "cards": 0,
+        "detailRoot": false,
+        "instant": false,
+        "focus": false,
+        "boot": false,
+        "detailChrome": true,
+        "unavailable": false,
+        "load": 2846,
+        "dom": 1239
+      },
+      {
+        "elapsed": 10.386,
+        "origin": 1788951304562,
+        "now": 7933,
+        "kind": "detail",
+        "hidden": false,
+        "readyState": "complete",
+        "articles": 8,
+        "text": true,
+        "cards": 0,
+        "detailRoot": true,
+        "instant": false,
+        "focus": false,
+        "boot": false,
+        "detailChrome": true,
+        "unavailable": false,
+        "load": 2846,
+        "dom": 1239
+      },
+      {
+        "elapsed": 12.054,
+        "origin": 1788951304562,
+        "now": 10506,
+        "kind": "detail",
+        "hidden": false,
+        "readyState": "complete",
+        "articles": 10,
+        "text": true,
+        "cards": 0,
+        "detailRoot": true,
+        "instant": false,
+        "focus": false,
+        "boot": false,
+        "detailChrome": true,
+        "unavailable": false,
+        "load": 2846,
+        "dom": 1239
+      },
+      {
+        "elapsed": 13.868,
+        "origin": 1788951304562,
+        "now": 12619,
+        "kind": "detail",
+        "hidden": false,
+        "readyState": "complete",
+        "articles": 12,
+        "text": true,
+        "cards": 0,
+        "detailRoot": true,
+        "instant": false,
+        "focus": false,
+        "boot": false,
+        "detailChrome": true,
+        "unavailable": false,
+        "load": 2846,
+        "dom": 1239
+      }
+    ]
+  },
+  "release-home": {
+    "mode": "cold",
+    "readable_seconds": 21.403,
+    "live_content_seconds": 21.403,
+    "budget_seconds": 5.0,
+    "passed": false,
+    "samples": [
+      {
+        "elapsed": 10.994,
+        "origin": 1788953898127,
+        "now": 5006,
+        "kind": "home",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": false,
+        "focus": false,
+        "boot": true,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 4730
+          },
+          "resources": []
+        },
+        "load": 0,
+        "navigation": {
+          "requestStart": 4350,
+          "responseStart": 4350,
+          "responseEnd": 4350,
+          "domInteractive": 4944,
+          "domContentLoadedEventEnd": 0,
+          "loadEventEnd": 0
+        }
+      },
+      {
+        "elapsed": 12.013,
+        "origin": 1788953898127,
+        "now": 6040,
+        "kind": "home",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": false,
+        "focus": false,
+        "boot": true,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 4730,
+            "dom_content_loaded": 5889
+          },
+          "resources": []
+        },
+        "load": 0,
+        "navigation": {
+          "requestStart": 4350,
+          "responseStart": 4350,
+          "responseEnd": 4350,
+          "domInteractive": 4944,
+          "domContentLoadedEventEnd": 5896,
+          "loadEventEnd": 0
+        }
+      },
+      {
+        "elapsed": 12.771,
+        "origin": 1788953898127,
+        "now": 6496,
+        "kind": "home",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": false,
+        "focus": false,
+        "boot": true,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 4730,
+            "dom_content_loaded": 5889
+          },
+          "resources": []
+        },
+        "load": 0,
+        "navigation": {
+          "requestStart": 4350,
+          "responseStart": 4350,
+          "responseEnd": 4350,
+          "domInteractive": 4944,
+          "domContentLoadedEventEnd": 5896,
+          "loadEventEnd": 0
+        }
+      },
+      {
+        "elapsed": 14.111,
+        "origin": 1788953898127,
+        "now": 7686,
+        "kind": "home",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": false,
+        "focus": false,
+        "boot": true,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 4730,
+            "dom_content_loaded": 5889
+          },
+          "resources": []
+        },
+        "load": 0,
+        "navigation": {
+          "requestStart": 4350,
+          "responseStart": 4350,
+          "responseEnd": 4350,
+          "domInteractive": 4944,
+          "domContentLoadedEventEnd": 5896,
+          "loadEventEnd": 0
+        }
+      },
+      {
+        "elapsed": 14.609,
+        "origin": 1788953898127,
+        "now": 8586,
+        "kind": "home",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": false,
+        "focus": false,
+        "boot": true,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 4730,
+            "dom_content_loaded": 5889,
+            "load": 7702
+          },
+          "resources": []
+        },
+        "load": 7702,
+        "navigation": {
+          "requestStart": 4350,
+          "responseStart": 4350,
+          "responseEnd": 4350,
+          "domInteractive": 4944,
+          "domContentLoadedEventEnd": 5896,
+          "loadEventEnd": 7702
+        }
+      },
+      {
+        "elapsed": 17.591,
+        "origin": 1788953898127,
+        "now": 11211,
+        "kind": "home",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": false,
+        "focus": false,
+        "boot": true,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 4730,
+            "dom_content_loaded": 5889,
+            "load": 7702
+          },
+          "resources": []
+        },
+        "load": 7702,
+        "navigation": {
+          "requestStart": 4350,
+          "responseStart": 4350,
+          "responseEnd": 4350,
+          "domInteractive": 4944,
+          "domContentLoadedEventEnd": 5896,
+          "loadEventEnd": 7702
+        }
+      },
+      {
+        "elapsed": 18.0,
+        "origin": 1788953898127,
+        "now": 12023,
+        "kind": "home",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": false,
+        "focus": false,
+        "boot": true,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 4730,
+            "dom_content_loaded": 5889,
+            "load": 7702
+          },
+          "resources": [
+            {
+              "operation": "HomeTimeline",
+              "start": 7420,
+              "end": 10020,
+              "duration": 2600
+            }
+          ]
+        },
+        "load": 7702,
+        "navigation": {
+          "requestStart": 4350,
+          "responseStart": 4350,
+          "responseEnd": 4350,
+          "domInteractive": 4944,
+          "domContentLoadedEventEnd": 5896,
+          "loadEventEnd": 7702
+        }
+      },
+      {
+        "elapsed": 18.276,
+        "origin": 1788953898127,
+        "now": 12326,
+        "kind": "home",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": false,
+        "focus": false,
+        "boot": true,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 4730,
+            "dom_content_loaded": 5889,
+            "load": 7702
+          },
+          "resources": [
+            {
+              "operation": "HomeTimeline",
+              "start": 7420,
+              "end": 10020,
+              "duration": 2600
+            }
+          ]
+        },
+        "load": 7702,
+        "navigation": {
+          "requestStart": 4350,
+          "responseStart": 4350,
+          "responseEnd": 4350,
+          "domInteractive": 4944,
+          "domContentLoadedEventEnd": 5896,
+          "loadEventEnd": 7702
+        }
+      },
+      {
+        "elapsed": 20.543,
+        "origin": 1788953898127,
+        "now": 14142,
+        "kind": "home",
+        "hidden": false,
+        "articles": 3,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": false,
+        "focus": false,
+        "boot": true,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 4730,
+            "dom_content_loaded": 5889,
+            "load": 7702,
+            "first_article": 13229
+          },
+          "resources": [
+            {
+              "operation": "HomeTimeline",
+              "start": 7420,
+              "end": 10020,
+              "duration": 2600
+            }
+          ]
+        },
+        "load": 7702,
+        "navigation": {
+          "requestStart": 4350,
+          "responseStart": 4350,
+          "responseEnd": 4350,
+          "domInteractive": 4944,
+          "domContentLoadedEventEnd": 5896,
+          "loadEventEnd": 7702
+        }
+      },
+      {
+        "elapsed": 21.403,
+        "origin": 1788953898127,
+        "now": 15193,
+        "kind": "home",
+        "hidden": false,
+        "articles": 3,
+        "cards": 2,
+        "detailRoot": false,
+        "preview": false,
+        "focus": true,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 4730,
+            "dom_content_loaded": 5889,
+            "load": 7702,
+            "first_article": 13229,
+            "home_readable": 14241,
+            "presentation_ready": 14407
+          },
+          "resources": [
+            {
+              "operation": "HomeTimeline",
+              "start": 7420,
+              "end": 10020,
+              "duration": 2600
+            }
+          ]
+        },
+        "load": 7702,
+        "navigation": {
+          "requestStart": 4350,
+          "responseStart": 4350,
+          "responseEnd": 4350,
+          "domInteractive": 4944,
+          "domContentLoadedEventEnd": 5896,
+          "loadEventEnd": 7702
+        }
+      },
+      {
+        "elapsed": 22.141,
+        "origin": 1788953898127,
+        "now": 16084,
+        "kind": "home",
+        "hidden": false,
+        "articles": 3,
+        "cards": 2,
+        "detailRoot": false,
+        "preview": false,
+        "focus": true,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 4730,
+            "dom_content_loaded": 5889,
+            "load": 7702,
+            "first_article": 13229,
+            "home_readable": 14241,
+            "presentation_ready": 14407
+          },
+          "resources": [
+            {
+              "operation": "HomeTimeline",
+              "start": 7420,
+              "end": 10020,
+              "duration": 2600
+            }
+          ]
+        },
+        "load": 7702,
+        "navigation": {
+          "requestStart": 4350,
+          "responseStart": 4350,
+          "responseEnd": 4350,
+          "domInteractive": 4944,
+          "domContentLoadedEventEnd": 5896,
+          "loadEventEnd": 7702
+        }
+      },
+      {
+        "elapsed": 22.619,
+        "origin": 1788953898127,
+        "now": 16656,
+        "kind": "home",
+        "hidden": false,
+        "articles": 3,
+        "cards": 2,
+        "detailRoot": false,
+        "preview": false,
+        "focus": true,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 4730,
+            "dom_content_loaded": 5889,
+            "load": 7702,
+            "first_article": 13229,
+            "home_readable": 14241,
+            "presentation_ready": 14407
+          },
+          "resources": [
+            {
+              "operation": "HomeTimeline",
+              "start": 7420,
+              "end": 10020,
+              "duration": 2600
+            }
+          ]
+        },
+        "load": 7702,
+        "navigation": {
+          "requestStart": 4350,
+          "responseStart": 4350,
+          "responseEnd": 4350,
+          "domInteractive": 4944,
+          "domContentLoadedEventEnd": 5896,
+          "loadEventEnd": 7702
+        }
+      }
+    ]
+  },
+  "release-detail": {
+    "mode": "detail",
+    "readable_seconds": 3.075,
+    "live_content_seconds": 10.68,
+    "budget_seconds": 5.0,
+    "passed": true,
+    "samples": [
+      {
+        "elapsed": 1.42,
+        "origin": 1788953898127,
+        "now": 25480,
+        "kind": "home",
+        "hidden": true,
+        "articles": 3,
+        "cards": 2,
+        "detailRoot": false,
+        "preview": false,
+        "focus": true,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 4730,
+            "dom_content_loaded": 5889,
+            "load": 7702,
+            "first_article": 13229,
+            "home_readable": 14241,
+            "presentation_ready": 14407,
+            "preview_send": 25176,
+            "preview_ticket": 25196
+          },
+          "resources": [
+            {
+              "operation": "HomeTimeline",
+              "start": 7420,
+              "end": 10020,
+              "duration": 2600
+            }
+          ]
+        },
+        "load": 7702,
+        "navigation": {
+          "requestStart": 4350,
+          "responseStart": 4350,
+          "responseEnd": 4350,
+          "domInteractive": 4944,
+          "domContentLoadedEventEnd": 5896,
+          "loadEventEnd": 7702
+        }
+      },
+      {
+        "elapsed": 1.927,
+        "origin": 1788953923496,
+        "now": 488,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": true,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 216,
+            "preview_take": 243,
+            "preview_received": 326,
+            "detail_preview": 350
+          },
+          "resources": []
+        },
+        "load": 0,
+        "navigation": {
+          "requestStart": 171,
+          "responseStart": 171,
+          "responseEnd": 171,
+          "domInteractive": 307,
+          "domContentLoadedEventEnd": 0,
+          "loadEventEnd": 0
+        }
+      },
+      {
+        "elapsed": 3.075,
+        "origin": 1788953923496,
+        "now": 1686,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 216,
+            "preview_take": 243,
+            "preview_received": 326,
+            "detail_preview": 350,
+            "presentation_ready": 619,
+            "dom_content_loaded": 1492
+          },
+          "resources": []
+        },
+        "load": 0,
+        "navigation": {
+          "requestStart": 171,
+          "responseStart": 171,
+          "responseEnd": 171,
+          "domInteractive": 307,
+          "domContentLoadedEventEnd": 1496,
+          "loadEventEnd": 0
+        }
+      },
+      {
+        "elapsed": 3.756,
+        "origin": 1788953923496,
+        "now": 2447,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 216,
+            "preview_take": 243,
+            "preview_received": 326,
+            "detail_preview": 350,
+            "presentation_ready": 619,
+            "dom_content_loaded": 1492
+          },
+          "resources": []
+        },
+        "load": 0,
+        "navigation": {
+          "requestStart": 171,
+          "responseStart": 171,
+          "responseEnd": 171,
+          "domInteractive": 307,
+          "domContentLoadedEventEnd": 1496,
+          "loadEventEnd": 0
+        }
+      },
+      {
+        "elapsed": 5.51,
+        "origin": 1788953923496,
+        "now": 3929,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 216,
+            "preview_take": 243,
+            "preview_received": 326,
+            "detail_preview": 350,
+            "presentation_ready": 619,
+            "dom_content_loaded": 1492,
+            "load": 2475
+          },
+          "resources": []
+        },
+        "load": 2476,
+        "navigation": {
+          "requestStart": 171,
+          "responseStart": 171,
+          "responseEnd": 171,
+          "domInteractive": 307,
+          "domContentLoadedEventEnd": 1496,
+          "loadEventEnd": 2476
+        }
+      },
+      {
+        "elapsed": 6.469,
+        "origin": 1788953923496,
+        "now": 5087,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 216,
+            "preview_take": 243,
+            "preview_received": 326,
+            "detail_preview": 350,
+            "presentation_ready": 619,
+            "dom_content_loaded": 1492,
+            "load": 2475
+          },
+          "resources": []
+        },
+        "load": 2476,
+        "navigation": {
+          "requestStart": 171,
+          "responseStart": 171,
+          "responseEnd": 171,
+          "domInteractive": 307,
+          "domContentLoadedEventEnd": 1496,
+          "loadEventEnd": 2476
+        }
+      },
+      {
+        "elapsed": 7.138,
+        "origin": 1788953923496,
+        "now": 5751,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 216,
+            "preview_take": 243,
+            "preview_received": 326,
+            "detail_preview": 350,
+            "presentation_ready": 619,
+            "dom_content_loaded": 1492,
+            "load": 2475
+          },
+          "resources": []
+        },
+        "load": 2476,
+        "navigation": {
+          "requestStart": 171,
+          "responseStart": 171,
+          "responseEnd": 171,
+          "domInteractive": 307,
+          "domContentLoadedEventEnd": 1496,
+          "loadEventEnd": 2476
+        }
+      },
+      {
+        "elapsed": 7.653,
+        "origin": 1788953923496,
+        "now": 6340,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 216,
+            "preview_take": 243,
+            "preview_received": 326,
+            "detail_preview": 350,
+            "presentation_ready": 619,
+            "dom_content_loaded": 1492,
+            "load": 2475
+          },
+          "resources": []
+        },
+        "load": 2476,
+        "navigation": {
+          "requestStart": 171,
+          "responseStart": 171,
+          "responseEnd": 171,
+          "domInteractive": 307,
+          "domContentLoadedEventEnd": 1496,
+          "loadEventEnd": 2476
+        }
+      },
+      {
+        "elapsed": 10.68,
+        "origin": 1788953923496,
+        "now": 9259,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 7,
+        "cards": 0,
+        "detailRoot": true,
+        "preview": false,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 216,
+            "preview_take": 243,
+            "preview_received": 326,
+            "detail_preview": 350,
+            "presentation_ready": 619,
+            "dom_content_loaded": 1492,
+            "load": 2475,
+            "first_article": 6961,
+            "detail_readable": 7062
+          },
+          "resources": [
+            {
+              "operation": "TweetDetail",
+              "start": 5055,
+              "end": 6542,
+              "duration": 1487
+            }
+          ]
+        },
+        "load": 2476,
+        "navigation": {
+          "requestStart": 171,
+          "responseStart": 171,
+          "responseEnd": 171,
+          "domInteractive": 307,
+          "domContentLoadedEventEnd": 1496,
+          "loadEventEnd": 2476
+        }
+      },
+      {
+        "elapsed": 12.189,
+        "origin": 1788953923496,
+        "now": 10859,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 7,
+        "cards": 0,
+        "detailRoot": true,
+        "preview": false,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 216,
+            "preview_take": 243,
+            "preview_received": 326,
+            "detail_preview": 350,
+            "presentation_ready": 619,
+            "dom_content_loaded": 1492,
+            "load": 2475,
+            "first_article": 6961,
+            "detail_readable": 7062
+          },
+          "resources": [
+            {
+              "operation": "TweetDetail",
+              "start": 5055,
+              "end": 6542,
+              "duration": 1487
+            }
+          ]
+        },
+        "load": 2476,
+        "navigation": {
+          "requestStart": 171,
+          "responseStart": 171,
+          "responseEnd": 171,
+          "domInteractive": 307,
+          "domContentLoadedEventEnd": 1496,
+          "loadEventEnd": 2476
+        }
+      }
+    ]
+  },
+  "final-home-01": {
+    "mode": "cold",
+    "readable_seconds": 21.051,
+    "live_content_seconds": 21.051,
+    "budget_seconds": 5.0,
+    "passed": false,
+    "samples": [
+      {
+        "elapsed": 11.175,
+        "origin": 1788953338164,
+        "now": 5038,
+        "kind": "home",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": false,
+        "focus": false,
+        "boot": true,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 4663
+          },
+          "resources": []
+        },
+        "load": 0
+      },
+      {
+        "elapsed": 12.239,
+        "origin": 1788953338164,
+        "now": 6116,
+        "kind": "home",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": false,
+        "focus": false,
+        "boot": true,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 4663,
+            "dom_content_loaded": 5875
+          },
+          "resources": []
+        },
+        "load": 0
+      },
+      {
+        "elapsed": 12.592,
+        "origin": 1788953338164,
+        "now": 6500,
+        "kind": "home",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": false,
+        "focus": false,
+        "boot": true,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 4663,
+            "dom_content_loaded": 5875
+          },
+          "resources": []
+        },
+        "load": 0
+      },
+      {
+        "elapsed": 13.592,
+        "origin": 1788953338164,
+        "now": 7393,
+        "kind": "home",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": false,
+        "focus": false,
+        "boot": true,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 4663,
+            "dom_content_loaded": 5875
+          },
+          "resources": []
+        },
+        "load": 0
+      },
+      {
+        "elapsed": 14.577,
+        "origin": 1788953338164,
+        "now": 8369,
+        "kind": "home",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": false,
+        "focus": false,
+        "boot": true,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 4663,
+            "dom_content_loaded": 5875,
+            "load": 7805
+          },
+          "resources": []
+        },
+        "load": 7806
+      },
+      {
+        "elapsed": 16.068,
+        "origin": 1788953338164,
+        "now": 9269,
+        "kind": "home",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": false,
+        "focus": false,
+        "boot": true,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 4663,
+            "dom_content_loaded": 5875,
+            "load": 7805
+          },
+          "resources": []
+        },
+        "load": 7806
+      },
+      {
+        "elapsed": 17.999,
+        "origin": 1788953338164,
+        "now": 11921,
+        "kind": "home",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": false,
+        "focus": false,
+        "boot": true,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 4663,
+            "dom_content_loaded": 5875,
+            "load": 7805
+          },
+          "resources": [
+            {
+              "operation": "HomeTimeline",
+              "start": 7563,
+              "end": 10008,
+              "duration": 2445
+            }
+          ]
+        },
+        "load": 7806
+      },
+      {
+        "elapsed": 18.353,
+        "origin": 1788953338164,
+        "now": 12265,
+        "kind": "home",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": false,
+        "focus": false,
+        "boot": true,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 4663,
+            "dom_content_loaded": 5875,
+            "load": 7805
+          },
+          "resources": [
+            {
+              "operation": "HomeTimeline",
+              "start": 7563,
+              "end": 10008,
+              "duration": 2445
+            }
+          ]
+        },
+        "load": 7806
+      },
+      {
+        "elapsed": 18.629,
+        "origin": 1788953338164,
+        "now": 12536,
+        "kind": "home",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": false,
+        "focus": false,
+        "boot": true,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 4663,
+            "dom_content_loaded": 5875,
+            "load": 7805
+          },
+          "resources": [
+            {
+              "operation": "HomeTimeline",
+              "start": 7563,
+              "end": 10008,
+              "duration": 2445
+            }
+          ]
+        },
+        "load": 7806
+      },
+      {
+        "elapsed": 21.051,
+        "origin": 1788953338164,
+        "now": 14925,
+        "kind": "home",
+        "hidden": false,
+        "articles": 4,
+        "cards": 2,
+        "detailRoot": false,
+        "preview": false,
+        "focus": true,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 4663,
+            "dom_content_loaded": 5875,
+            "load": 7805,
+            "first_article": 14109,
+            "home_readable": 14333,
+            "presentation_ready": 14604
+          },
+          "resources": [
+            {
+              "operation": "HomeTimeline",
+              "start": 7563,
+              "end": 10008,
+              "duration": 2445
+            }
+          ]
+        },
+        "load": 7806
+      },
+      {
+        "elapsed": 21.694,
+        "origin": 1788953338164,
+        "now": 15440,
+        "kind": "home",
+        "hidden": false,
+        "articles": 4,
+        "cards": 2,
+        "detailRoot": false,
+        "preview": false,
+        "focus": true,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 4663,
+            "dom_content_loaded": 5875,
+            "load": 7805,
+            "first_article": 14109,
+            "home_readable": 14333,
+            "presentation_ready": 14604
+          },
+          "resources": [
+            {
+              "operation": "HomeTimeline",
+              "start": 7563,
+              "end": 10008,
+              "duration": 2445
+            }
+          ]
+        },
+        "load": 7806
+      },
+      {
+        "elapsed": 22.746,
+        "origin": 1788953338164,
+        "now": 16613,
+        "kind": "home",
+        "hidden": false,
+        "articles": 2,
+        "cards": 1,
+        "detailRoot": false,
+        "preview": false,
+        "focus": true,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 4663,
+            "dom_content_loaded": 5875,
+            "load": 7805,
+            "first_article": 14109,
+            "home_readable": 14333,
+            "presentation_ready": 14604
+          },
+          "resources": [
+            {
+              "operation": "HomeTimeline",
+              "start": 7563,
+              "end": 10008,
+              "duration": 2445
+            }
+          ]
+        },
+        "load": 7806
+      }
+    ]
+  },
+  "final-detail-01": {
+    "mode": "detail",
+    "readable_seconds": 3.062,
+    "live_content_seconds": 13.58,
+    "budget_seconds": 5.0,
+    "passed": true,
+    "samples": [
+      {
+        "elapsed": 1.385,
+        "origin": 1788953338164,
+        "now": 39084,
+        "kind": "home",
+        "hidden": true,
+        "articles": 2,
+        "cards": 1,
+        "detailRoot": false,
+        "preview": false,
+        "focus": true,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 4663,
+            "dom_content_loaded": 5875,
+            "load": 7805,
+            "first_article": 14109,
+            "home_readable": 14333,
+            "presentation_ready": 14604,
+            "preview_send": 38815,
+            "preview_ticket": 38834
+          },
+          "resources": [
+            {
+              "operation": "HomeTimeline",
+              "start": 7563,
+              "end": 10008,
+              "duration": 2445
+            }
+          ]
+        },
+        "load": 7806
+      },
+      {
+        "elapsed": 1.875,
+        "origin": 1788953377219,
+        "now": 494,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": true,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 200,
+            "preview_take": 226,
+            "preview_received": 329,
+            "detail_preview": 364
+          },
+          "resources": []
+        },
+        "load": 0
+      },
+      {
+        "elapsed": 3.062,
+        "origin": 1788953377219,
+        "now": 1564,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 200,
+            "preview_take": 226,
+            "preview_received": 329,
+            "detail_preview": 364,
+            "presentation_ready": 1433,
+            "dom_content_loaded": 1551
+          },
+          "resources": []
+        },
+        "load": 0
+      },
+      {
+        "elapsed": 3.294,
+        "origin": 1788953377219,
+        "now": 1915,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 200,
+            "preview_take": 226,
+            "preview_received": 329,
+            "detail_preview": 364,
+            "presentation_ready": 1433,
+            "dom_content_loaded": 1551
+          },
+          "resources": []
+        },
+        "load": 0
+      },
+      {
+        "elapsed": 3.522,
+        "origin": 1788953377219,
+        "now": 2143,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 200,
+            "preview_take": 226,
+            "preview_received": 329,
+            "detail_preview": 364,
+            "presentation_ready": 1433,
+            "dom_content_loaded": 1551
+          },
+          "resources": []
+        },
+        "load": 0
+      },
+      {
+        "elapsed": 3.761,
+        "origin": 1788953377219,
+        "now": 2388,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 200,
+            "preview_take": 226,
+            "preview_received": 329,
+            "detail_preview": 364,
+            "presentation_ready": 1433,
+            "dom_content_loaded": 1551
+          },
+          "resources": []
+        },
+        "load": 0
+      },
+      {
+        "elapsed": 3.995,
+        "origin": 1788953377219,
+        "now": 2622,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 200,
+            "preview_take": 226,
+            "preview_received": 329,
+            "detail_preview": 364,
+            "presentation_ready": 1433,
+            "dom_content_loaded": 1551
+          },
+          "resources": []
+        },
+        "load": 0
+      },
+      {
+        "elapsed": 4.227,
+        "origin": 1788953377219,
+        "now": 2870,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 200,
+            "preview_take": 226,
+            "preview_received": 329,
+            "detail_preview": 364,
+            "presentation_ready": 1433,
+            "dom_content_loaded": 1551
+          },
+          "resources": []
+        },
+        "load": 0
+      },
+      {
+        "elapsed": 4.45,
+        "origin": 1788953377219,
+        "now": 3079,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 200,
+            "preview_take": 226,
+            "preview_received": 329,
+            "detail_preview": 364,
+            "presentation_ready": 1433,
+            "dom_content_loaded": 1551
+          },
+          "resources": []
+        },
+        "load": 0
+      },
+      {
+        "elapsed": 4.676,
+        "origin": 1788953377219,
+        "now": 3307,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 200,
+            "preview_take": 226,
+            "preview_received": 329,
+            "detail_preview": 364,
+            "presentation_ready": 1433,
+            "dom_content_loaded": 1551
+          },
+          "resources": []
+        },
+        "load": 0
+      },
+      {
+        "elapsed": 4.911,
+        "origin": 1788953377219,
+        "now": 3536,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 200,
+            "preview_take": 226,
+            "preview_received": 329,
+            "detail_preview": 364,
+            "presentation_ready": 1433,
+            "dom_content_loaded": 1551
+          },
+          "resources": []
+        },
+        "load": 0
+      },
+      {
+        "elapsed": 5.146,
+        "origin": 1788953377219,
+        "now": 3769,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 200,
+            "preview_take": 226,
+            "preview_received": 329,
+            "detail_preview": 364,
+            "presentation_ready": 1433,
+            "dom_content_loaded": 1551
+          },
+          "resources": []
+        },
+        "load": 0
+      },
+      {
+        "elapsed": 5.389,
+        "origin": 1788953377219,
+        "now": 4017,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 200,
+            "preview_take": 226,
+            "preview_received": 329,
+            "detail_preview": 364,
+            "presentation_ready": 1433,
+            "dom_content_loaded": 1551
+          },
+          "resources": []
+        },
+        "load": 0
+      },
+      {
+        "elapsed": 6.161,
+        "origin": 1788953377219,
+        "now": 4814,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 200,
+            "preview_take": 226,
+            "preview_received": 329,
+            "detail_preview": 364,
+            "presentation_ready": 1433,
+            "dom_content_loaded": 1551
+          },
+          "resources": []
+        },
+        "load": 0
+      },
+      {
+        "elapsed": 7.453,
+        "origin": 1788953377219,
+        "now": 5822,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 200,
+            "preview_take": 226,
+            "preview_received": 329,
+            "detail_preview": 364,
+            "presentation_ready": 1433,
+            "dom_content_loaded": 1551
+          },
+          "resources": []
+        },
+        "load": 0
+      },
+      {
+        "elapsed": 7.7,
+        "origin": 1788953377219,
+        "now": 6334,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 200,
+            "preview_take": 226,
+            "preview_received": 329,
+            "detail_preview": 364,
+            "presentation_ready": 1433,
+            "dom_content_loaded": 1551,
+            "load": 5877
+          },
+          "resources": []
+        },
+        "load": 5878
+      },
+      {
+        "elapsed": 7.935,
+        "origin": 1788953377219,
+        "now": 6572,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 200,
+            "preview_take": 226,
+            "preview_received": 329,
+            "detail_preview": 364,
+            "presentation_ready": 1433,
+            "dom_content_loaded": 1551,
+            "load": 5877
+          },
+          "resources": []
+        },
+        "load": 5878
+      },
+      {
+        "elapsed": 8.658,
+        "origin": 1788953377219,
+        "now": 7302,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 200,
+            "preview_take": 226,
+            "preview_received": 329,
+            "detail_preview": 364,
+            "presentation_ready": 1433,
+            "dom_content_loaded": 1551,
+            "load": 5877
+          },
+          "resources": []
+        },
+        "load": 5878
+      },
+      {
+        "elapsed": 9.205,
+        "origin": 1788953377219,
+        "now": 7795,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 200,
+            "preview_take": 226,
+            "preview_received": 329,
+            "detail_preview": 364,
+            "presentation_ready": 1433,
+            "dom_content_loaded": 1551,
+            "load": 5877
+          },
+          "resources": []
+        },
+        "load": 5878
+      },
+      {
+        "elapsed": 9.727,
+        "origin": 1788953377219,
+        "now": 8358,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 200,
+            "preview_take": 226,
+            "preview_received": 329,
+            "detail_preview": 364,
+            "presentation_ready": 1433,
+            "dom_content_loaded": 1551,
+            "load": 5877
+          },
+          "resources": []
+        },
+        "load": 5878
+      },
+      {
+        "elapsed": 9.953,
+        "origin": 1788953377219,
+        "now": 8583,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 0,
+        "cards": 0,
+        "detailRoot": false,
+        "preview": true,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 200,
+            "preview_take": 226,
+            "preview_received": 329,
+            "detail_preview": 364,
+            "presentation_ready": 1433,
+            "dom_content_loaded": 1551,
+            "load": 5877
+          },
+          "resources": []
+        },
+        "load": 5878
+      },
+      {
+        "elapsed": 13.58,
+        "origin": 1788953377219,
+        "now": 10279,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 1,
+        "cards": 0,
+        "detailRoot": true,
+        "preview": false,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 200,
+            "preview_take": 226,
+            "preview_received": 329,
+            "detail_preview": 364,
+            "presentation_ready": 1433,
+            "dom_content_loaded": 1551,
+            "load": 5877,
+            "first_article": 9226,
+            "detail_readable": 9398
+          },
+          "resources": []
+        },
+        "load": 5878
+      },
+      {
+        "elapsed": 15.405,
+        "origin": 1788953377219,
+        "now": 13925,
+        "kind": "detail",
+        "hidden": false,
+        "articles": 9,
+        "cards": 0,
+        "detailRoot": true,
+        "preview": false,
+        "focus": false,
+        "boot": false,
+        "unavailable": false,
+        "metrics": {
+          "stages": {
+            "content_start": 200,
+            "preview_take": 226,
+            "preview_received": 329,
+            "detail_preview": 364,
+            "presentation_ready": 1433,
+            "dom_content_loaded": 1551,
+            "load": 5877,
+            "first_article": 9226,
+            "detail_readable": 9398
+          },
+          "resources": [
+            {
+              "operation": "TweetDetail",
+              "start": 6153,
+              "end": 9424,
+              "duration": 3271
+            }
+          ]
+        },
+        "load": 5878
+      }
+    ]
+  },
+  "preview-journey": [
+    {
+      "round": 1,
+      "preview_seconds": 3.705,
+      "back_during_preview": true,
+      "same_home_document": true,
+      "same_post": true,
+      "alignment_delta_px": 0.0,
+      "return_settled_seconds": 5.605
+    },
+    {
+      "round": 2,
+      "preview_seconds": 3.06,
+      "back_during_preview": false,
+      "same_home_document": true,
+      "same_post": true,
+      "alignment_delta_px": 0.0,
+      "return_settled_seconds": 4.569
+    },
+    {
+      "round": 3,
+      "preview_seconds": 5.163,
+      "back_during_preview": true,
+      "same_home_document": true,
+      "same_post": true,
+      "alignment_delta_px": 0.0,
+      "return_settled_seconds": 3.599
+    }
+  ],
+  "release-return": {
+    "same_home_document": true,
+    "same_post": true,
+    "alignment_y_px": 99
+  }
+}

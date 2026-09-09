@@ -160,21 +160,15 @@ test('a late native viewport scroll retains the selected post after Back has set
 });
 
 
-test('native host opens a detail session without navigating or replacing the home document', async ({page}) => {
+test('detail uses the existing X router and document for remote OK and Back', async ({page}) => {
  await mount(page,[post()+post({id:'102'})]);await move(page,'down');
  const origin=await page.evaluate(()=>performance.timeOrigin);
- await page.evaluate(()=>{window.TvXNativeHost={openPost:path=>{window.__openedPost=path;}};});
  await activate(page);
- await expect.poll(()=>page.evaluate(()=>window.__openedPost)).toBe('/fixture/status/102');
+ await expect(page).toHaveURL('https://x.com/fixture/status/102');
+ await expect(page.locator('article.tv-detail-post')).toBeVisible();
+ expect(await page.evaluate(()=>performance.timeOrigin)).toBe(origin);
+ await back(page);
  await expect(page).toHaveURL('https://x.com/home');
  await expect(page.locator('[data-fixture-id="102"]')).toHaveClass(/tv-focused/);
  expect(await page.evaluate(()=>performance.timeOrigin)).toBe(origin);
-});
-
-test('native detail Back closes its session after dismissing overlays', async ({page}) => {
- await mount(page,[post()]);await activate(page);
- await page.evaluate(()=>{window.TvXNativeDetail=true;window.TvXNativeHost={closeDetail:()=>{window.__closedDetail=true;}};});
- await back(page);
- await expect.poll(()=>page.evaluate(()=>window.__closedDetail)).toBe(true);
- await expect(page).toHaveURL('https://x.com/fixture/status/101');
 });

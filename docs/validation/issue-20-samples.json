@@ -1,0 +1,174 @@
+[
+ {
+  "at": "2026-09-09T21:04:51.672Z",
+  "step": "attached",
+  "pid": "14216",
+  "url": "file:///android_asset/reader/index.html"
+ },
+ {
+  "at": "2026-09-09T21:04:53.044Z",
+  "step": "extracted",
+  "post": "2097620728610963675",
+  "complete": true,
+  "entities": [
+   {
+    "tco": "https://t.co/mp7haBGUWd",
+    "expanded": "https://termany.sh",
+    "display": "termany.sh"
+   }
+  ],
+  "links": [
+   {
+    "url": "https://termany.sh/",
+    "title": "termany.sh",
+    "domain": "termany.sh"
+   }
+  ]
+ },
+ {
+  "at": "2026-09-09T21:04:54.556Z",
+  "step": "card-tapped",
+  "card": {
+   "label": "termany.sh",
+   "domain": "termany.sh",
+   "x": 510,
+   "y": 408
+  },
+  "external": {
+   "domain": "termany.sh",
+   "title": "termany.sh",
+   "hint": "正在打开…　 返回 取消"
+  },
+  "stages": [
+   "open token=1 url=https://termany.sh/"
+  ]
+ },
+ {
+  "at": "2026-09-09T21:04:56.814Z",
+  "step": "menu",
+  "options": [
+   {
+    "external": false,
+    "selected": true,
+    "label": "写评论",
+    "domain": ""
+   },
+   {
+    "external": false,
+    "selected": false,
+    "label": "取消喜欢",
+    "domain": ""
+   },
+   {
+    "external": true,
+    "selected": false,
+    "label": "termany.sh",
+    "domain": "termany.sh"
+   }
+  ]
+ },
+ {
+  "at": "2026-09-09T21:05:00.120Z",
+  "step": "opening",
+  "msFromKeypress": 1051,
+  "external": {
+   "domain": "termany.sh",
+   "title": "termany.sh",
+   "hint": "正在打开…　 返回 取消"
+  },
+  "dialog": false
+ },
+ {
+  "at": "2026-09-09T21:05:04.019Z",
+  "step": "readable",
+  "stages": [
+   "open token=3 url=https://termany.sh/",
+   "loading url=https://termany.sh/",
+   "loading url=https://termany.sh/",
+   "readable token=3 url=https://termany.sh/"
+  ]
+ },
+ {
+  "at": "2026-09-09T21:05:12.121Z",
+  "step": "scrolled",
+  "changed": true,
+  "top": "102fd0a04fa753ec1b6b70049a145d12",
+  "after": "84a2acd806eabfecb61f0895d3f0dfee"
+ },
+ {
+  "at": "2026-09-09T21:05:13.470Z",
+  "step": "returned",
+  "posts": 1,
+  "external": null,
+  "stages": [
+   "readable token=3 url=https://termany.sh/",
+   "closed token=3 url=https://termany.sh/"
+  ]
+ },
+ {
+  "at": "2026-09-09T21:05:19.798Z",
+  "step": "cancelled",
+  "external": null,
+  "posts": 1,
+  "readerVisible": true,
+  "stages": [
+   "open token=5 url=https://10.255.255.1/hangs",
+   "closed token=5 url=https://10.255.255.1/hangs"
+  ]
+ },
+ {
+  "at": "2026-09-09T21:05:28.119Z",
+  "step": "after-late-callbacks",
+  "external": null,
+  "posts": 1,
+  "stages": []
+ },
+ {
+  "at": "2026-09-09T21:05:45.463Z",
+  "step": "redirected",
+  "from": "https://t.co/mp7haBGUWd",
+  "menu": {
+   "external": true,
+   "selected": false,
+   "label": "termany.sh",
+   "domain": "termany.sh"
+  },
+  "stages": [
+   "open token=7 url=https://t.co/mp7haBGUWd",
+   "loading url=https://t.co/mp7haBGUWd",
+   "loading url=https://termany.sh/",
+   "readable token=7 url=https://termany.sh/",
+   "loading url=https://termany.sh/"
+  ]
+ },
+ {
+  "at": "2026-09-09T21:05:59.093Z",
+  "step": "failed",
+  "external": {
+   "domain": "unreachable.invalid",
+   "title": "unreachable.invalid/page",
+   "hint": "未能打开这个链接　 确认 重试　 返回 回到帖子"
+  },
+  "readerVisible": true,
+  "stages": [
+   "open token=9 url=https://unreachable.invalid/page",
+   "failed token=9 reason=error-147 url=https://unreachable.invalid/page",
+   "closed token=9 url=https://unreachable.invalid/page"
+  ]
+ },
+ {
+  "at": "2026-09-09T21:06:00.282Z",
+  "step": "retried",
+  "external": {
+   "domain": "unreachable.invalid",
+   "title": "unreachable.invalid/page",
+   "hint": "正在打开…　 返回 取消"
+  }
+ },
+ {
+  "at": "2026-09-09T21:06:01.577Z",
+  "step": "done",
+  "external": null,
+  "readerVisible": true
+ }
+]

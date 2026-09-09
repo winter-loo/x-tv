@@ -15,22 +15,22 @@ import android.os.Looper;
 import android.net.Uri;
 import android.view.MotionEvent;
 import org.mozilla.geckoview.GeckoResult;
-import org.mozilla.geckoview.AllowOrDeny;
 import org.mozilla.geckoview.GeckoSession;
 import org.mozilla.geckoview.GeckoSessionSettings;
 import org.mozilla.geckoview.GeckoView;
+import org.mozilla.geckoview.PanZoomController;
+import org.mozilla.geckoview.ScreenLength;
 import org.mozilla.geckoview.WebRequestError;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayDeque;
-import java.util.Deque;
 
 public class BrowserActivity extends Activity {
     private static final String TAG = "BrowserActivity";
     public static final String X_HOME_URL = "https://x.com/home";
+    private static final long EXTERNAL_LOAD_TIMEOUT_MS = 25000;
 
     private View mLoading;
     private boolean mWaitingForPresentation = true;
@@ -43,29 +43,67 @@ public class BrowserActivity extends Activity {
     };
     private GeckoView mGeckoView;
     private GeckoSession mSession;
-    private final Deque<GeckoSession> mDetailSessions = new ArrayDeque<>();
     private NavigationBridge mBridge;
     private TvKeyRouter mKeyRouter;
     private GeckoSession mPopupSession = null;
     private boolean mShowingMock = false;
+    private XReadClient mReadClient;
+    private FastReader mReader;
+    private XWriteClient mWriteClient;
+    private boolean mPrewarmScheduled, mBrowserRequested;
+    private String mReaderPath, mReaderAction, mExternalUrl, mExternalLoading;
+    private int mExternalToken;
+    private Runnable mExternalTimeout;
+    private long mLaunchStarted;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        mLaunchStarted=SystemClock.elapsedRealtime();
         super.onCreate(savedInstanceState);
         Log.e(TAG, "===> BrowserActivity.onCreate START <===");
 
         setContentView(R.layout.activity_browser);
-        mGeckoView = findViewById(R.id.geckoview);
         mLoading = findViewById(R.id.loading_overlay);
-        // A TextureView participates in the Activity's normal alpha/overlay
-        // composition. Older projector SurfaceView implementations can punch
-        // through an opaque sibling while their first buffer is attaching.
-        mGeckoView.setViewBackend(GeckoView.BACKEND_TEXTURE_VIEW);
-        mGeckoView.setAlpha(0f);
-        mGeckoView.setBackgroundColor(0xff090d14);
-        mGeckoView.coverUntilFirstPaint(0xff090d14);
 
+        mReadClient=TvXApplication.takeReadClient();
+        mWriteClient = new XWriteClient(this, mReadClient, (operation, callback) -> {
+            initializeBrowser();
+            if (mBridge == null) callback.accept(null); else mBridge.prepareWrite(operation, callback);
+        });
+        mReadClient.accountChanged=()->{
+            if(isFinishing()||isDestroyed())return;
+            if(mReader!=null){((android.view.ViewGroup)mReader.getParent()).removeView(mReader);mReader.dispose();mReader=null;}
+            mBrowserRequested=false;initializeBrowser();loadXHome();
+        };
+        if(mReadClient.available()&&!getIntent().hasExtra("url")&&!getIntent().hasExtra("action")) {
+            mReader=new FastReader(this,mReadClient,mWriteClient,new FastReader.Listener(){
+                public void rendered(){if(!mPrewarmScheduled){mPrewarmScheduled=true;mUiHandler.postDelayed(BrowserActivity.this::initializeBrowser,1500);}}
+                public void openBrowser(String path,String action){
+                    mBrowserRequested=true;mReaderPath=path;mReaderAction=action;mReader.browserWaiting();
+                    boolean starting=mSession==null;
+                    initializeBrowser();
+                    if(path.equals("/home")){if(!starting)mSession.loadUri(X_HOME_URL);mReader.setVisibility(View.GONE);}
+                    else if(mBridge!=null)mBridge.openReaderAction(path,action);
+                }
+                public void cancelBrowser(){mBrowserRequested=false;mReader.browserReturned();}
+                public void openExternal(String url){BrowserActivity.this.openExternal(url);}
+                public void cancelExternal(){endExternal(true);}
+                public void exit(){finish();}
+            },mLaunchStarted);
+            ((android.view.ViewGroup)mLoading.getParent()).addView(mReader,new android.view.ViewGroup.LayoutParams(-1,-1));
+        } else initializeBrowser();
+    }
+
+    private void initializeBrowser() {
+        if(mSession!=null||isFinishing())return;
         try {
+            mGeckoView = new GeckoView(this);
+            // Create Gecko's view only when login/actions need its renderer.
+            mGeckoView.setViewBackend(GeckoView.BACKEND_TEXTURE_VIEW);
+            mGeckoView.setAlpha(0f);
+            mGeckoView.setBackgroundColor(0xff090d14);
+            mGeckoView.coverUntilFirstPaint(0xff090d14);
+            ((android.view.ViewGroup)mLoading.getParent()).addView(mGeckoView,0,new android.view.ViewGroup.LayoutParams(-1,-1));
             GeckoSessionSettings settings = new GeckoSessionSettings.Builder()
                     .userAgentMode(GeckoSessionSettings.USER_AGENT_MODE_DESKTOP)
                     .viewportMode(GeckoSessionSettings.VIEWPORT_MODE_DESKTOP)
@@ -74,7 +112,11 @@ public class BrowserActivity extends Activity {
 
             mBridge = new NavigationBridge(TvXApplication.getRuntime(), mSession);
             mBridge.setPresentationListener(() -> runOnUiThread(this::showPresentation));
-            mBridge.setExitListener(() -> runOnUiThread(() -> { if (!mDetailSessions.isEmpty()) closeDetail(); else finish(); }));
+            mBridge.setExitListener(() -> runOnUiThread(()->{if(mReader!=null&&mBrowserRequested){mBrowserRequested=false;mReader.browserReturned();}else finish();}));
+            mBridge.setReadTemplateListener(mReadClient::accept);
+            mBridge.setReadClearListener(mReadClient::clear);
+            mBridge.setReaderReturnListener(()->{mBrowserRequested=false;if(mReader!=null)mReader.browserReturned();});
+            mBridge.setReaderReadyListener(path->{if(mReader!=null&&mBrowserRequested&&path.equals(mReaderPath)){mReader.setVisibility(View.GONE);showPresentation();}});
             mBridge.setTapListener((x, y) -> {
                 runOnUiThread(() -> {
                     if (mPopupSession != null) return;
@@ -106,12 +148,18 @@ public class BrowserActivity extends Activity {
                 public void onFocusRequest(GeckoSession session) {
                     if (session == activeSession()) mGeckoView.requestFocus();
                 }
+
+                @Override
+                public void onFirstContentfulPaint(GeckoSession session) {
+                    if (session == activeSession()) revealExternal();
+                }
             });
 
             mSession.setProgressDelegate(new GeckoSession.ProgressDelegate() {
                 @Override
                 public void onPageStart(GeckoSession session, String url) {
                     if (session != activeSession() || "about:blank".equals(url)) return;
+
                     String host = Uri.parse(url).getHost();
                     mWaitingForPresentation = "x.com".equals(host) || "twitter.com".equals(host);
                     mUsingTvAdapter = mWaitingForPresentation;
@@ -128,6 +176,13 @@ public class BrowserActivity extends Activity {
                 @Override
                 public void onPageStop(GeckoSession session, boolean success) {
                     if (session != activeSession()) return;
+                    // A client-side redirect (t.co serves one) aborts the page it navigates away
+                    // from, so only a real load error or the timeout may fail an external target.
+                    if (mExternalUrl != null) {
+                        if (success) revealExternal();
+                        return;
+                    }
+                    if(mBrowserRequested&&mReader!=null)mBridge.openReaderAction(mReaderPath,mReaderAction);
                     if (!mUsingTvAdapter) showPresentation();
                     else if (!success) { mLoadRetryAvailable = true; ((TextView) findViewById(R.id.loading_text)).setText("连接未完成，按确认重试\n返回退出"); }
                     Log.i(TAG, "===> Page stopped, success: " + success);
@@ -141,20 +196,20 @@ public class BrowserActivity extends Activity {
 
             mSession.setNavigationDelegate(new GeckoSession.NavigationDelegate() {
                 @Override
-                public GeckoResult<AllowOrDeny> onLoadRequest(GeckoSession session, LoadRequest request) {
-                    Uri uri = Uri.parse(request.uri);
-                    if (!"tvx".equals(uri.getScheme())) return GeckoResult.fromValue(AllowOrDeny.ALLOW);
-                    if (session == activeSession()) {
-                        if ("post".equals(uri.getHost())) openDetail(uri.getQueryParameter("url"));
-                        else if ("close-detail".equals(uri.getHost())) closeDetail();
-                    }
-                    return GeckoResult.fromValue(AllowOrDeny.DENY);
-                }
-
-                @Override
                 public void onCanGoBack(GeckoSession session, boolean canGoBack) {
                     Log.i(TAG, "canGoBack: " + canGoBack);
                     if (session == activeSession()) mKeyRouter.setCanGoBack(canGoBack);
+                }
+
+                @Override
+                public void onLocationChange(GeckoSession session, String url,
+                        java.util.List<GeckoSession.PermissionDelegate.ContentPermission> perms,
+                        Boolean hasUserGesture) {
+                    if (session != activeSession() || mExternalUrl == null) return;
+                    // Committed, so paints from here belong to this document. X and about:blank
+                    // never qualify, which is what keeps a stale paint off the screen.
+                    mExternalLoading = ExternalTarget.normalize(url);
+                    if (mExternalLoading != null) Log.w(TAG, "===> external loading url=" + url);
                 }
 
                 @Override
@@ -200,6 +255,7 @@ public class BrowserActivity extends Activity {
                 @Override
                 public GeckoResult<String> onLoadError(GeckoSession session, String uri, WebRequestError error) {
                     Log.e(TAG, "===> Page load error for URI: " + uri + " (code=" + error.code + ", category=" + error.category + ")");
+                    if (session == activeSession()) failExternal(mExternalToken, "error-" + error.code);
                     return null;
                 }
             });
@@ -209,53 +265,76 @@ public class BrowserActivity extends Activity {
             mGeckoView.setSession(mSession);
             TvXApplication.getRuntime().getWebExtensionController().setTabActive(mSession, true);
 
-            mBridge.whenReady(() -> handleIntent(getIntent()));
+            mBridge.whenReady(() -> {
+                if(mExternalUrl!=null){mSession.loadUri(mExternalUrl);}
+                else if(mReader!=null&&mBrowserRequested){mSession.loadUri("https://x.com"+mReaderPath);}
+                else handleIntent(getIntent());
+            });
             Log.e(TAG, "===> BrowserActivity.onCreate FINISHED <===");
         } catch (Throwable t) {
             Log.e(TAG, "===> Exception in BrowserActivity.onCreate <===", t);
         }
     }
 
-    private GeckoSession activeSession() {
-        return !mDetailSessions.isEmpty() ? mDetailSessions.peekLast() : mSession;
+    /** Loads an external reading target while the reader stays on screen as the cancel surface. */
+    private void openExternal(String url) {
+        mExternalUrl = url;
+        mExternalLoading = null;
+        final int token = ++mExternalToken;
+        Log.w(TAG, "===> external open token=" + token + " url=" + url);
+        boolean starting = mSession == null;
+        initializeBrowser();
+        if (!starting) mSession.loadUri(url);
+        mExternalTimeout = () -> failExternal(token, "timeout");
+        mUiHandler.postDelayed(mExternalTimeout, EXTERNAL_LOAD_TIMEOUT_MS);
     }
 
-    private void openDetail(String url) {
-        if (url == null) return;
-        Uri uri = Uri.parse(url);
-        if (!"https".equals(uri.getScheme()) || !"x.com".equals(uri.getHost()) ||
-                uri.getPath() == null || !uri.getPath().matches("/[^/]+/status/[0-9]+")) return;
-        GeckoSession parent = activeSession();
-        GeckoSession detail = new GeckoSession(parent.getSettings());
-        mDetailSessions.addLast(detail);
-        detail.setContentDelegate(mSession.getContentDelegate());
-        detail.setProgressDelegate(mSession.getProgressDelegate());
-        detail.setNavigationDelegate(mSession.getNavigationDelegate());
-        detail.open(TvXApplication.getRuntime());
-        mWaitingForPresentation = true;
-        mLoading.setVisibility(View.VISIBLE);
-        ((TextView) findViewById(R.id.loading_text)).setText("正在加载帖子…");
-        mGeckoView.setAlpha(0f);
-        TvXApplication.getRuntime().getWebExtensionController().setTabActive(parent, false);
-        mGeckoView.setSession(detail);
-        mBridge.setSession(detail);
-        TvXApplication.getRuntime().getWebExtensionController().setTabActive(detail, true);
-        detail.loadUri(uri.buildUpon().appendQueryParameter("tvx_detail", "1").build().toString());
-    }
-
-    private void closeDetail() {
-        if (mDetailSessions.isEmpty()) return;
-        GeckoSession detail = mDetailSessions.removeLast();
-        GeckoSession parent = activeSession();
-        TvXApplication.getRuntime().getWebExtensionController().setTabActive(detail, false);
-        mGeckoView.setSession(parent);
-        mBridge.setSession(parent);
-        TvXApplication.getRuntime().getWebExtensionController().setTabActive(parent, true);
-        mUsingTvAdapter = true;
+    /** Hands the screen to the external page, once a document of its own has committed. */
+    private void revealExternal() {
+        if (mExternalUrl == null || mExternalLoading == null || mReader == null) return;
+        Log.w(TAG, "===> external readable token=" + mExternalToken + " url=" + mExternalLoading);
+        clearExternalTimeout();
+        mReader.setVisibility(View.GONE);
         showPresentation();
-        detail.close();
-        mBridge.sendCommand("getState", null);
-        mGeckoView.requestFocus();
+    }
+
+    private void failExternal(int token, String reason) {
+        if (token != mExternalToken || mExternalUrl == null) return;
+        String url = mExternalUrl;
+        Log.w(TAG, "===> external failed token=" + token + " reason=" + reason + " url=" + url);
+        endExternal(false);
+        if (mReader != null) mReader.externalFailed(url);
+    }
+
+    /** Drops the external page and invalidates every callback still in flight for it. */
+    private void endExternal(boolean notifyReader) {
+        if (mExternalUrl == null) return;
+        Log.w(TAG, "===> external closed token=" + mExternalToken + " url=" + mExternalUrl);
+        mExternalUrl = null;
+        mExternalLoading = null;
+        mExternalToken++;
+        clearExternalTimeout();
+        // Back to X: it stops the external page and leaves the session where post actions expect it.
+        if (mSession != null) loadXHome();
+        if (notifyReader && mReader != null) mReader.externalClosed();
+    }
+
+    private void clearExternalTimeout() {
+        if (mExternalTimeout == null) return;
+        mUiHandler.removeCallbacks(mExternalTimeout);
+        mExternalTimeout = null;
+    }
+
+    /** Engine-level scrolling, so the remote reads any page regardless of its own key handling. */
+    private void scrollExternal(boolean down) {
+        if (mSession == null) return;
+        mSession.getPanZoomController().scrollBy(ScreenLength.zero(),
+                ScreenLength.fromVisualViewportHeight(down ? 0.72 : -0.72),
+                PanZoomController.SCROLL_BEHAVIOR_SMOOTH);
+    }
+
+    private GeckoSession activeSession() {
+        return mSession;
     }
 
     private void showPresentation() {
@@ -276,7 +355,8 @@ public class BrowserActivity extends Activity {
         setIntent(intent);
         // A launcher resume must not reload /home and discard the current post.
         if (intent.hasExtra("url") || intent.hasExtra("action")) {
-            while (!mDetailSessions.isEmpty()) closeDetail();
+            if(mReader!=null)mReader.setVisibility(View.GONE);
+            initializeBrowser();
             mBridge.whenReady(() -> handleIntent(intent));
         }
     }
@@ -369,13 +449,12 @@ public class BrowserActivity extends Activity {
     @Override
     protected void onDestroy() {
         Log.e(TAG, "===> BrowserActivity.onDestroy START <===");
+        if(mReader!=null){mReader.dispose();mReader=null;}
+        if(mWriteClient!=null)mWriteClient.close();
+        if(mReadClient!=null)mReadClient.close();
         if (mPopupSession != null && mPopupSession.isOpen()) {
             mPopupSession.close();
             mPopupSession = null;
-        }
-        while (!mDetailSessions.isEmpty()) {
-            GeckoSession detail = mDetailSessions.removeLast();
-            if (detail.isOpen()) detail.close();
         }
         mUiHandler.removeCallbacksAndMessages(null);
         if (mBridge != null) mBridge.close();
@@ -391,12 +470,24 @@ public class BrowserActivity extends Activity {
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
+        if(mReader!=null&&mReader.getVisibility()==View.VISIBLE&&mReader.handleKey(event))return true;
         int code = event.getKeyCode();
+        if(mGeckoView==null)return super.dispatchKeyEvent(event);
+        if(mExternalUrl!=null&&mReader!=null&&mReader.getVisibility()!=View.VISIBLE){
+            if(code==KeyEvent.KEYCODE_BACK){
+                if(event.getAction()==KeyEvent.ACTION_DOWN&&event.getRepeatCount()==0)endExternal(true);
+                return true;
+            }
+            if(code==KeyEvent.KEYCODE_DPAD_UP||code==KeyEvent.KEYCODE_DPAD_DOWN){
+                if(event.getAction()==KeyEvent.ACTION_DOWN)scrollExternal(code==KeyEvent.KEYCODE_DPAD_DOWN);
+                return true;
+            }
+        }
         if (mPopupSession == null && mLoading.getVisibility() == View.VISIBLE &&
                 (code == KeyEvent.KEYCODE_BACK || code == KeyEvent.KEYCODE_ENTER || code == KeyEvent.KEYCODE_DPAD_CENTER ||
                 code == KeyEvent.KEYCODE_DPAD_UP || code == KeyEvent.KEYCODE_DPAD_DOWN || code == KeyEvent.KEYCODE_DPAD_LEFT || code == KeyEvent.KEYCODE_DPAD_RIGHT)) {
             if (event.getAction() == KeyEvent.ACTION_DOWN && event.getRepeatCount() == 0) {
-                if (code == KeyEvent.KEYCODE_BACK) { if (!mDetailSessions.isEmpty()) closeDetail(); else finish(); }
+                if (code == KeyEvent.KEYCODE_BACK) finish();
                 else if ((code == KeyEvent.KEYCODE_ENTER || code == KeyEvent.KEYCODE_DPAD_CENTER) && activeSession() != null && mLoadRetryAvailable) activeSession().reload();
             }
             return true;

@@ -1,0 +1,1239 @@
+[
+  {
+    "label": "plain_initial",
+    "hostTime": 1788903565.3704066,
+    "states": [
+      {
+        "host": "127.0.0.1",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903561377,
+        "now": 3151,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 132,
+            "load": 185,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "4cf26fca-bc54-867c-c1a0-187b8c851fb9",
+          "ack": "8",
+          "injections": "2"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "same_document_reconnect",
+    "hostTime": 1788903567.0010228,
+    "states": [
+      {
+        "host": "127.0.0.1",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903561377,
+        "now": 4786,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 132,
+            "load": 185,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "4cf26fca-bc54-867c-c1a0-187b8c851fb9",
+          "ack": "9",
+          "injections": "2"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "old_port_disconnected",
+    "hostTime": 1788903567.9570131,
+    "states": [
+      {
+        "host": "127.0.0.1",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903561377,
+        "now": 5741,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 132,
+            "load": 185,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "4cf26fca-bc54-867c-c1a0-187b8c851fb9",
+          "ack": "9",
+          "injections": "2"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "pending_navigation_old_document",
+    "hostTime": 1788903569.269971,
+    "states": [
+      {
+        "host": "127.0.0.1",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903561377,
+        "now": 7051,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 132,
+            "load": 185,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "4cf26fca-bc54-867c-c1a0-187b8c851fb9",
+          "ack": "9",
+          "injections": "2"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "slow_committed",
+    "hostTime": 1788903575.4210982,
+    "states": [
+      {
+        "host": "127.0.0.1",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903567266,
+        "now": 7316,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 5149,
+            "load": 5199,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "3645d485-ba06-faa7-550f-469aab85d04c",
+          "ack": "11",
+          "injections": "2"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "same_url_reload_pending",
+    "hostTime": 1788903576.573954,
+    "states": [
+      {
+        "host": "127.0.0.1",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903567266,
+        "now": 8465,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 5149,
+            "load": 5199,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "3645d485-ba06-faa7-550f-469aab85d04c",
+          "ack": "11",
+          "injections": "2"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "same_url_reload_committed",
+    "hostTime": 1788903583.3470054,
+    "states": [
+      {
+        "host": "127.0.0.1",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903574687,
+        "now": 7827,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 5150,
+            "load": 5193,
+            "type": "reload"
+          }
+        ],
+        "probe": {
+          "documentId": "1b513357-dd86-64ce-6878-a1d8fc490061",
+          "ack": "12",
+          "injections": "2"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "redirect_committed",
+    "hostTime": 1788903586.5670846,
+    "states": [
+      {
+        "host": "127.0.0.1",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903582623,
+        "now": 3108,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 122,
+            "load": 172,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "9fc9e5d3-ec39-7642-0be3-b713fb4f8947",
+          "ack": "13",
+          "injections": "2"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "two_sessions",
+    "hostTime": 1788903589.793946,
+    "states": [
+      {
+        "host": "127.0.0.1",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": true,
+        "visibility": "hidden",
+        "origin": 1788903582623,
+        "now": 6262,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 122,
+            "load": 172,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "9fc9e5d3-ec39-7642-0be3-b713fb4f8947",
+          "ack": "13",
+          "injections": "2"
+        }
+      },
+      {
+        "host": "127.0.0.1",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903585926,
+        "now": 3033,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 142,
+            "load": 195,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "1e6d9c2a-62e2-f980-1c6f-c0a0d80e95e2",
+          "ack": "14",
+          "injections": "2"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "restored_parent",
+    "hostTime": 1788903591.9569223,
+    "states": [
+      {
+        "host": "127.0.0.1",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903582623,
+        "now": 8497,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 122,
+            "load": 172,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "9fc9e5d3-ec39-7642-0be3-b713fb4f8947",
+          "ack": "13",
+          "injections": "2"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "explicit_setActive_false",
+    "hostTime": 1788903593.1139407,
+    "states": [
+      {
+        "host": "127.0.0.1",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": true,
+        "visibility": "hidden",
+        "origin": 1788903582623,
+        "now": 9661,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 122,
+            "load": 172,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "9fc9e5d3-ec39-7642-0be3-b713fb4f8947",
+          "ack": "13",
+          "injections": "2"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "explicit_setActive_true",
+    "hostTime": 1788903594.3600209,
+    "states": [
+      {
+        "host": "127.0.0.1",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903582623,
+        "now": 10909,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 122,
+            "load": 172,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "9fc9e5d3-ec39-7642-0be3-b713fb4f8947",
+          "ack": "13",
+          "injections": "2"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "launcher_background",
+    "hostTime": 1788903596.5819266,
+    "states": [
+      {
+        "host": "127.0.0.1",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903582623,
+        "now": 13123,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 122,
+            "load": 172,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "9fc9e5d3-ec39-7642-0be3-b713fb4f8947",
+          "ack": "13",
+          "injections": "2"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "launcher_resume",
+    "hostTime": 1788903597.7529824,
+    "states": [
+      {
+        "host": "127.0.0.1",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903582623,
+        "now": 14301,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 122,
+            "load": 172,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "9fc9e5d3-ec39-7642-0be3-b713fb4f8947",
+          "ack": "13",
+          "injections": "2"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "activity_recreated",
+    "hostTime": 1788903620.3409371,
+    "states": [
+      {
+        "host": "x.com",
+        "path": "home",
+        "readyState": "interactive",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903597320,
+        "now": 22172,
+        "articles": 3,
+        "cards": 2,
+        "focused": true,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 5443,
+            "load": 0,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "68acdc54-0113-7bef-cfb3-55358f8d794b",
+          "ack": "15",
+          "injections": "1",
+          "domReady": "14360"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "mock_asset",
+    "hostTime": 1788903624.5789802,
+    "states": [
+      {
+        "host": "",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903619679,
+        "now": 4033,
+        "articles": 8,
+        "cards": 0,
+        "focused": true,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 419,
+            "load": 421,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "1b070dfd-54ad-5ad1-5c73-a1a55ec4dc59",
+          "ack": "16",
+          "injections": "1"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "mock_down",
+    "hostTime": 1788903625.8559768,
+    "states": [
+      {
+        "host": "",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903619679,
+        "now": 5302,
+        "articles": 8,
+        "cards": 0,
+        "focused": true,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 419,
+            "load": 421,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "1b070dfd-54ad-5ad1-5c73-a1a55ec4dc59",
+          "ack": "16",
+          "injections": "1"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "mock_menu",
+    "hostTime": 1788903627.0799751,
+    "states": [
+      {
+        "host": "",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903619679,
+        "now": 6528,
+        "articles": 8,
+        "cards": 0,
+        "focused": true,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 419,
+            "load": 421,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "1b070dfd-54ad-5ad1-5c73-a1a55ec4dc59",
+          "ack": "16",
+          "injections": "1"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "mock_back",
+    "hostTime": 1788903628.3441973,
+    "states": [
+      {
+        "host": "",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903619679,
+        "now": 7820,
+        "articles": 8,
+        "cards": 0,
+        "focused": true,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 419,
+            "load": 421,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "1b070dfd-54ad-5ad1-5c73-a1a55ec4dc59",
+          "ack": "16",
+          "injections": "1"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "probe_asset",
+    "hostTime": 1788903632.549027,
+    "states": [
+      {
+        "host": "",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903627655,
+        "now": 4028,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 242,
+            "load": 243,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "e313897f-40e5-25f5-ec2f-d0e57a0cca5b",
+          "ack": "17",
+          "injections": "1"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "plain_history_before_back",
+    "hostTime": 1788903637.2180355,
+    "states": [
+      {
+        "host": "127.0.0.1",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903634246,
+        "now": 2089,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 168,
+            "load": 228,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "8eb2fe82-5db9-cf2a-fb34-7b0d54f92b24",
+          "ack": "19",
+          "injections": "2"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "plain_history_after_back",
+    "hostTime": 1788903638.3689005,
+    "states": [
+      {
+        "host": "",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903627655,
+        "now": 9821,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 242,
+            "load": 243,
+            "type": "back_forward"
+          }
+        ],
+        "probe": {
+          "documentId": "e313897f-40e5-25f5-ec2f-d0e57a0cca5b",
+          "ack": "17",
+          "injections": "1"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "popup_local_open",
+    "hostTime": 1788903642.9823227,
+    "states": [
+      {
+        "host": "",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903627655,
+        "now": 14463,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 242,
+            "load": 243,
+            "type": "back_forward"
+          }
+        ],
+        "probe": {
+          "documentId": "e313897f-40e5-25f5-ec2f-d0e57a0cca5b",
+          "ack": "17",
+          "injections": "1"
+        }
+      }
+    ],
+    "accepted": false,
+    "exclusionReason": "Popup button precondition failed; use verified_popup samples instead."
+  },
+  {
+    "label": "popup_local_closed",
+    "hostTime": 1788903646.2839863,
+    "states": [
+      {
+        "host": "",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903642869,
+        "now": 2515,
+        "articles": 8,
+        "cards": 0,
+        "focused": true,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 265,
+            "load": 266,
+            "type": "back_forward"
+          }
+        ],
+        "probe": {
+          "documentId": "7d9b8711-aa08-9ec8-657c-221022ab61a1",
+          "ack": "20",
+          "injections": "1"
+        }
+      }
+    ],
+    "accepted": false,
+    "exclusionReason": "Popup button precondition failed; use verified_popup samples instead."
+  },
+  {
+    "label": "popup_google_open",
+    "hostTime": 1788903659.5799236,
+    "states": [
+      {
+        "host": "",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903642869,
+        "now": 15800,
+        "articles": 8,
+        "cards": 0,
+        "focused": true,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 265,
+            "load": 266,
+            "type": "back_forward"
+          }
+        ],
+        "probe": {
+          "documentId": "7d9b8711-aa08-9ec8-657c-221022ab61a1",
+          "ack": "20",
+          "injections": "1"
+        }
+      }
+    ],
+    "accepted": false,
+    "exclusionReason": "Popup button precondition failed; use verified_popup samples instead."
+  },
+  {
+    "label": "popup_google_closed",
+    "hostTime": 1788903662.78301,
+    "states": [
+      {
+        "host": "",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903642869,
+        "now": 18999,
+        "articles": 8,
+        "cards": 0,
+        "focused": true,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 265,
+            "load": 266,
+            "type": "back_forward"
+          }
+        ],
+        "probe": {
+          "documentId": "7d9b8711-aa08-9ec8-657c-221022ab61a1",
+          "ack": "20",
+          "injections": "1"
+        }
+      }
+    ],
+    "accepted": false,
+    "exclusionReason": "Popup button precondition failed; use verified_popup samples instead."
+  },
+  {
+    "label": "return_home",
+    "hostTime": 1788903685.2980714,
+    "states": [
+      {
+        "host": "x.com",
+        "path": "home",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903661990,
+        "now": 22379,
+        "articles": 3,
+        "cards": 2,
+        "focused": true,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 3152,
+            "load": 17260,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "b7f01f3d-fd50-65ba-a0f0-9ba88f2920b7",
+          "ack": "21",
+          "injections": "2",
+          "domReady": "11605"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "late_connect_initial",
+    "hostTime": 1788903775.5576138,
+    "states": [
+      {
+        "host": "127.0.0.1",
+        "path": "other",
+        "readyState": "interactive",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903767106,
+        "now": 7568,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 7512,
+            "load": 0,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "7c5616bd-7373-7a98-40bb-f86e52fb22aa",
+          "ack": "22",
+          "injections": "1"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "old_document_reconnect_during_same_url_reload",
+    "hostTime": 1788903777.7759888,
+    "states": [
+      {
+        "host": "127.0.0.1",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903767106,
+        "now": 9757,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 7512,
+            "load": 7600,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "7c5616bd-7373-7a98-40bb-f86e52fb22aa",
+          "ack": "23",
+          "injections": "2"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "new_document_after_same_url_reload",
+    "hostTime": 1788903783.904989,
+    "states": [
+      {
+        "host": "127.0.0.1",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903774861,
+        "now": 8147,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 5161,
+            "load": 5224,
+            "type": "reload"
+          }
+        ],
+        "probe": {
+          "documentId": "f8674073-1217-e268-daaf-a909b8484608",
+          "ack": "24",
+          "injections": "2"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "verified_popup_local_open",
+    "hostTime": 1788903791.5361378,
+    "states": [
+      {
+        "host": "127.0.0.1",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": true,
+        "visibility": "hidden",
+        "origin": 1788903783162,
+        "now": 7403,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 155,
+            "load": 221,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "db8a5539-881d-0ed8-ae5a-436dedc6b30f",
+          "ack": "25",
+          "injections": "2"
+        }
+      },
+      {
+        "host": "127.0.0.1",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903787105,
+        "now": 3527,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 118,
+            "load": 166,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "f8d5c3cd-1847-4579-4761-abf1d1116dc3",
+          "injections": "2"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "verified_popup_local_closed",
+    "hostTime": 1788903794.8229182,
+    "states": [
+      {
+        "host": "127.0.0.1",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903783162,
+        "now": 10760,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 155,
+            "load": 221,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "db8a5539-881d-0ed8-ae5a-436dedc6b30f",
+          "ack": "25",
+          "injections": "2"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "verified_popup_google_open",
+    "hostTime": 1788903811.3192828,
+    "states": [
+      {
+        "host": "127.0.0.1",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": true,
+        "visibility": "hidden",
+        "origin": 1788903783162,
+        "now": 27042,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 155,
+            "load": 221,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "db8a5539-881d-0ed8-ae5a-436dedc6b30f",
+          "ack": "25",
+          "injections": "2"
+        }
+      },
+      {
+        "host": "myaccount.google.com",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903794746,
+        "now": 15709,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 4754,
+            "load": 7091,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "ea53f027-53d7-694b-f911-f54a8574cc1e",
+          "injections": "2"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "verified_popup_google_closed",
+    "hostTime": 1788903814.7594233,
+    "states": [
+      {
+        "host": "127.0.0.1",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903783162,
+        "now": 30705,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 155,
+            "load": 221,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "db8a5539-881d-0ed8-ae5a-436dedc6b30f",
+          "ack": "25",
+          "injections": "2"
+        }
+      }
+    ],
+    "accepted": true
+  },
+  {
+    "label": "manual_ready_again",
+    "hostTime": 1788903824.6249998,
+    "states": [
+      {
+        "host": "127.0.0.1",
+        "path": "other",
+        "readyState": "complete",
+        "hidden": false,
+        "visibility": "visible",
+        "origin": 1788903820693,
+        "now": 3042,
+        "articles": 0,
+        "cards": 0,
+        "focused": false,
+        "bootCovered": false,
+        "navigation": [
+          {
+            "startTime": 0,
+            "domContentLoaded": 211,
+            "load": 263,
+            "type": "navigate"
+          }
+        ],
+        "probe": {
+          "documentId": "7f4d32db-f323-3782-546c-eaf27d6d81a3",
+          "ack": "27",
+          "injections": "2"
+        }
+      }
+    ],
+    "accepted": true
+  }
+]

@@ -135,6 +135,9 @@ window.TvXReading = window.TvXReading || (function() {
         if (composer) {
             while (composer.parentElement && composer.parentElement !== column && !composer.parentElement.querySelector("article")) composer = composer.parentElement;
         }
+        // Keep the pending virtual list measurable beneath the opaque startup
+        // cover. Hiding its shared composer ancestor can collapse the whole list.
+        if (document.documentElement.classList.contains("tv-x-boot") && !articles.length) composer = null;
         // X first mounts the composer into an otherwise empty timeline wrapper,
         // then adds posts to that same wrapper. Reconcile the old annotation so
         // a wrapper that now contains posts can become measurable again.

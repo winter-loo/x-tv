@@ -1,0 +1,378 @@
+# journey.log; only structured RfcProbe lines, excluding periodic legacy traffic
+         1788903561.362 28397 28397 E RfcProbe: t=69590859 event=activity_pause session=af6844 
+         1788903561.367 28397 28397 E RfcProbe: t=69590865 event=activity_resume session=af6844 
+         1788903561.397 28397 28397 E RfcProbe: t=69590894 event=page_start session=af6844 active=af6844 host=127.0.0.1
+         1788903561.432 28397 28397 E RfcProbe: t=69590929 event=message session=af6844 connection=7 port=8cda139 data={"hidden":false,"origin":1788903127108,"documentId":"9f7933bd-1ad8-6f55-b987-17a330dde814","at":434320,"host":"127.0.0.1","kind":"other","event":"pagehide","readyState":"complete","persisted":false}
+         1788903561.439 28397 28397 E RfcProbe: t=69590936 event=message session=af6844 connection=7 port=8cda139 data={"hidden":true,"origin":1788903127108,"documentId":"9f7933bd-1ad8-6f55-b987-17a330dde814","at":434327,"host":"127.0.0.1","kind":"other","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903561.462 28397 28397 E RfcProbe: t=69590959 event=disconnect session=af6844 connection=7 port=8cda139 current=true
+         1788903561.488 28397 28397 E RfcProbe: t=69590985 event=connect session=af6844 connection=8 port=b4180df env=2 top=true
+         1788903561.489 28397 28397 E RfcProbe: t=69590986 event=message session=af6844 connection=8 port=b4180df data={"hidden":false,"origin":1788903561377,"documentId":"4cf26fca-bc54-867c-c1a0-187b8c851fb9","at":96,"host":"127.0.0.1","kind":"other","event":"connected","readyState":"loading","connections":1}
+         1788903561.521 28397 28397 E RfcProbe: t=69591018 event=message session=af6844 connection=8 port=b4180df data={"hidden":false,"origin":1788903561377,"documentId":"4cf26fca-bc54-867c-c1a0-187b8c851fb9","at":128,"host":"127.0.0.1","kind":"other","event":"DOMContentLoaded","readyState":"interactive","persisted":false}
+         1788903561.573 28397 28397 E RfcProbe: t=69591070 event=message session=af6844 connection=8 port=b4180df data={"hidden":false,"origin":1788903561377,"documentId":"4cf26fca-bc54-867c-c1a0-187b8c851fb9","at":183,"host":"127.0.0.1","kind":"other","event":"load","readyState":"complete","persisted":false}
+         1788903561.574 28397 28397 E RfcProbe: t=69591071 event=message session=af6844 connection=8 port=b4180df data={"hidden":false,"origin":1788903561377,"documentId":"4cf26fca-bc54-867c-c1a0-187b8c851fb9","at":186,"host":"127.0.0.1","kind":"other","event":"pageshow","readyState":"complete","persisted":false}
+         1788903561.579 28397 28397 E RfcProbe: t=69591077 event=page_stop session=af6844 active=af6844 success=true
+         1788903561.579 28397 28397 E RfcProbe: t=69591077 event=show_requested session=af6844 popup=null
+         1788903561.613 28397 28397 E RfcProbe: t=69591110 event=visible session=af6844 alpha=1.0
+         1788903564.634 28397 28397 E RfcProbe: t=69594132 event=activity_pause session=af6844 
+         1788903564.638 28397 28397 E RfcProbe: t=69594135 event=control session=af6844 op=query_current
+         1788903564.638 28397 28397 E RfcProbe: t=69594136 event=command session=af6844 op=query_current port=b4180df
+         1788903564.639 28397 28397 E RfcProbe: t=69594136 event=activity_resume session=af6844 
+         1788903564.667 28397 28397 E RfcProbe: t=69594164 event=message session=af6844 connection=8 port=b4180df data={"hidden":false,"origin":1788903561377,"result":{"documentId":"4cf26fca-bc54-867c-c1a0-187b8c851fb9","tabId":10001,"current":true},"documentId":"4cf26fca-bc54-867c-c1a0-187b8c851fb9","at":3276,"host":"127.0.0.1","kind":"other","event":"query_result","readyState":"complete"}
+         1788903565.420 28397 28397 E RfcProbe: t=69594918 event=activity_pause session=af6844 
+         1788903565.421 28397 28397 E RfcProbe: t=69594918 event=control session=af6844 op=reconnect
+         1788903565.421 28397 28397 E RfcProbe: t=69594918 event=command session=af6844 op=reconnect port=b4180df
+         1788903565.424 28397 28397 E RfcProbe: t=69594920 event=activity_resume session=af6844 
+         1788903565.439 28397 28397 E RfcProbe: t=69594936 event=connect session=af6844 connection=9 port=ba2012c env=2 top=true
+         1788903565.440 28397 28397 E RfcProbe: t=69594937 event=message session=af6844 connection=9 port=ba2012c data={"hidden":false,"origin":1788903561377,"documentId":"4cf26fca-bc54-867c-c1a0-187b8c851fb9","at":4050,"host":"127.0.0.1","kind":"other","event":"connected","readyState":"complete","connections":2}
+         1788903566.266 28397 28397 E RfcProbe: t=69595763 event=activity_pause session=af6844 
+         1788903566.267 28397 28397 E RfcProbe: t=69595764 event=control session=af6844 op=old_disconnect
+         1788903566.267 28397 28397 E RfcProbe: t=69595764 event=command session=af6844 op=old_disconnect port=ba2012c
+         1788903566.267 28397 28397 E RfcProbe: t=69595765 event=activity_resume session=af6844 
+         1788903566.273 28397 28397 E RfcProbe: t=69595770 event=disconnect session=af6844 connection=8 port=b4180df current=false
+         1788903567.059 28397 28397 E RfcProbe: t=69596556 event=activity_pause session=af6844 
+         1788903567.060 28397 28397 E RfcProbe: t=69596557 event=control session=af6844 op=snapshot
+         1788903567.060 28397 28397 E RfcProbe: t=69596557 event=native_snapshot session=af6844 loading=8 alpha=1.0 popup=null adapter=false
+         1788903567.060 28397 28397 E RfcProbe: t=69596557 event=command session=af6844 op=snapshot port=ba2012c
+         1788903567.061 28397 28397 E RfcProbe: t=69596558 event=activity_resume session=af6844 
+         1788903567.070 28397 28397 E RfcProbe: t=69596567 event=message session=af6844 connection=9 port=ba2012c data={"hidden":false,"origin":1788903561377,"documentId":"4cf26fca-bc54-867c-c1a0-187b8c851fb9","hostReady":false,"bootCovered":false,"at":5686,"host":"127.0.0.1","kind":"other","event":"snapshot","readyState":"complete","connections":2}
+         1788903567.221 28397 28397 E RfcProbe: t=69596718 event=activity_pause session=af6844 
+         1788903567.223 28397 28397 E RfcProbe: t=69596720 event=control session=af6844 op=late_on_pagehide
+         1788903567.223 28397 28397 E RfcProbe: t=69596720 event=command session=af6844 op=late_on_pagehide port=ba2012c
+         1788903567.223 28397 28397 E RfcProbe: t=69596721 event=activity_resume session=af6844 
+         1788903567.286 28397 28397 E RfcProbe: t=69596783 event=page_start session=af6844 active=af6844 host=127.0.0.1
+         1788903568.371 28397 28397 E RfcProbe: t=69597868 event=activity_pause session=af6844 
+         1788903568.372 28397 28397 E RfcProbe: t=69597869 event=control session=af6844 op=query_current
+         1788903568.372 28397 28397 E RfcProbe: t=69597869 event=command session=af6844 op=query_current port=ba2012c
+         1788903568.372 28397 28397 E RfcProbe: t=69597869 event=activity_resume session=af6844 
+         1788903568.406 28397 28397 E RfcProbe: t=69597903 event=message session=af6844 connection=9 port=ba2012c data={"hidden":false,"origin":1788903561377,"result":{"documentId":"4cf26fca-bc54-867c-c1a0-187b8c851fb9","tabId":10001,"current":true},"documentId":"4cf26fca-bc54-867c-c1a0-187b8c851fb9","at":7009,"host":"127.0.0.1","kind":"other","event":"query_result","readyState":"complete"}
+         1788903572.371 28397 28397 E RfcProbe: t=69601869 event=message session=af6844 connection=9 port=ba2012c data={"hidden":false,"origin":1788903561377,"documentId":"4cf26fca-bc54-867c-c1a0-187b8c851fb9","at":10961,"host":"127.0.0.1","kind":"other","event":"pagehide","readyState":"complete","persisted":false}
+         1788903572.372 28397 28397 E RfcProbe: t=69601869 event=disconnect session=af6844 connection=9 port=ba2012c current=true
+         1788903572.373 28397 28397 E RfcProbe: t=69601870 event=connect session=af6844 connection=10 port=45e17f5 env=2 top=true
+         1788903572.375 28397 28397 E RfcProbe: t=69601872 event=message session=af6844 connection=10 port=45e17f5 data={"hidden":false,"origin":1788903561377,"documentId":"4cf26fca-bc54-867c-c1a0-187b8c851fb9","at":10970,"host":"127.0.0.1","kind":"other","event":"connected","readyState":"complete","connections":3}
+         1788903572.376 28397 28397 E RfcProbe: t=69601874 event=message session=af6844 connection=10 port=45e17f5 data={"hidden":true,"origin":1788903561377,"documentId":"4cf26fca-bc54-867c-c1a0-187b8c851fb9","at":10973,"host":"127.0.0.1","kind":"other","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903572.379 28397 28397 E RfcProbe: t=69601876 event=disconnect session=af6844 connection=10 port=45e17f5 current=true
+         1788903572.389 28397 28397 E RfcProbe: t=69601886 event=connect session=af6844 connection=11 port=3db098a env=2 top=true
+         1788903572.390 28397 28397 E RfcProbe: t=69601887 event=message session=af6844 connection=11 port=3db098a data={"hidden":false,"origin":1788903567266,"documentId":"3645d485-ba06-faa7-550f-469aab85d04c","at":5115,"host":"127.0.0.1","kind":"other","event":"connected","readyState":"loading","connections":1}
+         1788903572.424 28397 28397 E RfcProbe: t=69601921 event=message session=af6844 connection=11 port=3db098a data={"hidden":false,"origin":1788903567266,"documentId":"3645d485-ba06-faa7-550f-469aab85d04c","at":5146,"host":"127.0.0.1","kind":"other","event":"DOMContentLoaded","readyState":"interactive","persisted":false}
+         1788903572.469 28397 28397 E RfcProbe: t=69601967 event=message session=af6844 connection=11 port=3db098a data={"hidden":false,"origin":1788903567266,"documentId":"3645d485-ba06-faa7-550f-469aab85d04c","at":5198,"host":"127.0.0.1","kind":"other","event":"load","readyState":"complete","persisted":false}
+         1788903572.472 28397 28397 E RfcProbe: t=69601969 event=message session=af6844 connection=11 port=3db098a data={"hidden":false,"origin":1788903567266,"documentId":"3645d485-ba06-faa7-550f-469aab85d04c","at":5200,"host":"127.0.0.1","kind":"other","event":"pageshow","readyState":"complete","persisted":false}
+         1788903572.476 28397 28397 E RfcProbe: t=69601974 event=page_stop session=af6844 active=af6844 success=true
+         1788903572.476 28397 28397 E RfcProbe: t=69601974 event=show_requested session=af6844 popup=null
+         1788903572.496 28397 28397 E RfcProbe: t=69601993 event=visible session=af6844 alpha=1.0
+         1788903574.677 28397 28397 E RfcProbe: t=69604174 event=activity_pause session=af6844 
+         1788903574.680 28397 28397 E RfcProbe: t=69604177 event=control session=af6844 op=reload
+         1788903574.681 28397 28397 E RfcProbe: t=69604178 event=activity_resume session=af6844 
+         1788903574.701 28397 28397 E RfcProbe: t=69604198 event=page_start session=af6844 active=af6844 host=127.0.0.1
+         1788903579.772 28397 28397 E RfcProbe: t=69609269 event=message session=af6844 connection=11 port=3db098a data={"hidden":false,"origin":1788903567266,"documentId":"3645d485-ba06-faa7-550f-469aab85d04c","at":12490,"host":"127.0.0.1","kind":"other","event":"pagehide","readyState":"complete","persisted":false}
+         1788903579.772 28397 28397 E RfcProbe: t=69609269 event=message session=af6844 connection=11 port=3db098a data={"hidden":true,"origin":1788903567266,"documentId":"3645d485-ba06-faa7-550f-469aab85d04c","at":12493,"host":"127.0.0.1","kind":"other","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903579.772 28397 28397 E RfcProbe: t=69609269 event=disconnect session=af6844 connection=11 port=3db098a current=true
+         1788903579.806 28397 28397 E RfcProbe: t=69609303 event=connect session=af6844 connection=12 port=be74bfb env=2 top=true
+         1788903579.806 28397 28397 E RfcProbe: t=69609303 event=message session=af6844 connection=12 port=be74bfb data={"hidden":false,"origin":1788903574687,"documentId":"1b513357-dd86-64ce-6878-a1d8fc490061","at":5110,"host":"127.0.0.1","kind":"other","event":"connected","readyState":"loading","connections":1}
+         1788903579.841 28397 28397 E RfcProbe: t=69609338 event=message session=af6844 connection=12 port=be74bfb data={"hidden":false,"origin":1788903574687,"documentId":"1b513357-dd86-64ce-6878-a1d8fc490061","at":5147,"host":"127.0.0.1","kind":"other","event":"DOMContentLoaded","readyState":"interactive","persisted":false}
+         1788903579.890 28397 28397 E RfcProbe: t=69609387 event=message session=af6844 connection=12 port=be74bfb data={"hidden":false,"origin":1788903574687,"documentId":"1b513357-dd86-64ce-6878-a1d8fc490061","at":5192,"host":"127.0.0.1","kind":"other","event":"load","readyState":"complete","persisted":false}
+         1788903579.891 28397 28397 E RfcProbe: t=69609388 event=message session=af6844 connection=12 port=be74bfb data={"hidden":false,"origin":1788903574687,"documentId":"1b513357-dd86-64ce-6878-a1d8fc490061","at":5193,"host":"127.0.0.1","kind":"other","event":"pageshow","readyState":"complete","persisted":false}
+         1788903579.891 28397 28397 E RfcProbe: t=69609388 event=page_stop session=af6844 active=af6844 success=true
+         1788903579.891 28397 28397 E RfcProbe: t=69609388 event=show_requested session=af6844 popup=null
+         1788903579.914 28397 28397 E RfcProbe: t=69609411 event=visible session=af6844 alpha=1.0
+         1788903582.613 28397 28397 E RfcProbe: t=69612110 event=activity_pause session=af6844 
+         1788903582.616 28397 28397 E RfcProbe: t=69612113 event=activity_resume session=af6844 
+         1788903582.638 28397 28397 E RfcProbe: t=69612135 event=page_start session=af6844 active=af6844 host=127.0.0.1
+         1788903582.706 28397 28397 E RfcProbe: t=69612203 event=message session=af6844 connection=12 port=be74bfb data={"hidden":false,"origin":1788903574687,"documentId":"1b513357-dd86-64ce-6878-a1d8fc490061","at":7993,"host":"127.0.0.1","kind":"other","event":"pagehide","readyState":"complete","persisted":false}
+         1788903582.706 28397 28397 E RfcProbe: t=69612203 event=message session=af6844 connection=12 port=be74bfb data={"hidden":true,"origin":1788903574687,"documentId":"1b513357-dd86-64ce-6878-a1d8fc490061","at":8000,"host":"127.0.0.1","kind":"other","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903582.707 28397 28397 E RfcProbe: t=69612204 event=disconnect session=af6844 connection=12 port=be74bfb current=true
+         1788903582.717 28397 28397 E RfcProbe: t=69612214 event=connect session=af6844 connection=13 port=9c40418 env=2 top=true
+         1788903582.718 28397 28397 E RfcProbe: t=69612215 event=message session=af6844 connection=13 port=9c40418 data={"hidden":false,"origin":1788903582623,"documentId":"9fc9e5d3-ec39-7642-0be3-b713fb4f8947","at":90,"host":"127.0.0.1","kind":"other","event":"connected","readyState":"loading","connections":1}
+         1788903582.747 28397 28397 E RfcProbe: t=69612245 event=message session=af6844 connection=13 port=9c40418 data={"hidden":false,"origin":1788903582623,"documentId":"9fc9e5d3-ec39-7642-0be3-b713fb4f8947","at":118,"host":"127.0.0.1","kind":"other","event":"DOMContentLoaded","readyState":"interactive","persisted":false}
+         1788903582.801 28397 28397 E RfcProbe: t=69612298 event=message session=af6844 connection=13 port=9c40418 data={"hidden":false,"origin":1788903582623,"documentId":"9fc9e5d3-ec39-7642-0be3-b713fb4f8947","at":171,"host":"127.0.0.1","kind":"other","event":"load","readyState":"complete","persisted":false}
+         1788903582.803 28397 28397 E RfcProbe: t=69612300 event=message session=af6844 connection=13 port=9c40418 data={"hidden":false,"origin":1788903582623,"documentId":"9fc9e5d3-ec39-7642-0be3-b713fb4f8947","at":172,"host":"127.0.0.1","kind":"other","event":"pageshow","readyState":"complete","persisted":false}
+         1788903582.810 28397 28397 E RfcProbe: t=69612308 event=page_stop session=af6844 active=af6844 success=true
+         1788903582.811 28397 28397 E RfcProbe: t=69612308 event=show_requested session=af6844 popup=null
+         1788903582.829 28397 28397 E RfcProbe: t=69612326 event=visible session=af6844 alpha=1.0
+         1788903585.831 28397 28397 E RfcProbe: t=69615329 event=activity_pause session=af6844 
+         1788903585.834 28397 28397 E RfcProbe: t=69615331 event=control session=af6844 op=open_test_detail
+         1788903585.853 28397 28397 E RfcProbe: t=69615350 event=delegate session=4453e71 
+         1788903585.854 28397 28397 E RfcProbe: t=69615351 event=activity_resume session=4453e71 
+         1788903585.865 28397 28397 E RfcProbe: t=69615363 event=message session=af6844 connection=13 port=9c40418 data={"hidden":true,"origin":1788903582623,"documentId":"9fc9e5d3-ec39-7642-0be3-b713fb4f8947","at":3234,"host":"127.0.0.1","kind":"other","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903585.911 28397 28397 E RfcProbe: t=69615409 event=page_start session=4453e71 active=4453e71 host=null
+         1788903585.912 28397 28397 E RfcProbe: t=69615409 event=page_stop session=4453e71 active=4453e71 success=true
+         1788903585.912 28397 28397 E RfcProbe: t=69615409 event=show_requested session=4453e71 popup=null
+         1788903585.936 28397 28397 E RfcProbe: t=69615433 event=page_start session=4453e71 active=4453e71 host=127.0.0.1
+         1788903586.040 28397 28397 E RfcProbe: t=69615537 event=connect session=4453e71 connection=14 port=30149c4 env=2 top=true
+         1788903586.042 28397 28397 E RfcProbe: t=69615539 event=message session=4453e71 connection=14 port=30149c4 data={"hidden":false,"origin":1788903585926,"documentId":"1e6d9c2a-62e2-f980-1c6f-c0a0d80e95e2","at":96,"host":"127.0.0.1","kind":"other","event":"connected","readyState":"loading","connections":1}
+         1788903586.077 28397 28397 E RfcProbe: t=69615574 event=message session=4453e71 connection=14 port=30149c4 data={"hidden":false,"origin":1788903585926,"documentId":"1e6d9c2a-62e2-f980-1c6f-c0a0d80e95e2","at":139,"host":"127.0.0.1","kind":"other","event":"DOMContentLoaded","readyState":"interactive","persisted":false}
+         1788903586.126 28397 28397 E RfcProbe: t=69615623 event=message session=4453e71 connection=14 port=30149c4 data={"hidden":false,"origin":1788903585926,"documentId":"1e6d9c2a-62e2-f980-1c6f-c0a0d80e95e2","at":194,"host":"127.0.0.1","kind":"other","event":"load","readyState":"complete","persisted":false}
+         1788903586.127 28397 28397 E RfcProbe: t=69615625 event=message session=4453e71 connection=14 port=30149c4 data={"hidden":false,"origin":1788903585926,"documentId":"1e6d9c2a-62e2-f980-1c6f-c0a0d80e95e2","at":195,"host":"127.0.0.1","kind":"other","event":"pageshow","readyState":"complete","persisted":false}
+         1788903586.132 28397 28397 E RfcProbe: t=69615629 event=page_stop session=4453e71 active=4453e71 success=true
+         1788903586.132 28397 28397 E RfcProbe: t=69615629 event=show_requested session=4453e71 popup=null
+         1788903586.173 28397 28397 E RfcProbe: t=69615670 event=visible session=4453e71 alpha=1.0
+         1788903589.070 28397 28397 E RfcProbe: t=69618567 event=activity_pause session=4453e71 
+         1788903589.071 28397 28397 E RfcProbe: t=69618568 event=control session=4453e71 op=close_detail
+         1788903589.103 28397 28397 E RfcProbe: t=69618600 event=delegate session=af6844 
+         1788903589.103 28397 28397 E RfcProbe: t=69618601 event=show_requested session=af6844 popup=null
+         1788903589.106 28397 28397 E RfcProbe: t=69618603 event=activity_resume session=af6844 
+         1788903589.121 28397 28397 E RfcProbe: t=69618618 event=message session=4453e71 connection=14 port=30149c4 data={"hidden":true,"origin":1788903585926,"documentId":"1e6d9c2a-62e2-f980-1c6f-c0a0d80e95e2","at":3175,"host":"127.0.0.1","kind":"other","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903589.124 28397 28397 E RfcProbe: t=69618621 event=message session=af6844 connection=13 port=9c40418 data={"hidden":false,"origin":1788903582623,"documentId":"9fc9e5d3-ec39-7642-0be3-b713fb4f8947","at":6489,"host":"127.0.0.1","kind":"other","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903589.175 28397 28397 E RfcProbe: t=69618672 event=message session=4453e71 connection=14 port=30149c4 data={"hidden":true,"origin":1788903585926,"documentId":"1e6d9c2a-62e2-f980-1c6f-c0a0d80e95e2","at":3208,"host":"127.0.0.1","kind":"other","event":"pagehide","readyState":"complete","persisted":false}
+         1788903589.203 28397 28397 E RfcProbe: t=69618701 event=disconnect session=4453e71 connection=14 port=30149c4 current=true
+         1788903591.234 28397 28397 E RfcProbe: t=69620731 event=activity_pause session=af6844 
+         1788903591.235 28397 28397 E RfcProbe: t=69620732 event=control session=af6844 op=hide
+         1788903591.235 28397 28397 E RfcProbe: t=69620732 event=activity_resume session=af6844 
+         1788903591.271 28397 28397 E RfcProbe: t=69620768 event=message session=af6844 connection=13 port=9c40418 data={"hidden":true,"origin":1788903582623,"documentId":"9fc9e5d3-ec39-7642-0be3-b713fb4f8947","at":8620,"host":"127.0.0.1","kind":"other","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903592.492 28397 28397 E RfcProbe: t=69621989 event=activity_pause session=af6844 
+         1788903592.492 28397 28397 E RfcProbe: t=69621990 event=control session=af6844 op=show
+         1788903592.493 28397 28397 E RfcProbe: t=69621990 event=activity_resume session=af6844 
+         1788903592.507 28397 28397 E RfcProbe: t=69622004 event=message session=af6844 connection=13 port=9c40418 data={"hidden":false,"origin":1788903582623,"documentId":"9fc9e5d3-ec39-7642-0be3-b713fb4f8947","at":9873,"host":"127.0.0.1","kind":"other","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903594.523 28397 28397 E RfcProbe: t=69624020 event=activity_pause session=af6844 
+         1788903595.889 28397 28397 E RfcProbe: t=69625386 event=activity_resume session=af6844 
+         1788903597.024 28397 28397 E RfcProbe: t=69626522 event=activity_pause session=af6844 
+         1788903597.025 28397 28397 E RfcProbe: t=69626522 event=control session=af6844 op=recreate
+         1788903597.025 28397 28397 E RfcProbe: t=69626523 event=activity_resume session=af6844 
+         1788903597.031 28397 28397 E RfcProbe: t=69626528 event=activity_pause session=af6844 
+         1788903597.038 28397 28397 E RfcProbe: t=69626535 event=activity_destroy session=af6844 
+         1788903597.074 28397 28397 E RfcProbe: t=69626571 event=activity_create session=null activity=b50dabf
+         1788903597.128 28397 28397 E RfcProbe: t=69626626 event=activity_resume session=eccfa24 
+         1788903597.226 28397 28397 E RfcProbe: t=69626723 event=message session=af6844 connection=13 port=9c40418 data={"hidden":true,"origin":1788903582623,"documentId":"9fc9e5d3-ec39-7642-0be3-b713fb4f8947","at":14427,"host":"127.0.0.1","kind":"other","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903597.227 28397 28397 E RfcProbe: t=69626724 event=message session=af6844 connection=13 port=9c40418 data={"hidden":true,"origin":1788903582623,"documentId":"9fc9e5d3-ec39-7642-0be3-b713fb4f8947","at":14448,"host":"127.0.0.1","kind":"other","event":"pagehide","readyState":"complete","persisted":false}
+         1788903597.227 28397 28397 E RfcProbe: t=69626724 event=disconnect session=af6844 connection=13 port=9c40418 current=true
+         1788903597.248 28397 28397 E RfcProbe: t=69626745 event=delegate session=eccfa24 
+         1788903597.315 28397 28397 E RfcProbe: t=69626812 event=page_start session=eccfa24 active=eccfa24 host=null
+         1788903597.316 28397 28397 E RfcProbe: t=69626813 event=page_stop session=eccfa24 active=eccfa24 success=true
+         1788903597.349 28397 28397 E RfcProbe: t=69626846 event=page_start session=eccfa24 active=eccfa24 host=x.com
+         1788903601.552 28397 28397 E RfcProbe: t=69631050 event=connect session=eccfa24 connection=15 port=e349ea2 env=2 top=true
+         1788903601.553 28397 28397 E RfcProbe: t=69631051 event=message session=eccfa24 connection=15 port=e349ea2 data={"hidden":false,"origin":1788903597320,"documentId":"68acdc54-0113-7bef-cfb3-55358f8d794b","at":4221,"host":"x.com","kind":"home","event":"connected","readyState":"loading","connections":1}
+         1788903602.795 28397 28397 E RfcProbe: t=69632292 event=message session=eccfa24 connection=15 port=e349ea2 data={"hidden":false,"origin":1788903597320,"documentId":"68acdc54-0113-7bef-cfb3-55358f8d794b","at":5435,"host":"x.com","kind":"home","event":"DOMContentLoaded","readyState":"interactive","persisted":false}
+         1788903611.721 28397 28397 E RfcProbe: t=69641218 event=show_requested session=eccfa24 popup=null
+         1788903611.746 28397 28397 E RfcProbe: t=69641243 event=visible session=eccfa24 alpha=1.0
+         1788903619.625 28397 28397 E RfcProbe: t=69649122 event=activity_pause session=eccfa24 
+         1788903619.650 28397 28397 E RfcProbe: t=69649148 event=activity_resume session=eccfa24 
+         1788903619.719 28397 28397 E RfcProbe: t=69649216 event=page_stop session=eccfa24 active=eccfa24 success=false
+         1788903619.731 28397 28397 E RfcProbe: t=69649228 event=page_start session=eccfa24 active=eccfa24 host=null
+         1788903619.855 28397 28397 E RfcProbe: t=69649353 event=message session=eccfa24 connection=15 port=e349ea2 data={"hidden":false,"origin":1788903597320,"documentId":"68acdc54-0113-7bef-cfb3-55358f8d794b","at":22486,"host":"x.com","kind":"home","event":"pagehide","readyState":"complete","persisted":false}
+         1788903619.856 28397 28397 E RfcProbe: t=69649353 event=message session=eccfa24 connection=15 port=e349ea2 data={"hidden":true,"origin":1788903597320,"documentId":"68acdc54-0113-7bef-cfb3-55358f8d794b","at":22498,"host":"x.com","kind":"home","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903619.856 28397 28397 E RfcProbe: t=69649353 event=disconnect session=eccfa24 connection=15 port=e349ea2 current=true
+         1788903619.872 28397 28397 E RfcProbe: t=69649369 event=connect session=eccfa24 connection=16 port=5629af0 env=2 top=true
+         1788903619.879 28397 28397 E RfcProbe: t=69649377 event=message session=eccfa24 connection=16 port=5629af0 data={"hidden":false,"origin":1788903619679,"documentId":"1b070dfd-54ad-5ad1-5c73-a1a55ec4dc59","at":177,"host":"","kind":"data","event":"connected","readyState":"loading","connections":1}
+         1788903620.100 28397 28397 E RfcProbe: t=69649598 event=message session=eccfa24 connection=16 port=5629af0 data={"hidden":false,"origin":1788903619679,"documentId":"1b070dfd-54ad-5ad1-5c73-a1a55ec4dc59","at":414,"host":"","kind":"data","event":"DOMContentLoaded","readyState":"interactive","persisted":false}
+         1788903620.106 28397 28397 E RfcProbe: t=69649603 event=message session=eccfa24 connection=16 port=5629af0 data={"hidden":false,"origin":1788903619679,"documentId":"1b070dfd-54ad-5ad1-5c73-a1a55ec4dc59","at":420,"host":"","kind":"data","event":"load","readyState":"complete","persisted":false}
+         1788903620.107 28397 28397 E RfcProbe: t=69649604 event=message session=eccfa24 connection=16 port=5629af0 data={"hidden":false,"origin":1788903619679,"documentId":"1b070dfd-54ad-5ad1-5c73-a1a55ec4dc59","at":421,"host":"","kind":"data","event":"pageshow","readyState":"complete","persisted":false}
+         1788903620.118 28397 28397 E RfcProbe: t=69649615 event=page_stop session=eccfa24 active=eccfa24 success=true
+         1788903620.118 28397 28397 E RfcProbe: t=69649615 event=show_requested session=eccfa24 popup=null
+         1788903620.146 28397 28397 E RfcProbe: t=69649643 event=visible session=eccfa24 alpha=1.0
+         1788903623.808 28397 28397 E RfcProbe: t=69653305 event=activity_pause session=eccfa24 
+         1788903623.808 28397 28397 E RfcProbe: t=69653306 event=control session=eccfa24 op=snapshot
+         1788903623.808 28397 28397 E RfcProbe: t=69653306 event=native_snapshot session=eccfa24 loading=8 alpha=1.0 popup=null adapter=false
+         1788903623.808 28397 28397 E RfcProbe: t=69653306 event=command session=eccfa24 op=snapshot port=5629af0
+         1788903623.809 28397 28397 E RfcProbe: t=69653306 event=activity_resume session=eccfa24 
+         1788903623.837 28397 28397 E RfcProbe: t=69653335 event=message session=eccfa24 connection=16 port=5629af0 data={"hidden":false,"origin":1788903619679,"documentId":"1b070dfd-54ad-5ad1-5c73-a1a55ec4dc59","hostReady":true,"bootCovered":false,"at":4131,"host":"","kind":"data","event":"snapshot","readyState":"complete","connections":1}
+         1788903624.357 28397 28397 E RfcProbe: t=69653855 event=key session=eccfa24 code=20 action=0 repeat=0 adapter=false popup=null loading=8
+         1788903624.363 28397 28397 E RfcProbe: t=69653860 event=key session=eccfa24 code=20 action=1 repeat=0 adapter=false popup=null loading=8
+         1788903624.387 28397 28397 E RfcProbe: t=69653884 event=message session=eccfa24 connection=16 port=5629af0 data={"hidden":false,"trusted":true,"origin":1788903619679,"repeat":false,"documentId":"1b070dfd-54ad-5ad1-5c73-a1a55ec4dc59","at":4691,"key":"ArrowDown","code":"","host":"","kind":"data","event":"keydown","readyState":"complete"}
+         1788903624.419 28397 28397 E RfcProbe: t=69653917 event=message session=eccfa24 connection=16 port=5629af0 data={"hidden":false,"trusted":true,"origin":1788903619679,"repeat":false,"documentId":"1b070dfd-54ad-5ad1-5c73-a1a55ec4dc59","at":4724,"key":"ArrowDown","code":"","host":"","kind":"data","event":"keyup","readyState":"complete"}
+         1788903625.579 28397 28397 E RfcProbe: t=69655077 event=key session=eccfa24 code=82 action=0 repeat=0 adapter=false popup=null loading=8
+         1788903625.591 28397 28397 E RfcProbe: t=69655088 event=key session=eccfa24 code=82 action=1 repeat=0 adapter=false popup=null loading=8
+         1788903625.601 28397 28397 E RfcProbe: t=69655098 event=message session=eccfa24 connection=16 port=5629af0 data={"hidden":false,"trusted":true,"origin":1788903619679,"repeat":false,"documentId":"1b070dfd-54ad-5ad1-5c73-a1a55ec4dc59","at":5918,"key":"m","code":"","host":"","kind":"data","event":"keydown","readyState":"complete"}
+         1788903625.642 28397 28397 E RfcProbe: t=69655139 event=message session=eccfa24 connection=16 port=5629af0 data={"hidden":false,"trusted":true,"origin":1788903619679,"repeat":false,"documentId":"1b070dfd-54ad-5ad1-5c73-a1a55ec4dc59","at":5943,"key":"m","code":"","host":"","kind":"data","event":"keyup","readyState":"complete"}
+         1788903626.830 28397 28397 E RfcProbe: t=69656327 event=key session=eccfa24 code=4 action=0 repeat=0 adapter=false popup=null loading=8
+         1788903626.838 28397 28397 E RfcProbe: t=69656335 event=key session=eccfa24 code=4 action=1 repeat=0 adapter=false popup=null loading=8
+         1788903627.588 28397 28397 E RfcProbe: t=69657086 event=activity_pause session=eccfa24 
+         1788903627.599 28397 28397 E RfcProbe: t=69657096 event=activity_resume session=eccfa24 
+         1788903627.670 28397 28397 E RfcProbe: t=69657167 event=page_start session=eccfa24 active=eccfa24 host=null
+         1788903627.720 28397 28397 E RfcProbe: t=69657217 event=message session=eccfa24 connection=16 port=5629af0 data={"hidden":false,"origin":1788903619679,"documentId":"1b070dfd-54ad-5ad1-5c73-a1a55ec4dc59","at":8022,"host":"","kind":"data","event":"pagehide","readyState":"complete","persisted":true}
+         1788903627.722 28397 28397 E RfcProbe: t=69657219 event=message session=eccfa24 connection=16 port=5629af0 data={"hidden":true,"origin":1788903619679,"documentId":"1b070dfd-54ad-5ad1-5c73-a1a55ec4dc59","at":8027,"host":"","kind":"data","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903627.770 28397 28397 E RfcProbe: t=69657268 event=connect session=eccfa24 connection=17 port=66202ee env=2 top=true
+         1788903627.777 28397 28397 E RfcProbe: t=69657274 event=message session=eccfa24 connection=17 port=66202ee data={"hidden":false,"origin":1788903627655,"documentId":"e313897f-40e5-25f5-ec2f-d0e57a0cca5b","at":113,"host":"","kind":"data","event":"connected","readyState":"loading","connections":1}
+         1788903627.898 28397 28397 E RfcProbe: t=69657395 event=message session=eccfa24 connection=17 port=66202ee data={"hidden":false,"origin":1788903627655,"documentId":"e313897f-40e5-25f5-ec2f-d0e57a0cca5b","at":238,"host":"","kind":"data","event":"DOMContentLoaded","readyState":"interactive","persisted":false}
+         1788903627.937 28397 28397 E RfcProbe: t=69657434 event=message session=eccfa24 connection=17 port=66202ee data={"hidden":false,"origin":1788903627655,"documentId":"e313897f-40e5-25f5-ec2f-d0e57a0cca5b","at":242,"host":"","kind":"data","event":"load","readyState":"complete","persisted":false}
+         1788903627.937 28397 28397 E RfcProbe: t=69657435 event=message session=eccfa24 connection=17 port=66202ee data={"hidden":false,"origin":1788903627655,"documentId":"e313897f-40e5-25f5-ec2f-d0e57a0cca5b","at":244,"host":"","kind":"data","event":"pageshow","readyState":"complete","persisted":false}
+         1788903627.937 28397 28397 E RfcProbe: t=69657435 event=page_stop session=eccfa24 active=eccfa24 success=true
+         1788903627.938 28397 28397 E RfcProbe: t=69657435 event=show_requested session=eccfa24 popup=null
+         1788903627.954 28397 28397 E RfcProbe: t=69657451 event=visible session=eccfa24 alpha=1.0
+         1788903631.818 28397 28397 E RfcProbe: t=69661315 event=activity_pause session=eccfa24 
+         1788903631.819 28397 28397 E RfcProbe: t=69661316 event=control session=eccfa24 op=snapshot
+         1788903631.819 28397 28397 E RfcProbe: t=69661317 event=native_snapshot session=eccfa24 loading=8 alpha=1.0 popup=null adapter=false
+         1788903631.819 28397 28397 E RfcProbe: t=69661317 event=command session=eccfa24 op=snapshot port=66202ee
+         1788903631.820 28397 28397 E RfcProbe: t=69661318 event=activity_resume session=eccfa24 
+         1788903631.868 28397 28397 E RfcProbe: t=69661365 event=message session=eccfa24 connection=17 port=66202ee data={"hidden":false,"origin":1788903627655,"documentId":"e313897f-40e5-25f5-ec2f-d0e57a0cca5b","hostReady":true,"bootCovered":false,"at":4168,"host":"","kind":"data","event":"snapshot","readyState":"complete","connections":1}
+         1788903631.870 28397 28397 E RfcProbe: t=69661367 event=activity_pause session=eccfa24 
+         1788903631.871 28397 28397 E RfcProbe: t=69661369 event=activity_resume session=eccfa24 
+         1788903631.904 28397 28397 E RfcProbe: t=69661402 event=page_start session=eccfa24 active=eccfa24 host=127.0.0.1
+         1788903633.447 28397 28397 E RfcProbe: t=69662944 event=message session=eccfa24 connection=17 port=66202ee data={"hidden":false,"origin":1788903627655,"documentId":"e313897f-40e5-25f5-ec2f-d0e57a0cca5b","at":5764,"host":"","kind":"data","event":"pagehide","readyState":"complete","persisted":true}
+         1788903633.456 28397 28397 E RfcProbe: t=69662953 event=message session=eccfa24 connection=17 port=66202ee data={"hidden":true,"origin":1788903627655,"documentId":"e313897f-40e5-25f5-ec2f-d0e57a0cca5b","at":5767,"host":"","kind":"data","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903634.247 28397 28397 E RfcProbe: t=69663744 event=connect session=eccfa24 connection=18 port=c696cb4 env=2 top=true
+         1788903634.247 28397 28397 E RfcProbe: t=69663744 event=message session=eccfa24 connection=18 port=c696cb4 data={"hidden":false,"origin":1788903631884,"documentId":"3d5c48ce-7e9b-434f-17eb-19a2d60b2da9","at":2324,"host":"127.0.0.1","kind":"other","event":"connected","readyState":"loading","connections":1}
+         1788903634.285 28397 28397 E RfcProbe: t=69663782 event=page_stop session=eccfa24 active=eccfa24 success=false
+         1788903634.285 28397 28397 E RfcProbe: t=69663783 event=show_requested session=eccfa24 popup=null
+         1788903634.287 28397 28397 E RfcProbe: t=69663784 event=page_start session=eccfa24 active=eccfa24 host=127.0.0.1
+         1788903634.297 28397 28397 E RfcProbe: t=69663794 event=message session=eccfa24 connection=18 port=c696cb4 data={"hidden":false,"origin":1788903631884,"documentId":"3d5c48ce-7e9b-434f-17eb-19a2d60b2da9","at":2374,"host":"127.0.0.1","kind":"other","event":"DOMContentLoaded","readyState":"complete","persisted":false}
+         1788903634.303 28397 28397 E RfcProbe: t=69663799 event=visible session=eccfa24 alpha=0.0
+         1788903634.354 28397 28397 E RfcProbe: t=69663852 event=message session=eccfa24 connection=18 port=c696cb4 data={"hidden":false,"origin":1788903631884,"documentId":"3d5c48ce-7e9b-434f-17eb-19a2d60b2da9","at":2459,"host":"127.0.0.1","kind":"other","event":"pagehide","readyState":"complete","persisted":false}
+         1788903634.355 28397 28397 E RfcProbe: t=69663852 event=message session=eccfa24 connection=18 port=c696cb4 data={"hidden":true,"origin":1788903631884,"documentId":"3d5c48ce-7e9b-434f-17eb-19a2d60b2da9","at":2463,"host":"127.0.0.1","kind":"other","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903634.362 28397 28397 E RfcProbe: t=69663859 event=disconnect session=eccfa24 connection=18 port=c696cb4 current=true
+         1788903634.388 28397 28397 E RfcProbe: t=69663885 event=connect session=eccfa24 connection=19 port=f3a50dd env=2 top=true
+         1788903634.388 28397 28397 E RfcProbe: t=69663886 event=message session=eccfa24 connection=19 port=f3a50dd data={"hidden":false,"origin":1788903634246,"documentId":"8eb2fe82-5db9-cf2a-fb34-7b0d54f92b24","at":132,"host":"127.0.0.1","kind":"other","event":"connected","readyState":"loading","connections":1}
+         1788903634.422 28397 28397 E RfcProbe: t=69663920 event=message session=eccfa24 connection=19 port=f3a50dd data={"hidden":false,"origin":1788903634246,"documentId":"8eb2fe82-5db9-cf2a-fb34-7b0d54f92b24","at":165,"host":"127.0.0.1","kind":"other","event":"DOMContentLoaded","readyState":"interactive","persisted":false}
+         1788903634.488 28397 28397 E RfcProbe: t=69663985 event=message session=eccfa24 connection=19 port=f3a50dd data={"hidden":false,"origin":1788903634246,"documentId":"8eb2fe82-5db9-cf2a-fb34-7b0d54f92b24","at":226,"host":"127.0.0.1","kind":"other","event":"load","readyState":"complete","persisted":false}
+         1788903634.488 28397 28397 E RfcProbe: t=69663985 event=message session=eccfa24 connection=19 port=f3a50dd data={"hidden":false,"origin":1788903634246,"documentId":"8eb2fe82-5db9-cf2a-fb34-7b0d54f92b24","at":228,"host":"127.0.0.1","kind":"other","event":"pageshow","readyState":"complete","persisted":false}
+         1788903634.488 28397 28397 E RfcProbe: t=69663986 event=page_stop session=eccfa24 active=eccfa24 success=true
+         1788903634.488 28397 28397 E RfcProbe: t=69663986 event=show_requested session=eccfa24 popup=null
+         1788903636.875 28397 28397 E RfcProbe: t=69666372 event=key session=eccfa24 code=4 action=0 repeat=0 adapter=false popup=null loading=8
+         1788903636.881 28397 28397 E RfcProbe: t=69666379 event=key session=eccfa24 code=4 action=1 repeat=0 adapter=false popup=null loading=8
+         1788903636.900 28397 28397 E RfcProbe: t=69666397 event=page_start session=eccfa24 active=eccfa24 host=null
+         1788903636.931 28397 28397 E RfcProbe: t=69666428 event=message session=eccfa24 connection=19 port=f3a50dd data={"hidden":true,"origin":1788903634246,"documentId":"8eb2fe82-5db9-cf2a-fb34-7b0d54f92b24","at":2658,"host":"127.0.0.1","kind":"other","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903636.936 28397 28397 E RfcProbe: t=69666433 event=message session=eccfa24 connection=17 port=66202ee data={"hidden":false,"origin":1788903627655,"documentId":"e313897f-40e5-25f5-ec2f-d0e57a0cca5b","at":9262,"host":"","kind":"data","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903636.936 28397 28397 E RfcProbe: t=69666434 event=message session=eccfa24 connection=17 port=66202ee data={"hidden":false,"origin":1788903627655,"documentId":"e313897f-40e5-25f5-ec2f-d0e57a0cca5b","at":9263,"host":"","kind":"data","event":"pageshow","readyState":"complete","persisted":true}
+         1788903636.938 28397 28397 E RfcProbe: t=69666435 event=message session=eccfa24 connection=19 port=f3a50dd data={"hidden":true,"origin":1788903634246,"documentId":"8eb2fe82-5db9-cf2a-fb34-7b0d54f92b24","at":2676,"host":"127.0.0.1","kind":"other","event":"pagehide","readyState":"complete","persisted":false}
+         1788903636.993 28397 28397 E RfcProbe: t=69666490 event=page_stop session=eccfa24 active=eccfa24 success=true
+         1788903636.993 28397 28397 E RfcProbe: t=69666490 event=show_requested session=eccfa24 popup=null
+         1788903636.994 28397 28397 E RfcProbe: t=69666492 event=disconnect session=eccfa24 connection=19 port=f3a50dd current=true
+         1788903637.013 28397 28397 E RfcProbe: t=69666511 event=visible session=eccfa24 alpha=1.0
+         1788903637.123 28397 28397 E RfcProbe: t=69666621 event=disconnect session=eccfa24 connection=16 port=5629af0 current=false
+         1788903638.483 28397 28397 E RfcProbe: t=69667980 event=key session=eccfa24 code=23 action=0 repeat=0 adapter=false popup=null loading=8
+         1788903638.489 28397 28397 E RfcProbe: t=69667986 event=key session=eccfa24 code=23 action=1 repeat=0 adapter=false popup=null loading=8
+         1788903638.494 28397 28397 E RfcProbe: t=69667992 event=message session=eccfa24 connection=17 port=66202ee data={"hidden":false,"trusted":true,"origin":1788903627655,"repeat":false,"documentId":"e313897f-40e5-25f5-ec2f-d0e57a0cca5b","at":10832,"key":"Enter","code":"","host":"","kind":"data","event":"keydown","readyState":"complete"}
+         1788903638.520 28397 28397 E RfcProbe: t=69668018 event=message session=eccfa24 connection=17 port=66202ee data={"hidden":false,"trusted":true,"origin":1788903627655,"repeat":false,"documentId":"e313897f-40e5-25f5-ec2f-d0e57a0cca5b","at":10845,"key":"Enter","code":"","host":"","kind":"data","event":"keyup","readyState":"complete"}
+         1788903642.761 28397 28397 E RfcProbe: t=69672259 event=key session=eccfa24 code=4 action=0 repeat=0 adapter=false popup=null loading=8
+         1788903642.772 28397 28397 E RfcProbe: t=69672269 event=key session=eccfa24 code=4 action=1 repeat=0 adapter=false popup=null loading=8
+         1788903642.887 28397 28397 E RfcProbe: t=69672384 event=page_start session=eccfa24 active=eccfa24 host=null
+         1788903642.915 28397 28397 E RfcProbe: t=69672412 event=message session=eccfa24 connection=17 port=66202ee data={"hidden":false,"origin":1788903627655,"documentId":"e313897f-40e5-25f5-ec2f-d0e57a0cca5b","at":15236,"host":"","kind":"data","event":"pagehide","readyState":"complete","persisted":true}
+         1788903642.915 28397 28397 E RfcProbe: t=69672412 event=message session=eccfa24 connection=17 port=66202ee data={"hidden":true,"origin":1788903627655,"documentId":"e313897f-40e5-25f5-ec2f-d0e57a0cca5b","at":15239,"host":"","kind":"data","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903643.050 28397 28397 E RfcProbe: t=69672547 event=connect session=eccfa24 connection=20 port=a8aa020 env=2 top=true
+         1788903643.052 28397 28397 E RfcProbe: t=69672549 event=message session=eccfa24 connection=20 port=a8aa020 data={"hidden":false,"origin":1788903642869,"documentId":"7d9b8711-aa08-9ec8-657c-221022ab61a1","at":152,"host":"","kind":"data","event":"connected","readyState":"loading","connections":1}
+         1788903643.132 28397 28397 E RfcProbe: t=69672630 event=message session=eccfa24 connection=20 port=a8aa020 data={"hidden":false,"origin":1788903642869,"documentId":"7d9b8711-aa08-9ec8-657c-221022ab61a1","at":261,"host":"","kind":"data","event":"DOMContentLoaded","readyState":"interactive","persisted":false}
+         1788903643.138 28397 28397 E RfcProbe: t=69672635 event=message session=eccfa24 connection=20 port=a8aa020 data={"hidden":false,"origin":1788903642869,"documentId":"7d9b8711-aa08-9ec8-657c-221022ab61a1","at":265,"host":"","kind":"data","event":"load","readyState":"complete","persisted":false}
+         1788903643.139 28397 28397 E RfcProbe: t=69672637 event=message session=eccfa24 connection=20 port=a8aa020 data={"hidden":false,"origin":1788903642869,"documentId":"7d9b8711-aa08-9ec8-657c-221022ab61a1","at":267,"host":"","kind":"data","event":"pageshow","readyState":"complete","persisted":false}
+         1788903643.155 28397 28397 E RfcProbe: t=69672652 event=page_stop session=eccfa24 active=eccfa24 success=true
+         1788903643.155 28397 28397 E RfcProbe: t=69672652 event=show_requested session=eccfa24 popup=null
+         1788903643.179 28397 28397 E RfcProbe: t=69672676 event=visible session=eccfa24 alpha=1.0
+         1788903646.053 28397 28397 E RfcProbe: t=69675550 event=key session=eccfa24 code=23 action=0 repeat=0 adapter=false popup=null loading=8
+         1788903646.060 28397 28397 E RfcProbe: t=69675558 event=key session=eccfa24 code=23 action=1 repeat=0 adapter=false popup=null loading=8
+         1788903646.094 28397 28397 E RfcProbe: t=69675591 event=message session=eccfa24 connection=20 port=a8aa020 data={"hidden":false,"trusted":true,"origin":1788903642869,"repeat":false,"documentId":"7d9b8711-aa08-9ec8-657c-221022ab61a1","at":3193,"key":"Enter","code":"","host":"","kind":"data","event":"keydown","readyState":"complete"}
+         1788903646.094 28397 28397 E RfcProbe: t=69675592 event=message session=eccfa24 connection=20 port=a8aa020 data={"hidden":false,"trusted":true,"origin":1788903642869,"repeat":false,"documentId":"7d9b8711-aa08-9ec8-657c-221022ab61a1","at":3212,"key":"Enter","code":"","host":"","kind":"data","event":"keyup","readyState":"complete"}
+         1788903659.255 28397 28397 E RfcProbe: t=69688752 event=key session=eccfa24 code=4 action=0 repeat=0 adapter=false popup=null loading=8
+         1788903659.259 28397 28397 E RfcProbe: t=69688757 event=key session=eccfa24 code=4 action=1 repeat=0 adapter=false popup=null loading=8
+         1788903661.734 28397 28397 E RfcProbe: t=69691231 event=disconnect session=eccfa24 connection=17 port=66202ee current=false
+         1788903661.985 28397 28397 E RfcProbe: t=69691482 event=activity_pause session=eccfa24 
+         1788903661.987 28397 28397 E RfcProbe: t=69691483 event=activity_resume session=eccfa24 
+         1788903662.027 28397 28397 E RfcProbe: t=69691524 event=page_start session=eccfa24 active=eccfa24 host=x.com
+         1788903664.084 28397 28397 E RfcProbe: t=69693581 event=message session=eccfa24 connection=20 port=a8aa020 data={"hidden":false,"origin":1788903642869,"documentId":"7d9b8711-aa08-9ec8-657c-221022ab61a1","at":21177,"host":"","kind":"data","event":"pagehide","readyState":"complete","persisted":true}
+         1788903664.085 28397 28397 E RfcProbe: t=69693582 event=message session=eccfa24 connection=20 port=a8aa020 data={"hidden":true,"origin":1788903642869,"documentId":"7d9b8711-aa08-9ec8-657c-221022ab61a1","at":21184,"host":"","kind":"data","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903664.158 28397 28397 E RfcProbe: t=69693655 event=connect session=eccfa24 connection=21 port=f55e876 env=2 top=true
+         1788903664.159 28397 28397 E RfcProbe: t=69693656 event=message session=eccfa24 connection=21 port=f55e876 data={"hidden":false,"origin":1788903661990,"documentId":"b7f01f3d-fd50-65ba-a0f0-9ba88f2920b7","at":2150,"host":"x.com","kind":"home","event":"connected","readyState":"loading","connections":1}
+         1788903665.191 28397 28397 E RfcProbe: t=69694689 event=message session=eccfa24 connection=21 port=f55e876 data={"hidden":false,"origin":1788903661990,"documentId":"b7f01f3d-fd50-65ba-a0f0-9ba88f2920b7","at":3148,"host":"x.com","kind":"home","event":"DOMContentLoaded","readyState":"interactive","persisted":false}
+         1788903673.629 28397 28397 E RfcProbe: t=69703126 event=show_requested session=eccfa24 popup=null
+         1788903673.646 28397 28397 E RfcProbe: t=69703143 event=visible session=eccfa24 alpha=1.0
+         1788903679.253 28397 28397 E RfcProbe: t=69708750 event=message session=eccfa24 connection=21 port=f55e876 data={"hidden":false,"origin":1788903661990,"documentId":"b7f01f3d-fd50-65ba-a0f0-9ba88f2920b7","at":17257,"host":"x.com","kind":"home","event":"load","readyState":"complete","persisted":false}
+         1788903679.256 28397 28397 E RfcProbe: t=69708753 event=message session=eccfa24 connection=21 port=f55e876 data={"hidden":false,"origin":1788903661990,"documentId":"b7f01f3d-fd50-65ba-a0f0-9ba88f2920b7","at":17260,"host":"x.com","kind":"home","event":"pageshow","readyState":"complete","persisted":false}
+         1788903679.275 28397 28397 E RfcProbe: t=69708772 event=page_stop session=eccfa24 active=eccfa24 success=true
+# extra.log; only structured RfcProbe lines, excluding periodic legacy traffic
+         1788903767.092 28397 28397 E RfcProbe: t=69796589 event=activity_pause session=eccfa24 
+         1788903767.096 28397 28397 E RfcProbe: t=69796593 event=activity_resume session=eccfa24 
+         1788903767.156 28397 28397 E RfcProbe: t=69796653 event=page_start session=eccfa24 active=eccfa24 host=127.0.0.1
+         1788903773.612 28397 28397 E RfcProbe: t=69803109 event=message session=eccfa24 connection=21 port=f55e876 data={"hidden":false,"origin":1788903661990,"documentId":"b7f01f3d-fd50-65ba-a0f0-9ba88f2920b7","at":111607,"host":"x.com","kind":"home","event":"pagehide","readyState":"complete","persisted":false}
+         1788903773.652 28397 28397 E RfcProbe: t=69803149 event=message session=eccfa24 connection=21 port=f55e876 data={"hidden":true,"origin":1788903661990,"documentId":"b7f01f3d-fd50-65ba-a0f0-9ba88f2920b7","at":111646,"host":"x.com","kind":"home","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903773.792 28397 28397 E RfcProbe: t=69803289 event=disconnect session=eccfa24 connection=21 port=f55e876 current=true
+         1788903774.445 28397 28397 E RfcProbe: t=69803942 event=connect session=eccfa24 connection=22 port=436635a env=2 top=true
+         1788903774.447 28397 28397 E RfcProbe: t=69803943 event=message session=eccfa24 connection=22 port=436635a data={"hidden":false,"origin":1788903767106,"documentId":"7c5616bd-7373-7a98-40bb-f86e52fb22aa","at":7305,"host":"127.0.0.1","kind":"other","event":"connected","readyState":"loading","connections":1}
+         1788903774.633 28397 28397 E RfcProbe: t=69804129 event=message session=eccfa24 connection=22 port=436635a data={"hidden":false,"origin":1788903767106,"documentId":"7c5616bd-7373-7a98-40bb-f86e52fb22aa","at":7501,"host":"127.0.0.1","kind":"other","event":"DOMContentLoaded","readyState":"interactive","persisted":false}
+         1788903774.710 28397 28397 E RfcProbe: t=69804207 event=message session=eccfa24 connection=22 port=436635a data={"hidden":false,"origin":1788903767106,"documentId":"7c5616bd-7373-7a98-40bb-f86e52fb22aa","at":7599,"host":"127.0.0.1","kind":"other","event":"load","readyState":"complete","persisted":false}
+         1788903774.711 28397 28397 E RfcProbe: t=69804208 event=message session=eccfa24 connection=22 port=436635a data={"hidden":false,"origin":1788903767106,"documentId":"7c5616bd-7373-7a98-40bb-f86e52fb22aa","at":7600,"host":"127.0.0.1","kind":"other","event":"pageshow","readyState":"complete","persisted":false}
+         1788903774.763 28397 28397 E RfcProbe: t=69804260 event=page_stop session=eccfa24 active=eccfa24 success=true
+         1788903774.763 28397 28397 E RfcProbe: t=69804260 event=show_requested session=eccfa24 popup=null
+         1788903774.780 28397 28397 E RfcProbe: t=69804277 event=visible session=eccfa24 alpha=1.0
+         1788903774.847 28397 28397 E RfcProbe: t=69804344 event=activity_pause session=eccfa24 
+         1788903774.851 28397 28397 E RfcProbe: t=69804348 event=control session=eccfa24 op=reload
+         1788903774.852 28397 28397 E RfcProbe: t=69804349 event=activity_resume session=eccfa24 
+         1788903774.882 28397 28397 E RfcProbe: t=69804379 event=page_start session=eccfa24 active=eccfa24 host=127.0.0.1
+         1788903775.924 28397 28397 E RfcProbe: t=69805421 event=activity_pause session=eccfa24 
+         1788903775.926 28397 28397 E RfcProbe: t=69805423 event=control session=eccfa24 op=reconnect
+         1788903775.926 28397 28397 E RfcProbe: t=69805423 event=command session=eccfa24 op=reconnect port=436635a
+         1788903775.927 28397 28397 E RfcProbe: t=69805424 event=activity_resume session=eccfa24 
+         1788903775.938 28397 28397 E RfcProbe: t=69805435 event=connect session=eccfa24 connection=23 port=f09e98b env=2 top=true
+         1788903775.951 28397 28397 E RfcProbe: t=69805448 event=message session=eccfa24 connection=23 port=f09e98b data={"hidden":false,"origin":1788903767106,"documentId":"7c5616bd-7373-7a98-40bb-f86e52fb22aa","at":8825,"host":"127.0.0.1","kind":"other","event":"connected","readyState":"complete","connections":2}
+         1788903776.291 28397 28397 E RfcProbe: t=69805788 event=activity_pause session=eccfa24 
+         1788903776.292 28397 28397 E RfcProbe: t=69805789 event=control session=eccfa24 op=query_current
+         1788903776.293 28397 28397 E RfcProbe: t=69805789 event=command session=eccfa24 op=query_current port=f09e98b
+         1788903776.293 28397 28397 E RfcProbe: t=69805790 event=activity_resume session=eccfa24 
+         1788903776.320 28397 28397 E RfcProbe: t=69805816 event=message session=eccfa24 connection=23 port=f09e98b data={"hidden":false,"origin":1788903767106,"result":{"documentId":"7c5616bd-7373-7a98-40bb-f86e52fb22aa","tabId":10050,"current":true},"documentId":"7c5616bd-7373-7a98-40bb-f86e52fb22aa","at":9202,"host":"127.0.0.1","kind":"other","event":"query_result","readyState":"complete"}
+         1788903779.948 28397 28397 E RfcProbe: t=69809445 event=message session=eccfa24 connection=23 port=f09e98b data={"hidden":false,"origin":1788903767106,"documentId":"7c5616bd-7373-7a98-40bb-f86e52fb22aa","at":12839,"host":"127.0.0.1","kind":"other","event":"pagehide","readyState":"complete","persisted":false}
+         1788903779.954 28397 28397 E RfcProbe: t=69809451 event=message session=eccfa24 connection=23 port=f09e98b data={"hidden":true,"origin":1788903767106,"documentId":"7c5616bd-7373-7a98-40bb-f86e52fb22aa","at":12843,"host":"127.0.0.1","kind":"other","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903779.970 28397 28397 E RfcProbe: t=69809467 event=disconnect session=eccfa24 connection=22 port=436635a current=false
+         1788903779.970 28397 28397 E RfcProbe: t=69809467 event=disconnect session=eccfa24 connection=23 port=f09e98b current=true
+         1788903780.008 28397 28397 E RfcProbe: t=69809503 event=connect session=eccfa24 connection=24 port=8e2fa68 env=2 top=true
+         1788903780.009 28397 28397 E RfcProbe: t=69809506 event=message session=eccfa24 connection=24 port=8e2fa68 data={"hidden":false,"origin":1788903774861,"documentId":"f8674073-1217-e268-daaf-a909b8484608","at":5127,"host":"127.0.0.1","kind":"other","event":"connected","readyState":"loading","connections":1}
+         1788903780.025 28397 28397 E RfcProbe: t=69809522 event=message session=eccfa24 connection=24 port=8e2fa68 data={"hidden":false,"origin":1788903774861,"documentId":"f8674073-1217-e268-daaf-a909b8484608","at":5156,"host":"127.0.0.1","kind":"other","event":"DOMContentLoaded","readyState":"interactive","persisted":false}
+         1788903780.087 28397 28397 E RfcProbe: t=69809583 event=message session=eccfa24 connection=24 port=8e2fa68 data={"hidden":false,"origin":1788903774861,"documentId":"f8674073-1217-e268-daaf-a909b8484608","at":5222,"host":"127.0.0.1","kind":"other","event":"load","readyState":"complete","persisted":false}
+         1788903780.105 28397 28397 E RfcProbe: t=69809601 event=message session=eccfa24 connection=24 port=8e2fa68 data={"hidden":false,"origin":1788903774861,"documentId":"f8674073-1217-e268-daaf-a909b8484608","at":5224,"host":"127.0.0.1","kind":"other","event":"pageshow","readyState":"complete","persisted":false}
+         1788903780.105 28397 28397 E RfcProbe: t=69809602 event=page_stop session=eccfa24 active=eccfa24 success=true
+         1788903780.105 28397 28397 E RfcProbe: t=69809602 event=show_requested session=eccfa24 popup=null
+         1788903780.130 28397 28397 E RfcProbe: t=69809626 event=visible session=eccfa24 alpha=1.0
+         1788903783.132 28397 28397 E RfcProbe: t=69812628 event=activity_pause session=eccfa24 
+         1788903783.140 28397 28397 E RfcProbe: t=69812636 event=activity_resume session=eccfa24 
+         1788903783.189 28397 28397 E RfcProbe: t=69812685 event=page_start session=eccfa24 active=eccfa24 host=127.0.0.1
+         1788903783.218 28397 28397 E RfcProbe: t=69812715 event=message session=eccfa24 connection=24 port=8e2fa68 data={"hidden":false,"origin":1788903774861,"documentId":"f8674073-1217-e268-daaf-a909b8484608","at":8346,"host":"127.0.0.1","kind":"other","event":"pagehide","readyState":"complete","persisted":false}
+         1788903783.228 28397 28397 E RfcProbe: t=69812725 event=message session=eccfa24 connection=24 port=8e2fa68 data={"hidden":true,"origin":1788903774861,"documentId":"f8674073-1217-e268-daaf-a909b8484608","at":8363,"host":"127.0.0.1","kind":"other","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903783.252 28397 28397 E RfcProbe: t=69812748 event=disconnect session=eccfa24 connection=24 port=8e2fa68 current=true
+         1788903783.271 28397 28397 E RfcProbe: t=69812768 event=connect session=eccfa24 connection=25 port=5607e81 env=2 top=true
+         1788903783.287 28397 28397 E RfcProbe: t=69812784 event=message session=eccfa24 connection=25 port=5607e81 data={"hidden":false,"origin":1788903783162,"documentId":"db8a5539-881d-0ed8-ae5a-436dedc6b30f","at":103,"host":"127.0.0.1","kind":"other","event":"connected","readyState":"loading","connections":1}
+         1788903783.329 28397 28397 E RfcProbe: t=69812826 event=message session=eccfa24 connection=25 port=5607e81 data={"hidden":false,"origin":1788903783162,"documentId":"db8a5539-881d-0ed8-ae5a-436dedc6b30f","at":151,"host":"127.0.0.1","kind":"other","event":"DOMContentLoaded","readyState":"interactive","persisted":false}
+         1788903783.389 28397 28397 E RfcProbe: t=69812886 event=message session=eccfa24 connection=25 port=5607e81 data={"hidden":false,"origin":1788903783162,"documentId":"db8a5539-881d-0ed8-ae5a-436dedc6b30f","at":220,"host":"127.0.0.1","kind":"other","event":"load","readyState":"complete","persisted":false}
+         1788903783.390 28397 28397 E RfcProbe: t=69812886 event=message session=eccfa24 connection=25 port=5607e81 data={"hidden":false,"origin":1788903783162,"documentId":"db8a5539-881d-0ed8-ae5a-436dedc6b30f","at":222,"host":"127.0.0.1","kind":"other","event":"pageshow","readyState":"complete","persisted":false}
+         1788903783.393 28397 28397 E RfcProbe: t=69812890 event=page_stop session=eccfa24 active=eccfa24 success=true
+         1788903783.393 28397 28397 E RfcProbe: t=69812890 event=show_requested session=eccfa24 popup=null
+         1788903783.414 28397 28397 E RfcProbe: t=69812910 event=visible session=eccfa24 alpha=1.0
+         1788903786.938 28397 28397 E RfcProbe: t=69816434 event=key session=eccfa24 code=23 action=0 repeat=0 adapter=false popup=null loading=8
+         1788903786.942 28397 28397 E RfcProbe: t=69816439 event=key session=eccfa24 code=23 action=1 repeat=0 adapter=false popup=null loading=8
+         1788903786.968 28397 28397 E RfcProbe: t=69816465 event=message session=eccfa24 connection=25 port=5607e81 data={"hidden":false,"trusted":true,"origin":1788903783162,"repeat":false,"documentId":"db8a5539-881d-0ed8-ae5a-436dedc6b30f","at":3790,"key":"Enter","code":"","host":"127.0.0.1","kind":"other","event":"keydown","readyState":"complete"}
+         1788903787.014 28397 28397 E RfcProbe: t=69816510 event=show_requested session=eccfa24 popup=9675b26
+         1788903787.048 28397 28397 E RfcProbe: t=69816545 event=message session=eccfa24 connection=25 port=5607e81 data={"hidden":true,"origin":1788903783162,"documentId":"db8a5539-881d-0ed8-ae5a-436dedc6b30f","at":3869,"host":"127.0.0.1","kind":"other","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903787.135 28397 28397 E RfcProbe: t=69816632 event=message session=eccfa24 connection=25 port=5607e81 data={"hidden":true,"trusted":true,"origin":1788903783162,"repeat":false,"documentId":"db8a5539-881d-0ed8-ae5a-436dedc6b30f","at":3965,"key":"Enter","code":"","host":"127.0.0.1","kind":"other","event":"keyup","readyState":"complete"}
+         1788903791.262 28397 28397 E RfcProbe: t=69820759 event=key session=eccfa24 code=4 action=0 repeat=0 adapter=false popup=9675b26 loading=8
+         1788903791.305 28397 28397 E RfcProbe: t=69820802 event=key session=eccfa24 code=4 action=1 repeat=0 adapter=false popup=null loading=8
+         1788903791.420 28397 28397 E RfcProbe: t=69820916 event=message session=eccfa24 connection=25 port=5607e81 data={"hidden":false,"origin":1788903783162,"documentId":"db8a5539-881d-0ed8-ae5a-436dedc6b30f","at":8143,"host":"127.0.0.1","kind":"other","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903794.575 28397 28397 E RfcProbe: t=69824072 event=key session=eccfa24 code=23 action=0 repeat=0 adapter=false popup=null loading=8
+         1788903794.580 28397 28397 E RfcProbe: t=69824076 event=key session=eccfa24 code=23 action=1 repeat=0 adapter=false popup=null loading=8
+         1788903794.613 28397 28397 E RfcProbe: t=69824110 event=message session=eccfa24 connection=25 port=5607e81 data={"hidden":false,"trusted":true,"origin":1788903783162,"repeat":false,"documentId":"db8a5539-881d-0ed8-ae5a-436dedc6b30f","at":11426,"key":"Enter","code":"","host":"127.0.0.1","kind":"other","event":"keydown","readyState":"complete"}
+         1788903794.655 28397 28397 E RfcProbe: t=69824152 event=show_requested session=eccfa24 popup=42b9367
+         1788903794.683 28397 28397 E RfcProbe: t=69824179 event=message session=eccfa24 connection=25 port=5607e81 data={"hidden":true,"origin":1788903783162,"documentId":"db8a5539-881d-0ed8-ae5a-436dedc6b30f","at":11510,"host":"127.0.0.1","kind":"other","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903794.769 28397 28397 E RfcProbe: t=69824265 event=message session=eccfa24 connection=25 port=5607e81 data={"hidden":true,"trusted":true,"origin":1788903783162,"repeat":false,"documentId":"db8a5539-881d-0ed8-ae5a-436dedc6b30f","at":11592,"key":"Enter","code":"","host":"127.0.0.1","kind":"other","event":"keyup","readyState":"complete"}
+         1788903811.212 28397 28397 E RfcProbe: t=69840708 event=key session=eccfa24 code=4 action=0 repeat=0 adapter=false popup=42b9367 loading=8
+         1788903811.260 28397 28397 E RfcProbe: t=69840757 event=key session=eccfa24 code=4 action=1 repeat=0 adapter=false popup=null loading=8
+         1788903811.365 28397 28397 E RfcProbe: t=69840861 event=message session=eccfa24 connection=25 port=5607e81 data={"hidden":false,"origin":1788903783162,"documentId":"db8a5539-881d-0ed8-ae5a-436dedc6b30f","at":28088,"host":"127.0.0.1","kind":"other","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903813.977 28397 28397 E RfcProbe: t=69843474 event=activity_pause session=eccfa24 
+         1788903813.993 28397 28397 E RfcProbe: t=69843489 event=activity_resume session=eccfa24 
+         1788903814.023 28397 28397 E RfcProbe: t=69843517 event=page_start session=eccfa24 active=eccfa24 host=null
+         1788903814.040 28397 28397 E RfcProbe: t=69843536 event=message session=eccfa24 connection=25 port=5607e81 data={"hidden":false,"origin":1788903783162,"documentId":"db8a5539-881d-0ed8-ae5a-436dedc6b30f","at":30860,"host":"127.0.0.1","kind":"other","event":"pagehide","readyState":"complete","persisted":false}
+         1788903814.040 28397 28397 E RfcProbe: t=69843537 event=message session=eccfa24 connection=25 port=5607e81 data={"hidden":true,"origin":1788903783162,"documentId":"db8a5539-881d-0ed8-ae5a-436dedc6b30f","at":30863,"host":"127.0.0.1","kind":"other","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903814.042 28397 28397 E RfcProbe: t=69843538 event=disconnect session=eccfa24 connection=25 port=5607e81 current=true
+         1788903814.064 28397 28397 E RfcProbe: t=69843561 event=disconnect session=eccfa24 connection=20 port=a8aa020 current=false
+         1788903814.108 28397 28397 E RfcProbe: t=69843604 event=connect session=eccfa24 connection=26 port=8fdcd98 env=2 top=true
+         1788903814.108 28397 28397 E RfcProbe: t=69843605 event=message session=eccfa24 connection=26 port=8fdcd98 data={"hidden":false,"origin":1788903813999,"documentId":"882d0f90-d6d7-861a-008d-f8ffbba168c9","at":94,"host":"","kind":"data","event":"connected","readyState":"loading","connections":1}
+         1788903814.251 28397 28397 E RfcProbe: t=69843748 event=message session=eccfa24 connection=26 port=8fdcd98 data={"hidden":false,"origin":1788903813999,"documentId":"882d0f90-d6d7-861a-008d-f8ffbba168c9","at":244,"host":"","kind":"data","event":"DOMContentLoaded","readyState":"interactive","persisted":false}
+         1788903814.278 28397 28397 E RfcProbe: t=69843774 event=message session=eccfa24 connection=26 port=8fdcd98 data={"hidden":false,"origin":1788903813999,"documentId":"882d0f90-d6d7-861a-008d-f8ffbba168c9","at":249,"host":"","kind":"data","event":"load","readyState":"complete","persisted":false}
+         1788903814.278 28397 28397 E RfcProbe: t=69843774 event=message session=eccfa24 connection=26 port=8fdcd98 data={"hidden":false,"origin":1788903813999,"documentId":"882d0f90-d6d7-861a-008d-f8ffbba168c9","at":250,"host":"","kind":"data","event":"pageshow","readyState":"complete","persisted":false}
+         1788903814.288 28397 28397 E RfcProbe: t=69843784 event=page_stop session=eccfa24 active=eccfa24 success=true
+         1788903814.288 28397 28397 E RfcProbe: t=69843784 event=show_requested session=eccfa24 popup=null
+         1788903814.313 28397 28397 E RfcProbe: t=69843809 event=visible session=eccfa24 alpha=1.0
+         1788903817.595 28397 28397 E RfcProbe: t=69847091 event=key session=eccfa24 code=20 action=0 repeat=0 adapter=false popup=null loading=8
+         1788903817.607 28397 28397 E RfcProbe: t=69847103 event=key session=eccfa24 code=20 action=1 repeat=0 adapter=false popup=null loading=8
+         1788903817.609 28397 28397 E RfcProbe: t=69847105 event=message session=eccfa24 connection=26 port=8fdcd98 data={"hidden":false,"trusted":true,"origin":1788903813999,"repeat":false,"documentId":"882d0f90-d6d7-861a-008d-f8ffbba168c9","at":3603,"key":"ArrowDown","code":"","host":"","kind":"data","event":"keydown","readyState":"complete"}
+         1788903817.640 28397 28397 E RfcProbe: t=69847136 event=message session=eccfa24 connection=26 port=8fdcd98 data={"hidden":false,"trusted":true,"origin":1788903813999,"repeat":false,"documentId":"882d0f90-d6d7-861a-008d-f8ffbba168c9","at":3626,"key":"ArrowDown","code":"","host":"","kind":"data","event":"keyup","readyState":"complete"}
+         1788903818.721 28397 28397 E RfcProbe: t=69848218 event=key session=eccfa24 code=82 action=0 repeat=0 adapter=false popup=null loading=8
+         1788903818.730 28397 28397 E RfcProbe: t=69848226 event=message session=eccfa24 connection=26 port=8fdcd98 data={"hidden":false,"trusted":true,"origin":1788903813999,"repeat":false,"documentId":"882d0f90-d6d7-861a-008d-f8ffbba168c9","at":4724,"key":"m","code":"","host":"","kind":"data","event":"keydown","readyState":"complete"}
+         1788903818.739 28397 28397 E RfcProbe: t=69848235 event=key session=eccfa24 code=82 action=1 repeat=0 adapter=false popup=null loading=8
+         1788903818.757 28397 28397 E RfcProbe: t=69848254 event=message session=eccfa24 connection=26 port=8fdcd98 data={"hidden":false,"trusted":true,"origin":1788903813999,"repeat":false,"documentId":"882d0f90-d6d7-861a-008d-f8ffbba168c9","at":4755,"key":"m","code":"","host":"","kind":"data","event":"keyup","readyState":"complete"}
+         1788903819.910 28397 28397 E RfcProbe: t=69849406 event=key session=eccfa24 code=4 action=0 repeat=0 adapter=false popup=null loading=8
+         1788903819.921 28397 28397 E RfcProbe: t=69849417 event=key session=eccfa24 code=4 action=1 repeat=0 adapter=false popup=null loading=8
+         1788903820.664 28397 28397 E RfcProbe: t=69850160 event=activity_pause session=eccfa24 
+         1788903820.665 28397 28397 E RfcProbe: t=69850162 event=activity_resume session=eccfa24 
+         1788903820.721 28397 28397 E RfcProbe: t=69850218 event=page_start session=eccfa24 active=eccfa24 host=127.0.0.1
+         1788903820.780 28397 28397 E RfcProbe: t=69850276 event=message session=eccfa24 connection=26 port=8fdcd98 data={"hidden":false,"origin":1788903813999,"documentId":"882d0f90-d6d7-861a-008d-f8ffbba168c9","at":6744,"host":"","kind":"data","event":"pagehide","readyState":"complete","persisted":true}
+         1788903820.782 28397 28397 E RfcProbe: t=69850279 event=message session=eccfa24 connection=26 port=8fdcd98 data={"hidden":true,"origin":1788903813999,"documentId":"882d0f90-d6d7-861a-008d-f8ffbba168c9","at":6758,"host":"","kind":"data","event":"visibilitychange","readyState":"complete","persisted":false}
+         1788903820.858 28397 28397 E RfcProbe: t=69850355 event=connect session=eccfa24 connection=27 port=6cb4dae env=2 top=true
+         1788903820.862 28397 28397 E RfcProbe: t=69850359 event=message session=eccfa24 connection=27 port=6cb4dae data={"hidden":false,"origin":1788903820693,"documentId":"7f4d32db-f323-3782-546c-eaf27d6d81a3","at":160,"host":"127.0.0.1","kind":"other","event":"connected","readyState":"loading","connections":1}
+         1788903820.911 28397 28397 E RfcProbe: t=69850408 event=message session=eccfa24 connection=27 port=6cb4dae data={"hidden":false,"origin":1788903820693,"documentId":"7f4d32db-f323-3782-546c-eaf27d6d81a3","at":207,"host":"127.0.0.1","kind":"other","event":"DOMContentLoaded","readyState":"interactive","persisted":false}
+         1788903820.961 28397 28397 E RfcProbe: t=69850457 event=message session=eccfa24 connection=27 port=6cb4dae data={"hidden":false,"origin":1788903820693,"documentId":"7f4d32db-f323-3782-546c-eaf27d6d81a3","at":263,"host":"127.0.0.1","kind":"other","event":"load","readyState":"complete","persisted":false}
+         1788903820.964 28397 28397 E RfcProbe: t=69850460 event=message session=eccfa24 connection=27 port=6cb4dae data={"hidden":false,"origin":1788903820693,"documentId":"7f4d32db-f323-3782-546c-eaf27d6d81a3","at":264,"host":"127.0.0.1","kind":"other","event":"pageshow","readyState":"complete","persisted":false}
+         1788903820.979 28397 28397 E RfcProbe: t=69850475 event=page_stop session=eccfa24 active=eccfa24 success=true
+         1788903820.979 28397 28397 E RfcProbe: t=69850475 event=show_requested session=eccfa24 popup=null
+         1788903820.997 28397 28397 E RfcProbe: t=69850494 event=visible session=eccfa24 alpha=1.0

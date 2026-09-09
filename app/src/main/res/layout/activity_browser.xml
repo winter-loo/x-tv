@@ -4,11 +4,6 @@
     android:layout_height="match_parent"
     android:background="@color/x_dark_bg">
 
-    <org.mozilla.geckoview.GeckoView
-        android:id="@+id/geckoview"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
     <FrameLayout android:id="@+id/loading_overlay"
         android:layout_width="match_parent" android:layout_height="match_parent"
         android:background="#090d14" android:clickable="true">
