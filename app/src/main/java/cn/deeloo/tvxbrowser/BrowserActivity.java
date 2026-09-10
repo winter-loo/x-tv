@@ -319,10 +319,12 @@ public class BrowserActivity extends Activity {
                 // the content script to report in.
                 boolean routable = ExternalTarget.isX(mCommitted) && mBridge != null;
                 Log.w(TAG, "===> handoff drive kind=POST routable=" + routable + " at=" + mCommitted);
-                if (routable)
-                    mBridge.openReaderAction(mHandoff.target(), mHandoff.action());
-                else
+                if (!routable)
                     mSession.loadUri("https://x.com" + mHandoff.target());
+                else if (!mHandoff.routedFrom(mCommitted)) {
+                    mHandoff.routedVia(mCommitted);
+                    mBridge.openReaderAction(mHandoff.target(), mHandoff.action());
+                }
                 break;
         }
     }

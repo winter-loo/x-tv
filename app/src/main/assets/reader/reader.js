@@ -2,7 +2,7 @@
 'use strict';
 var stage = document.getElementById('stage'), title = document.getElementById('title'),
     help = document.getElementById('help');
-var sequence = 0, pending = 'r0', stack = [],
+var sequence = 0, pending = 'r0', stack = [], homeRefresh = '',
     state = {mode: 'home', posts: [], index: 0, cursor: '', region: 'post'}, viewer = null, paging = false,
     refreshing = false;
 var homeScene = state, actionMenu = null, external = null, likeOps = {}, likeQueue = [],
@@ -442,12 +442,12 @@ function render() {
     notice(post && written[post.id] ? written[post.id].message || '' : '');
     var freshness = document.getElementById('freshness'), refresh = document.getElementById('refresh');
     refresh.hidden = state.mode !== 'home';
-    refresh.className = state.region === 'refresh' ? 'selected' : '';
+    refresh.textContent = homeRefresh ? '正在刷新…' : '刷新';
     freshness.textContent = state.mode !== 'home' ?
         (state.cachedAt            ? '上次内容 ' + new Date(state.cachedAt).toLocaleString() :
              state.commentsLoading ? '正文已载入 · 评论更新中' :
                                      '') :
-        state.pendingHome ? '有新内容 · ↑ 刷新' :
+        state.pendingHome ? '有 ' + state.pendingHome.fresh + ' 条新帖 · ↑ 刷新' :
         state.cachedAt    ? '上次时间线 ' + new Date(state.cachedAt).toLocaleString() +
             (state.updateFailed ? ' · 更新未完成' : ' · 正在更新') :
                          '刚刚更新';
@@ -465,9 +465,9 @@ function render() {
     }
     if (state.mode === 'home') {
         stage.innerHTML = postHtml(post, false) + media(post);
-        help.textContent = state.region === 'refresh' ? '确认 刷新时间线　 ↓ 返回帖子' :
-            state.region === 'media'                  ? '确认 查看媒体　 ← 返回正文　 ↑↓ 切换帖子' :
-                                       '↑↓ 切换帖子　 确认 帖子详情　 → 查看媒体　 菜单 更多操作';
+        help.textContent = state.region === 'media' ?
+            '确认 查看媒体　 ← 返回正文　 ↑↓ 切换帖子' :
+            '↑↓ 切换帖子　 顶部 ↑ 刷新　 确认 帖子详情　 → 查看媒体　 菜单 更多操作';
     } else {
         var comments = state.posts
                            .map(function(comment, i) {
@@ -557,6 +557,56 @@ function cachedHome(payload, at) {
         });
     });
 }
+/** How many of these posts the reader is not already showing. */
+function countNew(posts) {
+    var known = {}, count = 0;
+    homeScene.posts.forEach(function(post) {
+        known[post.id] = true;
+    });
+    posts.forEach(function(post) {
+        if (!known[post.id]) count++;
+    });
+    return count;
+}
+/** Up at the top of the timeline: take what is waiting, otherwise go and ask. */
+function refreshHome() {
+    if (homeScene.pendingHome) {
+        var fresh = homeScene.pendingHome.fresh;
+        applyHome();
+        notice('已加入 ' + fresh + ' 条新帖子');
+        return;
+    }
+    if (homeRefresh) return;
+    request('');
+    homeRefresh = pending;
+    render();
+    notice('正在刷新…');
+}
+function homeRefreshed(id, payload, error) {
+    homeRefresh = '';
+    if (error || !payload) {
+        render();
+        notice('刷新未完成，按上键重试');
+        return;
+    }
+    var data = preserveWrites(TvXReadData.parse(payload, 'home'), readRevision);
+    data.fresh = countNew(data.posts);
+    if (!data.posts.length || !data.fresh) {
+        homeScene.cachedAt = 0;
+        homeScene.updateFailed = false;
+        render();
+        notice('暂无新帖子');
+        return;
+    }
+    homeScene.pendingHome = data;
+    applyHome();
+    notice('已加入 ' + data.fresh + ' 条新帖子');
+    requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+            if (id === pending) ReaderHost.rendered(id, 'home');
+        });
+    });
+}
 function homeUpdated(payload, error) {
     if (error || !payload) {
         homeScene.updateFailed = true;
@@ -568,13 +618,19 @@ function homeUpdated(payload, error) {
         homeScene.updateFailed = true;
         return;
     }
+    data.fresh = countNew(data.posts);
     homeScene.pendingHome = data;
-    if (state === homeScene) {
-        if (!state.interacted)
-            applyHome();
-        else
-            render();
+    // Nobody is reading yet, so the first live timeline may take over from the cached one.
+    if (!homeScene.interacted) {
+        if (state === homeScene) applyHome();
+        return;
     }
+    if (!data.fresh) {
+        homeScene.pendingHome = null;
+        homeScene.cachedAt = 0;
+        homeScene.updateFailed = false;
+    }
+    if (state === homeScene) render();
 }
 function applyHome() {
     var data = homeScene.pendingHome;
@@ -589,8 +645,10 @@ function applyHome() {
     homeScene.region = 'post';
     render();
 }
+
 function receive(id, payload, error) {
     if (id !== pending) return;
+    if (id === homeRefresh) { homeRefreshed(id, payload, error); return; }
     if (refreshing) {
         refreshing = false;
         if (!error && payload) {
@@ -818,28 +876,8 @@ function key(key) {
     saveScroll();
     if (state.mode === 'home') {
         state.interacted = true;
-        if (state.region === 'refresh') {
-            if (key === 'down') {
-                state.region = 'post';
-                render();
-            } else if (key === 'ok') {
-                if (state.pendingHome)
-                    applyHome();
-                else {
-                    state.cachedAt = 0;
-                    state.posts = [];
-                    state.index = 0;
-                    state.bodyY = 0;
-                    state.region = 'post';
-                    render();
-                    request('');
-                }
-            }
-            return;
-        }
-        if (key === 'up' && state.index === 0) {
-            state.region = 'refresh';
-            render();
+        if (key === 'up' && state.index === 0 && state.region === 'post') {
+            refreshHome();
             return;
         }
 

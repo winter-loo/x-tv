@@ -1,12 +1,12 @@
 [
  {
-  "at": "2026-09-09T22:30:51.011Z",
+  "at": "2026-09-10T05:02:52.389Z",
   "step": "attached",
-  "pid": "30438",
+  "pid": "27521",
   "url": "file:///android_asset/reader/index.html"
  },
  {
-  "at": "2026-09-09T22:30:52.472Z",
+  "at": "2026-09-10T05:02:53.393Z",
   "step": "extracted",
   "post": "2097620728610963675",
   "complete": true,
@@ -26,7 +26,7 @@
   ]
  },
  {
-  "at": "2026-09-09T22:30:53.808Z",
+  "at": "2026-09-10T05:02:55.049Z",
   "step": "card-tapped",
   "card": {
    "label": "termany.sh",
@@ -44,7 +44,7 @@
   ]
  },
  {
-  "at": "2026-09-09T22:30:56.076Z",
+  "at": "2026-09-10T05:02:57.344Z",
   "step": "menu",
   "options": [
    {
@@ -68,9 +68,9 @@
   ]
  },
  {
-  "at": "2026-09-09T22:30:59.484Z",
+  "at": "2026-09-10T05:03:00.720Z",
   "step": "opening",
-  "msFromKeypress": 1031,
+  "msFromKeypress": 1055,
   "external": {
    "domain": "termany.sh",
    "title": "termany.sh",
@@ -79,7 +79,7 @@
   "dialog": false
  },
  {
-  "at": "2026-09-09T22:31:02.915Z",
+  "at": "2026-09-10T05:03:05.586Z",
   "step": "readable",
   "stages": [
    "open kind=EXTERNAL gen=3 target=https://termany.sh/",
@@ -89,14 +89,14 @@
   ]
  },
  {
-  "at": "2026-09-09T22:31:09.899Z",
+  "at": "2026-09-10T05:03:12.861Z",
   "step": "scrolled",
   "changed": true,
-  "top": "c15137c06c8e84b41d784f8affcc4a9b",
-  "after": "a244e5e1b53e3b6b47b69f179fd0911e"
+  "top": "ef25dbf9057672e1bd9345604fbf81b4",
+  "after": "3ee56b72d9942478feb4a94367de39ed"
  },
  {
-  "at": "2026-09-09T22:31:11.151Z",
+  "at": "2026-09-10T05:03:14.306Z",
   "step": "returned",
   "posts": 1,
   "external": null,
@@ -105,7 +105,7 @@
   ]
  },
  {
-  "at": "2026-09-09T22:31:16.169Z",
+  "at": "2026-09-10T05:03:20.679Z",
   "step": "cancelled",
   "external": null,
   "posts": 1,
@@ -116,14 +116,14 @@
   ]
  },
  {
-  "at": "2026-09-09T22:31:24.383Z",
+  "at": "2026-09-10T05:03:29.005Z",
   "step": "after-late-callbacks",
   "external": null,
   "posts": 1,
   "stages": []
  },
  {
-  "at": "2026-09-09T22:31:31.723Z",
+  "at": "2026-09-10T05:03:38.792Z",
   "step": "redirected",
   "from": "https://t.co/mp7haBGUWd",
   "menu": {
@@ -136,12 +136,11 @@
    "open kind=EXTERNAL gen=7 target=https://t.co/mp7haBGUWd",
    "loading url=https://t.co/mp7haBGUWd",
    "loading url=https://termany.sh/",
-   "shown kind=EXTERNAL target=https://t.co/mp7haBGUWd at=https://termany.sh/",
-   "loading url=https://termany.sh/"
+   "shown kind=EXTERNAL target=https://t.co/mp7haBGUWd at=https://termany.sh/"
   ]
  },
  {
-  "at": "2026-09-09T22:31:40.516Z",
+  "at": "2026-09-10T05:03:49.862Z",
   "step": "failed",
   "external": {
    "domain": "unreachable.invalid",
@@ -156,7 +155,7 @@
   ]
  },
  {
-  "at": "2026-09-09T22:31:41.551Z",
+  "at": "2026-09-10T05:03:51.125Z",
   "step": "retried",
   "external": {
    "domain": "unreachable.invalid",
@@ -165,7 +164,7 @@
   }
  },
  {
-  "at": "2026-09-09T22:31:42.719Z",
+  "at": "2026-09-10T05:03:52.364Z",
   "step": "done",
   "external": null,
   "readerVisible": true

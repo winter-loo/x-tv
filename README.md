@@ -58,6 +58,14 @@ python3 scripts/check-projector-ux.py --serial 192.168.10.100:5555
 
 外链返回后会在后台恢复 X 页面，真实写入准备等待元数据就绪，不占用阅读前台。回归命令 `node scripts/check-write-recovery.mjs` 只检查真实准备链路，不提交点赞。见 [外链返回后的写入恢复验收](docs/validation/issue-13-write-recovery.md)。
 
+## 顶部刷新（GitHub #21）
+
+在时间线顶部按上键就是刷新：已有待应用的新内容立即合入，没有就发起一次刷新。表头显示「正在刷新…」，列表原地不动，新帖到达后才替换并把焦点放到新首帖，提示写明加入了多少条——这个数字是按实际新增的帖子 ID 算的。无新内容说「暂无新帖子」，失败说「按上键重试」，刷新中再按不会叠加请求。
+
+后台更新只登记不应用，用户读到哪里就停在哪里；只有显式刷新或顶部上键才会把待展示的新头部内容放出来。菜单、查看器等覆盖层持有焦点时，上键仍是它们自己的动作。首页返回键回到首帖的行为不变。
+
+回归测试 `tests/refresh.spec.mjs`，真机验收 `node scripts/check-timeline-refresh.mjs`（只读）。验证记录见 [顶部刷新验收](docs/validation/issue-21-timeline-refresh.md)。
+
 ## 当前进度（2026-09-07）
 
 #1 平衡阅读布局已完成验收：9 项 Firefox DOM 回归、150 条真实帖子连续导航、真实 X Article 显示、详情往返、返回顶部、Google 登录与冷启动登录保持均通过。GeckoView 已更新至 `155.0.20260903215306`，修复真机 RGB PNG 解码崩溃。详见 [验收记录](docs/validation/issue-1.md)。

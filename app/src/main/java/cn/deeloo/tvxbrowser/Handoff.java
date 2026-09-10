@@ -43,7 +43,7 @@ final class Handoff {
 
     private Kind kind = Kind.NONE;
     private int generation;
-    private String target = "", action = "";
+    private String target = "", action = "", routed = "";
     private boolean armed, showing, arrived;
 
     /** Starts a handoff, superseding any other, and returns the generation to quote back. */
@@ -53,6 +53,7 @@ final class Handoff {
         this.action = action;
         this.armed = kind.armsAtOnce();
         this.showing = this.arrived = false;
+        this.routed = "";
         return ++generation;
     }
 
@@ -60,7 +61,7 @@ final class Handoff {
     Kind end() {
         Kind ended = kind;
         kind = Kind.NONE;
-        target = action = "";
+        target = action = routed = "";
         armed = showing = arrived = false;
         generation++;
         return ended;
@@ -106,6 +107,19 @@ final class Handoff {
     /** The X adapter reported which post it is on. */
     void announce(String path) {
         if (kind.armsOnAnnounce() && target.equals(path)) armed = true;
+    }
+
+    /**
+     * True when this handoff has already been routed from this document. Asking the X adapter
+     * again would make it navigate again, and each navigation injects a fresh content script,
+     * which would ask once more — a loop that never lets the adapter finish announcing.
+     */
+    boolean routedFrom(String committed) {
+        return routed.equals(committed);
+    }
+
+    void routedVia(String committed) {
+        routed = committed;
     }
 
     /** True when the page asking to close is the one this handoff actually put on screen. */

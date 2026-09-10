@@ -347,9 +347,9 @@ test(
         await expect(page.locator('.text')).toContainText('Fresh detail');
         await key(page, 'back');
         await expect(page.locator('.text')).toContainText('Saved home');
-        await expect(page.locator('#freshness')).toContainText('有新内容');
+        await expect(page.locator('#freshness')).toContainText('条新帖');
+        // Up at the top takes the waiting update in one press; it needed no second confirm.
         await key(page, 'up');
-        await key(page, 'ok');
         await expect(page.locator('.text')).toContainText('New home');
         await expect(page.locator('#freshness')).toHaveText('刚刚更新');
     });

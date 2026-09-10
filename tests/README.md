@@ -93,3 +93,12 @@ It checks the installed hash, invokes the debug-only `check_write_preparation` i
 opens and closes an external page, and asserts metadata readiness and retained reader
 foreground/scene. It does not replace `ReaderHost`. The native `WritePreparationTest`
 exercises bounded waiting, external ownership, timeout, cancellation and late callbacks.
+
+`tests/refresh.spec.mjs` covers issue #21: up at the top of the timeline merges a waiting
+update or asks for a refresh, reports a count that matches the posts that were actually new,
+leaves a reader mid-list alone, and hands up to whatever overlay owns the focus.
+
+`scripts/check-timeline-refresh.mjs` is the device counterpart. It re-reads the real home
+timeline, replays a shortened copy so the refresh has genuinely new real posts to bring back,
+and works out the expected count from the two payloads the reader itself used rather than
+assuming X returns a stable page. Read-only.

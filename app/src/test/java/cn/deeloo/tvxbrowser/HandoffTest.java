@@ -144,4 +144,16 @@ public class HandoffTest {
         assertFalse("nor may it close one that has not taken the screen",
             handoff.closedBy("/author/status/2"));
     }
+    @Test public void aPostHandoffIsRoutedOncePerDocument() {
+        Handoff handoff = new Handoff();
+        handoff.begin(Handoff.Kind.POST, "/author/status/1", "menu");
+        assertFalse(handoff.routedFrom("https://x.com/home"));
+        handoff.routedVia("https://x.com/home");
+        assertTrue("asking the same document again would make it navigate again",
+            handoff.routedFrom("https://x.com/home"));
+        assertFalse("the page it navigated to still has to be asked",
+            handoff.routedFrom("https://x.com/author/status/1"));
+        handoff.begin(Handoff.Kind.POST, "/author/status/2", "menu");
+        assertFalse("a new handoff starts unrouted", handoff.routedFrom("https://x.com/home"));
+    }
 }

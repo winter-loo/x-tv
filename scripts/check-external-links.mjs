@@ -135,6 +135,10 @@ try {
     await until(() => cdp.evaluate("typeof TvXReader === 'object' && document.querySelectorAll('.post').length > 0")
                          .catch(() => false),
         'the reader to render its timeline');
+    // Wait for the live timeline to land: a cached one is still expecting an update that
+    // would replace the replayed sample underneath the probe.
+    await until(() => cdp.evaluate("document.getElementById('freshness').textContent === '刚刚更新'"),
+        'the live timeline to settle', 60);
     record('attached', {pid, url: cdp.url});
 
     // 1. Real extraction: fetch the sample post through the app's own authenticated client.
