@@ -52,6 +52,8 @@ async function mount(page) {
 const receive = (page, id, data, error = '') =>
     page.evaluate(([id, data, error]) => TvXReader.receive(id, data, error), [id, data, error]);
 const key = (page, k) => page.evaluate(k => TvXReader.key(k), k);
+/** Confirm reads the post full screen; a second confirm opens its detail. */
+const openDetail = async page => { await key(page, 'ok'); await key(page, 'ok'); };
 const body = page => page.evaluate(() => {
     const node = document.querySelector('.body');
     const line = parseFloat(getComputedStyle(node).lineHeight);
@@ -71,7 +73,7 @@ async function settle(page) {
 async function openLongDetail(page) {
     await mount(page);
     await receive(page, 'r0', payload([post('101')]));
-    await key(page, 'ok');
+    await openDetail(page);
     await receive(page, 'r1', payload([post('101', {text: LONG}), post('201', {replyTo: '101'})]));
     await expect(page.locator('.detail-post')).toHaveCount(1);
 }
@@ -126,7 +128,7 @@ test('scrolling clamps at both ends of a short and a long body', async ({page}) 
 test('a body that fits does not move at all', async ({page}) => {
     await mount(page);
     await receive(page, 'r0', payload([post('101')]));
-    await key(page, 'ok');
+    await openDetail(page);
     await receive(page, 'r1', payload([post('101'), post('201', {replyTo: '101'})]));
     await key(page, 'down');
     expect(await settle(page)).toBe(0);
@@ -149,7 +151,7 @@ test('holding the key does not pile animations up behind the reader', async ({pa
 test('the comment column scrolls to keep the selected comment in view', async ({page}) => {
     await mount(page);
     await receive(page, 'r0', payload([post('101')]));
-    await key(page, 'ok');
+    await openDetail(page);
     await receive(page, 'r1', payload([
         post('101'),
         ...Array.from({length: 12}, (_, i) => post('20' + i, {text: LONG, replyTo: '101'}))
@@ -178,7 +180,7 @@ test('the comment column scrolls to keep the selected comment in view', async ({
 test('a comment X truncated carries the same marker as a post', async ({page}) => {
     await mount(page);
     await receive(page, 'r0', payload([post('101')]));
-    await key(page, 'ok');
+    await openDetail(page);
     await receive(page, 'r1', payload([
         post('101'),
         post('201', {text: 'Whole reply', replyTo: '101'}),
@@ -221,7 +223,7 @@ test('a preview that is cut off says so, and a short one does not', async ({page
 test('the cut-off marker opens the full reading by remote and by mouse', async ({page}) => {
     await mount(page);
     await receive(page, 'r0', payload([post('101', {text: LONG})]));
-    await key(page, 'ok');
+    await openDetail(page);
     expect(await page.evaluate(() => calls.filter(c => c[0] === 'request').length)).toBe(1);
     await key(page, 'back');
     await page.locator('.post .show-more').click();
@@ -233,7 +235,7 @@ test('a post whose text X truncated says the full text is on its way', async ({p
     await mount(page);
     await receive(page, 'r0', payload([post('101', {text: 'Short but truncated', complete: false})]));
     await expect(page.locator('.post .show-more')).toHaveCount(1);
-    await key(page, 'ok');
+    await openDetail(page);
     await expect(page.locator('.detail-post .fetching')).toContainText('正在取完整正文');
     await receive(page, 'r1', null, 'network');
     await expect(page.locator('.detail-post .fetching')).toContainText('重试');

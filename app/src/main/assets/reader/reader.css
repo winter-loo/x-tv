@@ -65,3 +65,13 @@
 #title{display:flex;align-items:baseline;white-space:nowrap}
 #title .tab-alt{color:#7d8ea4;font-size:1.45vw;font-weight:400;margin-right:1.4vw}
 #title .tab-now{color:#e8ebed}
+
+/* Full-screen reading: the header steps aside, the post sits above whatever accompanies it,
+   and the column is three quarters of the screen so a line stays a comfortable length. */
+body.reading header{display:none}
+/* Keeps the same bottom edge as the ordinary stage while clearing the top of the panel:
+   with the header gone the focus ring would otherwise sit on the screen edge. */
+body.reading #stage{height:84vh;width:75vw;margin:4vh auto 0;flex-direction:column}
+body.reading .post,body.reading .detail-post,body.reading #stage>.post:only-child{flex:2 1 0;min-height:0}
+body.reading #stage>.media,body.reading #stage>.comments{flex:1 1 0;min-height:0;margin:2vh 0 0}
+body.reading .comments{border-left:0;border-top:1px solid #253447;padding-left:0;padding-top:2vh}

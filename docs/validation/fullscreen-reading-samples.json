@@ -1,0 +1,277 @@
+{
+  "serial": "192.168.10.100:5555",
+  "out": "docs/validation/fullscreen-reading-samples.json",
+  "failure": null,
+  "evidence": [
+    {
+      "at": "2026-09-10T18:48:21.090Z",
+      "step": "timeline",
+      "pid": "16318",
+      "steppedTo": 0,
+      "scene": {
+        "reading": false,
+        "headerShown": true,
+        "direction": "row",
+        "viewport": {
+          "width": 960,
+          "height": 540
+        },
+        "stage": {
+          "x": 38,
+          "y": 70,
+          "width": 883,
+          "height": 405
+        },
+        "post": {
+          "x": 48,
+          "y": 78,
+          "width": 430,
+          "height": 389
+        },
+        "media": {
+          "x": 502,
+          "y": 78,
+          "width": 410,
+          "height": 389
+        },
+        "comments": null,
+        "detail": false,
+        "position": "1 / 35",
+        "freshness": "刚刚更新",
+        "author": "Jianqi Pan",
+        "help": "↑↓ 切换帖子　 顶部 ↑ 刷新 ← 我的喜欢　 确认 全屏阅读　 → 查看媒体　 菜单 更多操作"
+      }
+    },
+    {
+      "at": "2026-09-10T18:48:22.424Z",
+      "step": "timeline-fullscreen",
+      "scene": {
+        "reading": true,
+        "headerShown": false,
+        "direction": "column",
+        "viewport": {
+          "width": 960,
+          "height": 540
+        },
+        "stage": {
+          "x": 120,
+          "y": 22,
+          "width": 720,
+          "height": 454
+        },
+        "post": {
+          "x": 130,
+          "y": 30,
+          "width": 701,
+          "height": 285
+        },
+        "media": {
+          "x": 130,
+          "y": 325,
+          "width": 701,
+          "height": 142
+        },
+        "comments": null,
+        "detail": false,
+        "position": "1 / 35",
+        "freshness": "刚刚更新",
+        "author": "Jianqi Pan",
+        "help": "↑↓ 切换帖子　 确认 帖子详情　 → 查看媒体　 菜单 更多操作　 返回 退出全屏"
+      },
+      "widthRatio": 0.75,
+      "leftGap": 120,
+      "rightGap": 120
+    },
+    {
+      "at": "2026-09-10T18:48:23.646Z",
+      "step": "timeline-restored",
+      "scene": {
+        "reading": false,
+        "headerShown": true,
+        "direction": "row",
+        "viewport": {
+          "width": 960,
+          "height": 540
+        },
+        "stage": {
+          "x": 38,
+          "y": 70,
+          "width": 883,
+          "height": 405
+        },
+        "post": {
+          "x": 48,
+          "y": 78,
+          "width": 430,
+          "height": 389
+        },
+        "media": {
+          "x": 502,
+          "y": 78,
+          "width": 410,
+          "height": 389
+        },
+        "comments": null,
+        "detail": false,
+        "position": "1 / 35",
+        "freshness": "刚刚更新",
+        "author": "Jianqi Pan",
+        "help": "↑↓ 切换帖子　 顶部 ↑ 刷新 ← 我的喜欢　 确认 全屏阅读　 → 查看媒体　 菜单 更多操作"
+      }
+    },
+    {
+      "at": "2026-09-10T18:48:26.219Z",
+      "step": "detail",
+      "scene": {
+        "reading": false,
+        "headerShown": true,
+        "direction": "row",
+        "viewport": {
+          "width": 960,
+          "height": 540
+        },
+        "stage": {
+          "x": 38,
+          "y": 70,
+          "width": 883,
+          "height": 405
+        },
+        "post": {
+          "x": 48,
+          "y": 78,
+          "width": 497,
+          "height": 389
+        },
+        "media": null,
+        "comments": {
+          "x": 569,
+          "y": 78,
+          "width": 343,
+          "height": 389
+        },
+        "detail": true,
+        "position": "",
+        "freshness": "正文已载入 · 评论更新中",
+        "author": "Jianqi Pan",
+        "help": "↑↓ 阅读正文　 → 评论　 确认 全屏阅读　 菜单 更多操作　 返回 上一层"
+      }
+    },
+    {
+      "at": "2026-09-10T18:48:27.399Z",
+      "step": "detail-fullscreen",
+      "scene": {
+        "reading": true,
+        "headerShown": false,
+        "direction": "column",
+        "viewport": {
+          "width": 960,
+          "height": 540
+        },
+        "stage": {
+          "x": 120,
+          "y": 22,
+          "width": 720,
+          "height": 454
+        },
+        "post": {
+          "x": 130,
+          "y": 30,
+          "width": 701,
+          "height": 277
+        },
+        "media": null,
+        "comments": {
+          "x": 130,
+          "y": 317,
+          "width": 701,
+          "height": 150
+        },
+        "detail": true,
+        "position": "",
+        "freshness": "",
+        "author": "Jianqi Pan",
+        "help": "↑↓ 阅读正文　 → 评论　 确认 查看媒体　 菜单 更多操作　 返回 退出全屏"
+      },
+      "widthRatio": 0.75
+    },
+    {
+      "at": "2026-09-10T18:48:28.864Z",
+      "step": "detail-restored",
+      "scene": {
+        "reading": false,
+        "headerShown": true,
+        "direction": "row",
+        "viewport": {
+          "width": 960,
+          "height": 540
+        },
+        "stage": {
+          "x": 38,
+          "y": 70,
+          "width": 883,
+          "height": 405
+        },
+        "post": {
+          "x": 48,
+          "y": 78,
+          "width": 497,
+          "height": 389
+        },
+        "media": null,
+        "comments": {
+          "x": 569,
+          "y": 78,
+          "width": 343,
+          "height": 389
+        },
+        "detail": true,
+        "position": "",
+        "freshness": "",
+        "author": "Jianqi Pan",
+        "help": "↑↓ 阅读正文　 → 评论　 确认 全屏阅读　 菜单 更多操作　 返回 上一层"
+      }
+    },
+    {
+      "at": "2026-09-10T18:48:30.271Z",
+      "step": "back-to-timeline",
+      "scene": {
+        "reading": true,
+        "headerShown": false,
+        "direction": "column",
+        "viewport": {
+          "width": 960,
+          "height": 540
+        },
+        "stage": {
+          "x": 120,
+          "y": 22,
+          "width": 720,
+          "height": 454
+        },
+        "post": {
+          "x": 130,
+          "y": 30,
+          "width": 701,
+          "height": 285
+        },
+        "media": {
+          "x": 130,
+          "y": 325,
+          "width": 701,
+          "height": 142
+        },
+        "comments": null,
+        "detail": false,
+        "position": "1 / 35",
+        "freshness": "刚刚更新",
+        "author": "Jianqi Pan",
+        "help": "↑↓ 切换帖子　 确认 帖子详情　 → 查看媒体　 菜单 更多操作　 返回 退出全屏"
+      }
+    },
+    {
+      "at": "2026-09-10T18:48:30.343Z",
+      "step": "no-writes",
+      "writes": []
+    }
+  ]
+}

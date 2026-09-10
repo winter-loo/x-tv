@@ -67,13 +67,15 @@ async function mount(page) {
     await page.goto('https://reader.test/');
 }
 const key = (page, k) => page.evaluate(k => TvXReader.key(k), k);
+/** Confirm reads the post full screen; a second confirm opens its detail. */
+const openDetail = async page => { await key(page, 'ok'); await key(page, 'ok'); };
 const receive = (page, id, data, error = '') =>
     page.evaluate(([id, data, error]) => TvXReader.receive(id, data, error), [id, data, error]);
 
 test('detail statistics have three SVG icons and stay outside remote focus', async ({page}) => {
     await mount(page);
     await receive(page, 'r0', payload([tweet('101', 'A short post', '', {views: {count: '42'}})]));
-    await key(page, 'ok');
+    await openDetail(page);
     const stats = page.locator('.detail-post .stats');
     await expect(stats.locator('.stat')).toHaveCount(3);
     await expect(stats.locator('svg')).toHaveCount(3);
@@ -146,7 +148,7 @@ test(
         partial.legacy.truncated = true;
         await receive(page, 'r0', payload([partial, tweet('102')]));
         await expect(page.locator('.text')).toContainText('Timeline text');
-        await key(page, 'ok');
+        await openDetail(page);
         // The preview stays on screen and says the full text is still coming; it is never
         // reported as a complete detail render.
         await expect(page.locator('.detail-post .text')).toContainText('Timeline text');
@@ -163,7 +165,7 @@ test('fresh detail and reply navigation preserve the parent selection and scroll
     await mount(page);
     await receive(page, 'r0', payload([tweet('101'), tweet('102', 'Second post')]));
     await key(page, 'down');
-    await key(page, 'ok');
+    await openDetail(page);
     await receive(
         page, 'r1', payload([tweet('102', 'Complete root '.repeat(300)), tweet('201', 'Reply', '102')]));
     await key(page, 'down');
@@ -187,7 +189,7 @@ test(
     async ({page}) => {
         await mount(page);
         await receive(page, 'r0', payload([tweet('101')]));
-        await key(page, 'ok');
+        await openDetail(page);
         await receive(page, 'r1', payload([tweet('101'), tweet('201', 'One', '101')], 'next'));
         await key(page, 'right');
         await key(page, 'down');
@@ -213,7 +215,7 @@ test(
             })]));
         expect(await page.evaluate(() => window.pwned)).toBeUndefined();
         await expect(page.locator('.text')).toContainText('<img');
-        await key(page, 'ok');
+        await openDetail(page);
         await receive(page, 'r1', payload([tweet('101', 'Excerpt', '', {
                           article: {article_results: {result: {title: 'Title', preview_text: 'Excerpt'}}}
                       })]));
@@ -239,7 +241,7 @@ test(
         await expect(page.locator('.stats .like')).toContainText('已喜欢 4');
         await expect(page.locator('#position')).toHaveText('2 / 2');
         await page.evaluate(() => TvXReader.refreshCurrent());
-        await key(page, 'ok');
+        await openDetail(page);
         await receive(page, 'r2', payload([tweet('102', 'Late stats refresh')]));
         await expect(page.locator('.detail-post .text').first()).toHaveText('Second');
         await receive(page, 'r3', payload([tweet('102', 'Complete detail')]));
@@ -336,7 +338,7 @@ test(
         await expect(page.locator('#freshness')).toContainText('更新未完成');
         expect(await page.evaluate(() => calls.some(c => c[0] === 'rendered' && c[2] === 'home')))
             .toBe(false);
-        await key(page, 'ok');
+        await openDetail(page);
         await expect(page.locator('.detail-post .text').first()).toContainText('Complete saved text');
         await expect(page.locator('#freshness')).toContainText('上次内容');
     });
@@ -347,7 +349,7 @@ test(
         await mount(page);
         await page.evaluate(
             data => TvXReader.cachedHome(data, Date.now() - 60000), payload([tweet('101', 'Saved home')]));
-        await key(page, 'ok');
+        await openDetail(page);
         await page.evaluate(data => TvXReader.homeUpdated(data, ''), payload([tweet('102', 'New home')]));
         await receive(page, 'r1', payload([tweet('101', 'Fresh detail')]));
         await expect(page.locator('.text')).toContainText('Fresh detail');
@@ -366,7 +368,7 @@ test('a complete API long note opens immediately while comments load separately'
     await receive(page, 'r0', payload([tweet(
                                   '101', 'Truncated legacy field', '',
                                   {note_tweet: {note_tweet_results: {result: {text: full}}}})]));
-    await key(page, 'ok');
+    await openDetail(page);
     await expect(page.locator('.detail-post .text').first()).toHaveText(full.trim());
     await expect(page.locator('.comment-list')).toContainText('正在加载评论');
     await expect
@@ -421,7 +423,7 @@ test('ambiguous writes never fall back to DOM actions and cancelled drafts do no
 
 
 test('an earlier detail response cannot revert a confirmed like or hide the newly posted reply',async({page})=>{
-    await mount(page);await receive(page,'r0',payload([tweet('101')]));await key(page,'ok');
+    await mount(page);await receive(page,'r0',payload([tweet('101')]));await openDetail(page);
     await key(page,'menu');await key(page,'down');await key(page,'ok');
     await page.evaluate(()=>TvXReader.writeResult('w1','101',{status:'ok',liked:true,likes:4}));
     await key(page,'menu');await key(page,'ok');

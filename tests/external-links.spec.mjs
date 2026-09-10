@@ -70,6 +70,8 @@ async function mount(page) {
     await page.goto('https://reader.test/');
 }
 const key = (page, k) => page.evaluate(k => TvXReader.key(k), k);
+/** Confirm reads the post full screen; a second confirm opens its detail. */
+const openDetail = async page => { await key(page, 'ok'); await key(page, 'ok'); };
 const calls = (page, name) => page.evaluate(n => calls.filter(c => c[0] === n), name);
 
 test('a link card contributes its title and publisher domain, not the t.co wrapper', async () => {
@@ -268,7 +270,7 @@ test('a post without links renders no card, and comments never carry one', async
     const linked = entities([{url: 'https://t.co/2', expanded_url: 'https://github.com/a/b', display_url: 'github.com/a/b'}]);
     await page.evaluate(data => TvXReader.receive('r0', data, ''), payload([post('101', 'No links')]));
     await expect(page.locator('.link-card')).toHaveCount(0);
-    await key(page, 'ok');
+    await openDetail(page);
     await page.evaluate(data => TvXReader.receive('r1', data, ''),
         payload([post('101', 'Root'), post('102', 'A reply', {}, {...linked, in_reply_to_status_id_str: '101'})]));
     await expect(page.locator('.comment')).toHaveCount(1);
@@ -343,7 +345,7 @@ test('returning to the timeline restores the selected post and its reading posit
 test('returning to a detail restores the post, the comment focus and both scroll positions', async ({page}) => {
     await mount(page);
     await page.evaluate(data => TvXReader.receive('r0', data, ''), payload([post('101', 'Root', {}, linked)]));
-    await key(page, 'ok');
+    await openDetail(page);
     await page.evaluate(data => TvXReader.receive('r1', data, ''), payload([
         post('101', 'A very long root\n'.repeat(200), {}, linked),
         post('201', 'First reply', {}, {in_reply_to_status_id_str: '101'}),
