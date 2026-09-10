@@ -1,49 +1,49 @@
 [
  {
-  "at": "2026-09-10T05:04:52.322Z",
+  "at": "2026-09-10T05:59:51.106Z",
   "step": "cold-start",
-  "pid": "29095",
+  "pid": "18057",
   "scene": {
    "position": "1 / 35",
-   "author": "void.",
+   "author": "Zentrix⌚️",
    "freshness": "刚刚更新",
    "refresh": "刷新",
    "notice": ""
   }
  },
  {
-  "at": "2026-09-10T05:04:54.377Z",
+  "at": "2026-09-10T05:59:53.073Z",
   "step": "shortened",
   "realPosts": 35,
   "showing": 33,
   "scene": {
    "position": "1 / 33",
-   "author": "Sumanth",
+   "author": "Cristóbal Valenzuela",
    "freshness": "刚刚更新",
    "refresh": "刷新",
    "notice": ""
   }
  },
  {
-  "at": "2026-09-10T05:04:57.550Z",
+  "at": "2026-09-10T05:59:56.163Z",
   "step": "back-to-top",
   "read": "3 / 33",
   "top": "1 / 33",
-  "author": "Sumanth"
+  "author": "Cristóbal Valenzuela"
  },
  {
-  "at": "2026-09-10T05:04:59.827Z",
+  "at": "2026-09-10T05:59:58.633Z",
   "step": "refresh",
   "whileRefreshing": {
    "position": "1 / 33",
-   "author": "Sumanth",
+   "author": "Cristóbal Valenzuela",
    "freshness": "刚刚更新",
    "refresh": "正在刷新…",
    "notice": "正在刷新…"
   },
   "arrived": {
    "position": "1 / 35",
-   "author": "余温",
+   "author": "Ryan Peters",
    "freshness": "刚刚更新",
    "refresh": "刷新",
    "notice": "已加入 35 条新帖子"
@@ -55,30 +55,30 @@
   },
   "reportedCount": 35,
   "reads": [
-   "home request ms=1161 result=ok"
+   "home request ms=1188 result=ok"
   ]
  },
  {
-  "at": "2026-09-10T05:05:02.822Z",
+  "at": "2026-09-10T06:00:02.861Z",
   "step": "merged-presses",
   "scene": {
    "position": "1 / 35",
-   "author": "Miles Ma",
+   "author": "samzong",
    "freshness": "刚刚更新",
    "refresh": "刷新",
    "notice": "已加入 35 条新帖子"
   },
-  "burstMs": 2259,
+  "burstMs": 2275,
   "reads": [
-   "home request ms=1826 result=ok"
+   "home request ms=3031 result=ok"
   ]
  },
  {
-  "at": "2026-09-10T05:05:05.789Z",
+  "at": "2026-09-10T06:00:05.491Z",
   "step": "up-is-navigation-below-the-top",
   "scene": {
    "position": "1 / 35",
-   "author": "Miles Ma",
+   "author": "samzong",
    "freshness": "刚刚更新",
    "refresh": "刷新",
    "notice": ""

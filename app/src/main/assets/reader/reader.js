@@ -950,6 +950,9 @@ function key(key) {
             more();
     }
 }
+document.getElementById('refresh').onclick = function() {
+    if (state === homeScene && !actionMenu && !viewer && !external) refreshHome();
+};
 window.TvXReader = {
     receive: receive,
     key: key,

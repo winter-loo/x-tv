@@ -1,12 +1,12 @@
 [
  {
-  "at": "2026-09-10T05:02:52.389Z",
+  "at": "2026-09-10T05:58:00.896Z",
   "step": "attached",
-  "pid": "27521",
+  "pid": "16415",
   "url": "file:///android_asset/reader/index.html"
  },
  {
-  "at": "2026-09-10T05:02:53.393Z",
+  "at": "2026-09-10T05:58:03.670Z",
   "step": "extracted",
   "post": "2097620728610963675",
   "complete": true,
@@ -26,13 +26,13 @@
   ]
  },
  {
-  "at": "2026-09-10T05:02:55.049Z",
+  "at": "2026-09-10T05:58:06.030Z",
   "step": "card-tapped",
   "card": {
    "label": "termany.sh",
    "domain": "termany.sh",
-   "x": 510,
-   "y": 408
+   "x": 520,
+   "y": 438
   },
   "external": {
    "domain": "termany.sh",
@@ -40,11 +40,12 @@
    "hint": "正在打开…　 返回 取消"
   },
   "stages": [
-   "open kind=EXTERNAL gen=1 target=https://termany.sh/"
+   "open kind=EXTERNAL gen=1 target=https://termany.sh/",
+   "loading url=about:blank"
   ]
  },
  {
-  "at": "2026-09-10T05:02:57.344Z",
+  "at": "2026-09-10T05:58:08.826Z",
   "step": "menu",
   "options": [
    {
@@ -68,9 +69,9 @@
   ]
  },
  {
-  "at": "2026-09-10T05:03:00.720Z",
+  "at": "2026-09-10T05:58:12.272Z",
   "step": "opening",
-  "msFromKeypress": 1055,
+  "msFromKeypress": 1014,
   "external": {
    "domain": "termany.sh",
    "title": "termany.sh",
@@ -79,33 +80,33 @@
   "dialog": false
  },
  {
-  "at": "2026-09-10T05:03:05.586Z",
+  "at": "2026-09-10T05:58:13.697Z",
   "step": "readable",
   "stages": [
    "open kind=EXTERNAL gen=3 target=https://termany.sh/",
-   "loading url=https://termany.sh/",
    "loading url=https://termany.sh/",
    "shown kind=EXTERNAL target=https://termany.sh/ at=https://termany.sh/"
   ]
  },
  {
-  "at": "2026-09-10T05:03:12.861Z",
+  "at": "2026-09-10T05:58:20.990Z",
   "step": "scrolled",
   "changed": true,
-  "top": "ef25dbf9057672e1bd9345604fbf81b4",
-  "after": "3ee56b72d9942478feb4a94367de39ed"
+  "top": "35d6d4b6376e28f228d6bcabab1af766",
+  "after": "81630c69ead44fbda56feec015c0531a"
  },
  {
-  "at": "2026-09-10T05:03:14.306Z",
+  "at": "2026-09-10T05:58:22.291Z",
   "step": "returned",
   "posts": 1,
   "external": null,
   "stages": [
+   "loading url=https://termany.sh/",
    "closed kind=EXTERNAL gen=3"
   ]
  },
  {
-  "at": "2026-09-10T05:03:20.679Z",
+  "at": "2026-09-10T05:58:28.942Z",
   "step": "cancelled",
   "external": null,
   "posts": 1,
@@ -116,14 +117,14 @@
   ]
  },
  {
-  "at": "2026-09-10T05:03:29.005Z",
+  "at": "2026-09-10T05:58:37.284Z",
   "step": "after-late-callbacks",
   "external": null,
   "posts": 1,
   "stages": []
  },
  {
-  "at": "2026-09-10T05:03:38.792Z",
+  "at": "2026-09-10T05:58:48.789Z",
   "step": "redirected",
   "from": "https://t.co/mp7haBGUWd",
   "menu": {
@@ -136,11 +137,12 @@
    "open kind=EXTERNAL gen=7 target=https://t.co/mp7haBGUWd",
    "loading url=https://t.co/mp7haBGUWd",
    "loading url=https://termany.sh/",
-   "shown kind=EXTERNAL target=https://t.co/mp7haBGUWd at=https://termany.sh/"
+   "shown kind=EXTERNAL target=https://t.co/mp7haBGUWd at=https://termany.sh/",
+   "loading url=https://termany.sh/"
   ]
  },
  {
-  "at": "2026-09-10T05:03:49.862Z",
+  "at": "2026-09-10T05:58:59.827Z",
   "step": "failed",
   "external": {
    "domain": "unreachable.invalid",
@@ -155,7 +157,7 @@
   ]
  },
  {
-  "at": "2026-09-10T05:03:51.125Z",
+  "at": "2026-09-10T05:59:00.788Z",
   "step": "retried",
   "external": {
    "domain": "unreachable.invalid",
@@ -164,7 +166,7 @@
   }
  },
  {
-  "at": "2026-09-10T05:03:52.364Z",
+  "at": "2026-09-10T05:59:02.058Z",
   "step": "done",
   "external": null,
   "readerVisible": true

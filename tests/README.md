@@ -102,3 +102,11 @@ leaves a reader mid-list alone, and hands up to whatever overlay owns the focus.
 timeline, replays a shortened copy so the refresh has genuinely new real posts to bring back,
 and works out the expected count from the two payloads the reader itself used rather than
 assuming X returns a stable page. Read-only.
+
+`tests/layout.spec.mjs` covers issue #14 by geometry: where the status row sits, that a
+focused post's ring clears the stage on all four sides, that the body is not pressed against
+its own frame, and that the text-only and media layouts keep their proportions.
+
+`scripts/check-reader-layout.mjs` measures the same constraints on the projector at
+1920x1080 and computes the ring clearance from the live computed styles. `--shots <dir>`
+saves screenshots outside the repo; they contain the signed-in timeline.

@@ -66,6 +66,12 @@ python3 scripts/check-projector-ux.py --serial 192.168.10.100:5555
 
 回归测试 `tests/refresh.spec.mjs`，真机验收 `node scripts/check-timeline-refresh.mjs`（只读）。验证记录见 [顶部刷新验收](docs/validation/issue-21-timeline-refresh.md)。
 
+## 时间线工具栏与安全边距（GitHub #14）
+
+更新状态、帖子数与刷新统一放在左上角，标题下面一行，长状态文案收口不推挤后面的元素。帖子左侧保留 5vw 安全边距，焦点框改成正常的外描边加柔光，`#stage` 的内边距给它留出活动空间，四边都不再被裁切；正文也不再贴着边框。刷新可以点，状态文字不新增焦点站点；纯文本帖约 3/4 屏宽与媒体帖左右分区的布局要求不变。
+
+回归测试 `tests/layout.spec.mjs`，真机验收 `node scripts/check-reader-layout.mjs`（只读，`--shots` 可另存 1920×1080 截图）。验证记录见 [阅读器布局验收](docs/validation/issue-14-reader-layout.md)。
+
 ## 当前进度（2026-09-07）
 
 #1 平衡阅读布局已完成验收：9 项 Firefox DOM 回归、150 条真实帖子连续导航、真实 X Article 显示、详情往返、返回顶部、Google 登录与冷启动登录保持均通过。GeckoView 已更新至 `155.0.20260903215306`，修复真机 RGB PNG 解码崩溃。详见 [验收记录](docs/validation/issue-1.md)。

@@ -1,0 +1,271 @@
+[
+ {
+  "at": "2026-09-10T05:54:37.428Z",
+  "step": "timeline-top",
+  "pid": "15106",
+  "viewport": {
+   "width": 960,
+   "height": 540,
+   "dpr": 2
+  },
+  "title": {
+   "left": 48,
+   "right": 127,
+   "top": 16,
+   "bottom": 42,
+   "width": 79,
+   "height": 26
+  },
+  "status": {
+   "left": 48,
+   "right": 178,
+   "top": 47,
+   "bottom": 55,
+   "width": 130,
+   "height": 9
+  },
+  "freshness": {
+   "left": 48,
+   "right": 90,
+   "top": 50,
+   "bottom": 65,
+   "width": 42,
+   "height": 15
+  },
+  "position": {
+   "left": 106,
+   "right": 138,
+   "top": 47,
+   "bottom": 66,
+   "width": 32,
+   "height": 19
+  },
+  "refresh": {
+   "left": 153,
+   "right": 178,
+   "top": 47,
+   "bottom": 65,
+   "width": 25,
+   "height": 18
+  },
+  "stage": {
+   "left": 38,
+   "right": 922,
+   "top": 70,
+   "bottom": 475,
+   "width": 883,
+   "height": 405
+  },
+  "focused": {
+   "left": 48,
+   "right": 478,
+   "top": 78,
+   "bottom": 467,
+   "width": 430,
+   "height": 389
+  },
+  "media": {
+   "left": 502,
+   "right": 912,
+   "top": 78,
+   "bottom": 467,
+   "width": 410,
+   "height": 389
+  },
+  "comments": null,
+  "ring": 6,
+  "freshnessText": "刚刚更新",
+  "clearance": {
+   "left": 4,
+   "right": 438,
+   "top": 2,
+   "bottom": 2
+  }
+ },
+ {
+  "at": "2026-09-10T05:54:41.410Z",
+  "step": "timeline-scrolled",
+  "viewport": {
+   "width": 960,
+   "height": 540,
+   "dpr": 2
+  },
+  "title": {
+   "left": 48,
+   "right": 127,
+   "top": 16,
+   "bottom": 42,
+   "width": 79,
+   "height": 26
+  },
+  "status": {
+   "left": 48,
+   "right": 178,
+   "top": 47,
+   "bottom": 55,
+   "width": 130,
+   "height": 9
+  },
+  "freshness": {
+   "left": 48,
+   "right": 90,
+   "top": 50,
+   "bottom": 65,
+   "width": 42,
+   "height": 15
+  },
+  "position": {
+   "left": 106,
+   "right": 138,
+   "top": 47,
+   "bottom": 66,
+   "width": 32,
+   "height": 19
+  },
+  "refresh": {
+   "left": 153,
+   "right": 178,
+   "top": 47,
+   "bottom": 65,
+   "width": 25,
+   "height": 18
+  },
+  "stage": {
+   "left": 38,
+   "right": 922,
+   "top": 70,
+   "bottom": 475,
+   "width": 883,
+   "height": 405
+  },
+  "focused": {
+   "left": 48,
+   "right": 768,
+   "top": 78,
+   "bottom": 467,
+   "width": 720,
+   "height": 389
+  },
+  "media": null,
+  "comments": null,
+  "ring": 6,
+  "freshnessText": "刚刚更新",
+  "clearance": {
+   "left": 4,
+   "right": 148,
+   "top": 2,
+   "bottom": 2
+  }
+ },
+ {
+  "at": "2026-09-10T05:54:45.880Z",
+  "step": "detail",
+  "viewport": {
+   "width": 960,
+   "height": 540,
+   "dpr": 2
+  },
+  "title": {
+   "left": 48,
+   "right": 138,
+   "top": 16,
+   "bottom": 42,
+   "width": 90,
+   "height": 26
+  },
+  "status": {
+   "left": 48,
+   "right": 179,
+   "top": 47,
+   "bottom": 55,
+   "width": 131,
+   "height": 9
+  },
+  "freshness": {
+   "left": 48,
+   "right": 164,
+   "top": 47,
+   "bottom": 62,
+   "width": 116,
+   "height": 15
+  },
+  "position": {
+   "left": 179,
+   "right": 179,
+   "top": 58,
+   "bottom": 58,
+   "width": 0,
+   "height": 0
+  },
+  "refresh": {
+   "left": 0,
+   "right": 0,
+   "top": 0,
+   "bottom": 0,
+   "width": 0,
+   "height": 0
+  },
+  "stage": {
+   "left": 38,
+   "right": 922,
+   "top": 70,
+   "bottom": 475,
+   "width": 883,
+   "height": 405
+  },
+  "focused": {
+   "left": 48,
+   "right": 545,
+   "top": 78,
+   "bottom": 467,
+   "width": 497,
+   "height": 389
+  },
+  "media": null,
+  "comments": {
+   "left": 569,
+   "right": 912,
+   "top": 78,
+   "bottom": 467,
+   "width": 343,
+   "height": 389
+  },
+  "ring": 6,
+  "freshnessText": "正文已载入 · 评论更新中",
+  "clearance": {
+   "left": 4,
+   "right": 371,
+   "top": 2,
+   "bottom": 2
+  }
+ },
+ {
+  "at": "2026-09-10T05:54:48.755Z",
+  "step": "long-status",
+  "status": {
+   "left": 48,
+   "right": 463,
+   "top": 47,
+   "bottom": 55,
+   "width": 415,
+   "height": 9
+  },
+  "refresh": {
+   "left": 438,
+   "right": 463,
+   "top": 47,
+   "bottom": 65,
+   "width": 25,
+   "height": 18
+  },
+  "stage": {
+   "left": 38,
+   "right": 922,
+   "top": 70,
+   "bottom": 475,
+   "width": 883,
+   "height": 405
+  },
+  "text": "上次时间线 2026/9/10 下午12:48:42 · 正在更新 · 网络较慢，正在重试"
+ }
+]

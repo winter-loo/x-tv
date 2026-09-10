@@ -1,6 +1,6 @@
 [
  {
-  "at": "2026-09-10T05:07:00.372Z",
+  "at": "2026-09-10T06:02:27.591Z",
   "step": "cold-start",
   "foreground": "reader",
   "surfaces": {
@@ -10,24 +10,24 @@
   },
   "scene": {
    "title": "X · 时间线",
-   "toolbar": "X · 时间线上次时间线 2026/9/10 下午1:06:14 · 正在更新1 / 35刷新 | help: ↑↓ 切换帖子 顶部 ↑ 刷新 确认 帖子详情 → 查看媒体 菜单 更多操作",
-   "freshness": "上次时间线 2026/9/10 下午1:06:14 · 正在更新",
+   "toolbar": "X · 时间线上次时间线 2026/9/10 下午2:01:13 · 正在更新1 / 35刷新 | help: ↑↓ 切换帖子 顶部 ↑ 刷新 确认 帖子详情 → 查看媒体 菜单 更多操作",
+   "freshness": "上次时间线 2026/9/10 下午2:01:13 · 正在更新",
    "position": "1 / 35",
    "detail": false,
    "comment": "",
-   "author": "余温",
+   "author": "Ian (伊恩)",
    "bodyY": 0,
    "external": false,
    "posts": 1
   },
-  "msToTimeline": 3368,
+  "msToTimeline": 3319,
   "marks": [
-   "home cached ms=1335"
+   "home cached ms=1260"
   ],
   "cache": "warm"
  },
  {
-  "at": "2026-09-10T05:07:02.532Z",
+  "at": "2026-09-10T06:02:29.317Z",
   "step": "sample",
   "post": "2091922092543402349",
   "path": "/pepeller/status/2091922092543402349",
@@ -40,7 +40,7 @@
   ]
  },
  {
-  "at": "2026-09-10T05:07:14.924Z",
+  "at": "2026-09-10T06:02:43.023Z",
   "step": "timeline-return",
   "foreground": "reader",
   "before": {
@@ -76,7 +76,7 @@
   ]
  },
  {
-  "at": "2026-09-10T05:07:24.208Z",
+  "at": "2026-09-10T06:02:54.005Z",
   "step": "timeline-scroll-return",
   "scrolledTo": 600,
   "after": {
@@ -99,7 +99,7 @@
   ]
  },
  {
-  "at": "2026-09-10T05:07:53.461Z",
+  "at": "2026-09-10T06:03:24.722Z",
   "step": "cancel-and-repeat",
   "owners": [
    "reader",
@@ -132,7 +132,7 @@
   ]
  },
  {
-  "at": "2026-09-10T05:08:07.536Z",
+  "at": "2026-09-10T06:03:37.864Z",
   "step": "detail-return",
   "foreground": "reader",
   "before": {
@@ -167,7 +167,7 @@
   ]
  },
  {
-  "at": "2026-09-10T05:08:19.424Z",
+  "at": "2026-09-10T06:03:46.977Z",
   "step": "explicit-x-handoff",
   "handedOver": true,
   "surfaces": {
@@ -183,7 +183,7 @@
   ]
  },
  {
-  "at": "2026-09-10T05:08:26.213Z",
+  "at": "2026-09-10T06:03:54.077Z",
   "step": "explicit-x-return",
   "foreground": "reader",
   "presses": 2,
@@ -204,7 +204,7 @@
   ]
  },
  {
-  "at": "2026-09-10T05:08:36.093Z",
+  "at": "2026-09-10T06:04:04.089Z",
   "step": "login-handoff",
   "surfaces": {
    "reader": "G",
@@ -219,7 +219,7 @@
   ]
  },
  {
-  "at": "2026-09-10T05:08:40.334Z",
+  "at": "2026-09-10T06:04:07.983Z",
   "step": "login-return",
   "foreground": "reader",
   "presses": 1,
@@ -240,15 +240,15 @@
   ]
  },
  {
-  "at": "2026-09-10T05:08:40.488Z",
+  "at": "2026-09-10T06:04:08.086Z",
   "step": "reading-budget",
-  "msToTimeline": 3368,
+  "msToTimeline": 3319,
   "cache": "warm",
   "coldMarks": [
-   "home cached ms=1335"
+   "home cached ms=1260"
   ],
   "detailMarks": [
-   "detail reused ms=97"
+   "detail reused ms=44"
   ],
   "geckoSessionsOpened": 1
  }
