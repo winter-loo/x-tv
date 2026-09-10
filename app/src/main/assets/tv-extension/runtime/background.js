@@ -14,7 +14,7 @@ function connectToNative() {
         lastPong = Date.now();
         nativePort.onMessage.addListener((message) => {
             if (message.command === "pong") { lastPong = Date.now(); return; }
-            if (message.command === 'writePrepare') { prepareWrite(message); return; }
+            if (message.command === 'apiPrepare') { prepareApi(message); return; }
             console.log("[TV-Extension] Native command:", message.command);
             forwardToActiveTab(message);
         });
@@ -35,11 +35,11 @@ function connectToNative() {
     }
 }
 
-// Explicit, read-only preparation for a correlated native write. Never forwards a mutation to the page.
-async function prepareWrite(message) {
+// Explicit, read-only preparation for a correlated native GraphQL call. Never forwards a mutation to the page.
+async function prepareApi(message) {
     const port = nativePort;
     if (!/^[a-f0-9-]{36}$/.test(message.id || '') ||
-        !['FavoriteTweet','UnfavoriteTweet','CreateTweet'].includes(message.operation)) return;
+        !['FavoriteTweet','UnfavoriteTweet','CreateTweet','Likes'].includes(message.operation)) return;
     let result = {error:'not_ready'};
     try {
         const tabs = (await browser.tabs.query({})).filter(t => {
@@ -47,9 +47,9 @@ async function prepareWrite(message) {
         });
         const tab = tabs.find(t => new URL(t.url).pathname === '/home') || tabs[0];
         if (tab) result = await browser.tabs.sendMessage(tab.id,
-            {command:'writePrepare',operation:message.operation}, {frameId:0});
+            {command:'apiPrepare',operation:message.operation}, {frameId:0});
     } catch (_) {}
-    if (nativePort === port && port) port.postMessage({event:'write_metadata',id:message.id,result:result || {error:'not_ready'}});
+    if (nativePort === port && port) port.postMessage({event:'api_metadata',id:message.id,result:result || {error:'not_ready'}});
 }
 
 function scheduleReconnect() {
@@ -87,7 +87,7 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 });
 
 function injectContentScripts(tabId) {
-    return browser.tabs.executeScript(tabId, { file: "sites/x/write-api.js" })
+    return browser.tabs.executeScript(tabId, { file: "sites/x/api-metadata.js" })
         .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/bootstrap.js" }))
         .then(() => browser.tabs.executeScript(tabId, { file: "runtime/navigation-runtime.js" }))
         .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/post-identity.js" }))

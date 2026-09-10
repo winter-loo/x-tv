@@ -46,22 +46,22 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
         if(mPort==null)return;
         try {JSONObject msg=new JSONObject();msg.put("command","readerAction");msg.put("path",path);msg.put("action",action);mPort.postMessage(msg);}catch(JSONException ignored){}
     }
-    private final android.os.Handler writeHandler = new android.os.Handler(android.os.Looper.getMainLooper());
-    private String writeId;
-    private java.util.function.Consumer<JSONObject> writeCallback;
-    public void prepareWrite(String operation, java.util.function.Consumer<JSONObject> callback) {
-        if (writeCallback != null || mPort == null || mPort.sender.session != null) { callback.accept(null); return; }
-        writeId = java.util.UUID.randomUUID().toString();
-        writeCallback = callback;
-        final String id = writeId;
+    private final android.os.Handler metadataHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private String metadataId;
+    private java.util.function.Consumer<JSONObject> metadataCallback;
+    public void prepareApi(String operation, java.util.function.Consumer<JSONObject> callback) {
+        if (metadataCallback != null || mPort == null || mPort.sender.session != null) { callback.accept(null); return; }
+        metadataId = java.util.UUID.randomUUID().toString();
+        metadataCallback = callback;
+        final String id = metadataId;
         try {
-            mPort.postMessage(new JSONObject().put("command", "writePrepare").put("id", id).put("operation", operation));
-        } catch (Exception e) { finishWriteMetadata(null); return; }
-        writeHandler.postDelayed(() -> { if (id.equals(writeId)) finishWriteMetadata(null); }, 3000);
+            mPort.postMessage(new JSONObject().put("command", "apiPrepare").put("id", id).put("operation", operation));
+        } catch (Exception e) { finishMetadata(null); return; }
+        metadataHandler.postDelayed(() -> { if (id.equals(metadataId)) finishMetadata(null); }, 3000);
     }
-    private void finishWriteMetadata(JSONObject result) {
-        java.util.function.Consumer<JSONObject> callback = writeCallback;
-        writeCallback = null; writeId = null;
+    private void finishMetadata(JSONObject result) {
+        java.util.function.Consumer<JSONObject> callback = metadataCallback;
+        metadataCallback = null; metadataId = null;
         if (callback != null) callback.accept(result);
     }
     private Runnable mReadyListener;
@@ -74,7 +74,7 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
     }
     public void setPresentationListener(Runnable listener) { mPresentationListener = listener; }
     public void close() {
-        finishWriteMetadata(null);
+        finishMetadata(null);
         if (mPort != null) { mPort.disconnect(); mPort = null; }
         mReadyListener = null; mPresentationListener = null; mExitListener = null;
         mReadTemplateListener=null;mReadClearListener=null;mReaderReturnListener=null;mReaderReadyListener=null;
@@ -153,9 +153,9 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
         // Never log message bodies: extension requests can carry session headers.
         if (message instanceof JSONObject && port == mPort) {
             JSONObject incoming = (JSONObject) message;
-            if ("write_metadata".equals(incoming.optString("event"))) {
-                if (port.sender.session == null && incoming.optString("id").equals(writeId))
-                    finishWriteMetadata(incoming.optJSONObject("result"));
+            if ("api_metadata".equals(incoming.optString("event"))) {
+                if (port.sender.session == null && incoming.optString("id").equals(metadataId))
+                    finishMetadata(incoming.optJSONObject("result"));
                 return;
             }
             JSONObject json = (JSONObject) message;
@@ -168,7 +168,7 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
         Log.w(TAG, "WebExtension Port disconnected!");
         if (mPort == port) {
             mPort = null;
-            finishWriteMetadata(null);
+            finishMetadata(null);
         }
     }
 

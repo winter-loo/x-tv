@@ -83,7 +83,7 @@
 
     // Listen for incoming commands from background script (from Android Native Messaging)
     browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
-        if (request.command === "writePrepare") return undefined;
+        if (request.command === "apiPrepare") return undefined;
         console.log("[TV-Extension] Content script received command:", JSON.stringify(request));
         const adapter = ensureAdapter();
 

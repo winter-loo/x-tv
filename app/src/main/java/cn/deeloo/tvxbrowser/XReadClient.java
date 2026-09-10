@@ -37,6 +37,8 @@ final class XReadClient {
         void complete(String body, long savedAt);
     }
     private static final String KEY = "tvx-reader-session";
+    /** One screenful of likes and then some: the list is paged, not scrolled. */
+    private static final int LIKES_PAGE = 20;
     private final SharedPreferences preferences;
     private final android.util.AtomicFile homeFile;
     private final ExecutorService executor = Executors.newFixedThreadPool(2);
@@ -50,6 +52,8 @@ final class XReadClient {
     private String homeBody, homeError;
     private Callback homeListener;
     Runnable accountChanged;
+    /** Live page metadata, for the operations X never sends on its own. */
+    XGraphQL.Metadata metadata;
 
     XReadClient(Context context) {
         preferences = context.getSharedPreferences(KEY, Context.MODE_PRIVATE);
@@ -84,7 +88,8 @@ final class XReadClient {
         return session.has("home") && session.has("detail");
     }
     // Trusted native snapshot only. Never expose these headers to the reading WebView.
-    synchronized JSONObject writeSession() {
+    /** Everything an operation built from live page metadata needs to authenticate. */
+    synchronized JSONObject credentials() {
         try {
             JSONObject template = session.optJSONObject("home");
             if (template == null) return null;
@@ -92,7 +97,7 @@ final class XReadClient {
                 .put("generation", generation).put("headers", new JSONArray(template.getJSONArray("headers").toString()));
         } catch (Exception e) { return null; }
     }
-    synchronized boolean matchesWriteSession(JSONObject snapshot) {
+    synchronized boolean matchesCredentials(JSONObject snapshot) {
         return !closed && snapshot != null && snapshot.optInt("generation", -1) == generation
             && snapshot.optString("account").equals(session.optString("account"));
     }
@@ -424,6 +429,80 @@ final class XReadClient {
         });
         tasks.put(id, task);
         executor.execute(task);
+    }
+    /**
+     * The signed-in reader's own likes. X never issues this query while the reader is up, so
+     * there is no captured template to reuse: the operation is built from live page metadata.
+     */
+    void fetchLikes(String id, String cursor, Callback callback) {
+        if (closed) return;
+        final JSONObject auth = credentials();
+        final XGraphQL.Metadata source = metadata;
+        final int ticket;
+        synchronized (this) { ticket = generation; }
+        if (auth == null || source == null) {
+            callback.complete(null, "session");
+            return;
+        }
+        // Claims the request slot straight away: cancel() must reach a fetch still waiting on metadata.
+        final FutureTask<Void> gate = new FutureTask<>(() -> null);
+        tasks.put(id, gate);
+        final long started = android.os.SystemClock.elapsedRealtime();
+        source.prepare("Likes", info -> {
+            if (closed || ticket != generation || tasks.get(id) != gate) return;
+            tasks.remove(id);
+            if (info == null || info.has("error") || !matchesCredentials(auth)) {
+                android.util.Log.w("TvXReaderPerf",
+                    "likes metadata unavailable ms=" + (android.os.SystemClock.elapsedRealtime() - started));
+                callback.complete(null, "not_ready");
+                return;
+            }
+            FutureTask<Void> task = new FutureTask<>(() -> {
+                String payload = null, error = null;
+                try {
+                    Map<String, String> headers = XGraphQL.headers(auth);
+                    if (!info.getString("csrf").equals(headers.get("x-csrf-token")))
+                        throw new java.io.IOException("session");
+                    String userId = XGraphQL.accountId(headers.get("cookie"));
+                    if (!userId.matches("[0-9]+")) throw new java.io.IOException("session");
+                    JSONObject variables = new JSONObject()
+                                               .put("userId", userId)
+                                               .put("count", LIKES_PAGE)
+                                               .put("includePromotedContent", false)
+                                               .put("withClientEventToken", false)
+                                               .put("withBirdwatchNotes", false)
+                                               .put("withVoice", true)
+                                               .put("withV2Timeline", true);
+                    if (cursor != null && !cursor.isEmpty()) variables.put("cursor", cursor);
+                    XGraphQL.Response response;
+                    try {
+                        response = XGraphQL.send("Likes", variables, info.getJSONObject("queries").getJSONObject("Likes"),
+                            headers, c -> connections.put(id, c));
+                    } finally {
+                        connections.remove(id);
+                    }
+                    if (response.status == 401 || response.status == 403) error = "session";
+                    else if (response.status == 429) error = "busy";
+                    else if (response.status != 200) error = "network";
+                    else if (!response.body.has("data")) error = "unavailable";
+                    else payload = response.body.toString();
+                } catch (Exception e) {
+                    error = "session".equals(e.getMessage()) ? "session" : "network";
+                } finally {
+                    tasks.remove(id);
+                }
+                android.util.Log.w("TvXReaderPerf",
+                    "likes request ms=" + (android.os.SystemClock.elapsedRealtime() - started)
+                        + " result=" + (error == null ? "ok" : error));
+                final String data = payload, problem = error;
+                ui.post(() -> {
+                    if (!closed && ticket == generation) callback.complete(data, problem);
+                });
+                return null;
+            });
+            tasks.put(id, task);
+            executor.execute(task);
+        });
     }
     void cancel(String id) {
         FutureTask<Void> task = tasks.remove(id);

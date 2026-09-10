@@ -4,7 +4,7 @@ import java.util.function.Consumer;
 import org.json.JSONObject;
 
 /** Waits for live X metadata without blocking the reader or replaying a mutation. UI-thread only. */
-final class WritePreparation {
+final class XMetadata {
     interface Page {
         /** Restores X if the reader owns the session; never navigates an active handoff. */
         boolean ensureXPage();
@@ -17,7 +17,7 @@ final class WritePreparation {
     private String operation;
     private int generation;
 
-    WritePreparation(Page page, Scheduler scheduler) {
+    XMetadata(Page page, Scheduler scheduler) {
         this.page = page;
         this.scheduler = scheduler;
     }

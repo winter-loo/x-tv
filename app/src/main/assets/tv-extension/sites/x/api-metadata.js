@@ -1,7 +1,18 @@
 // Read-only metadata adapter. Only extension messages reach this listener; it never submits a post.
 (() => {
-    if (location.origin !== 'https://x.com' || window.top !== window || window.__tvxWriteMetadata) return;
-    window.__tvxWriteMetadata = true;
+    if (location.origin !== 'https://x.com' || window.top !== window || window.__tvxApiMetadata) return;
+    window.__tvxApiMetadata = true;
+    /**
+     * Every GraphQL operation the native clients are allowed to build, with the method its
+     * transaction identifier must be signed for. A companion is fetched in the same round trip
+     * because the caller always needs it: a write reads the post back to confirm what happened.
+     */
+    const OPERATIONS = {
+        FavoriteTweet: {method: 'POST', companion: 'TweetResultByRestId'},
+        UnfavoriteTweet: {method: 'POST', companion: 'TweetResultByRestId'},
+        CreateTweet: {method: 'POST', companion: 'TweetResultByRestId'},
+        Likes: {method: 'GET'}
+    };
     let requirePage;
     function requireModules() {
         if (requirePage) return requirePage;
@@ -57,9 +68,11 @@
         const config = switches(), generate = transactionGenerator();
         const result = {csrf: document.cookie.match(/(?:^|; )ct0=([^;]*)/)?.[1], queries: {}};
         if (!result.csrf) throw Error('session');
-        // GET metadata supports readback after a successful or ambiguous write.
-        for (const name of [operation, 'TweetResultByRestId']) {
-            const q = query(name), method = name === 'TweetResultByRestId' ? 'GET' : 'POST';
+        const companion = OPERATIONS[operation].companion;
+        const wanted = [[operation, OPERATIONS[operation].method]];
+        if (companion) wanted.push([companion, 'GET']);
+        for (const [name, method] of wanted) {
+            const q = query(name);
             const path = '/i/api/graphql/' + q.queryId + '/' + name;
             const transaction = await generate('x.com', path, method);
             if (typeof transaction !== 'string' || transaction.length > 1024 || atob(transaction).startsWith('e:')) throw Error('metadata');
@@ -75,8 +88,8 @@
         return result;
     }
     browser.runtime.onMessage.addListener(message => {
-        if (message.command !== 'writePrepare') return undefined;
-        if (!['FavoriteTweet', 'UnfavoriteTweet', 'CreateTweet'].includes(message.operation)) return Promise.resolve({error:'invalid'});
+        if (message.command !== 'apiPrepare') return undefined;
+        if (!Object.prototype.hasOwnProperty.call(OPERATIONS, message.operation)) return Promise.resolve({error:'invalid'});
         return prepare(message.operation).catch(() => ({error:'not_ready'}));
     });
 })();

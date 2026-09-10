@@ -187,7 +187,8 @@ function parse(payload, mode, targetId) {
         });
     }
     walk(payload.data);
-    if (mode === 'home') return {posts: posts, cursor: cursor};
+    // Every list — the timeline and the signed-in reader's likes — is the same shape.
+    if (mode !== 'detail') return {posts: posts, cursor: cursor};
     var root = posts.find(function(post) {
         return post.id === targetId;
     });

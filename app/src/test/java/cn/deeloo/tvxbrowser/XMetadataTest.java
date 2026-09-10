@@ -8,15 +8,15 @@ import org.json.JSONObject;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-public class WritePreparationTest {
-    static final class Fixture implements WritePreparation.Page, WritePreparation.Scheduler {
+public class XMetadataTest {
+    static final class Fixture implements XMetadata.Page, XMetadata.Scheduler {
         long now;
         boolean external, ready, stalled;
         int restores, probes;
         Consumer<JSONObject> pending;
         final List<JSONObject> results = new ArrayList<>();
         final PriorityQueue<Event> events = new PriorityQueue<>((a,b) -> Long.compare(a.at,b.at));
-        final WritePreparation preparation = new WritePreparation(this, this);
+        final XMetadata preparation = new XMetadata(this, this);
         static final class Event {
             long at; Runnable task;
             Event(long at, Runnable task) { this.at=at; this.task=task; }

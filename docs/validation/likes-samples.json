@@ -1,0 +1,157 @@
+{
+  "serial": "192.168.10.100:5555",
+  "out": "docs/validation/likes-samples.json",
+  "failure": null,
+  "evidence": [
+    {
+      "at": "2026-09-10T17:44:39.937Z",
+      "step": "timeline",
+      "pid": "32380",
+      "scene": {
+        "tabNow": "X · 时间线",
+        "tabAlt": "← 我的喜欢",
+        "title": "← 我的喜欢X · 时间线",
+        "position": "1 / 35",
+        "freshness": "刚刚更新",
+        "author": "Meng To",
+        "body": "I built StoryComet with Fable 5.1 in thr",
+        "liked": false,
+        "loading": "",
+        "detail": false,
+        "help": "↑↓ 切换帖子　 顶部 ↑ 刷新 ← 我的喜欢　 确认 帖子详情　 → 查看媒体　 菜单 更多操作",
+        "notice": ""
+      }
+    },
+    {
+      "at": "2026-09-10T17:44:52.086Z",
+      "step": "likes-opened",
+      "scene": {
+        "tabNow": "我的喜欢",
+        "tabAlt": "← X · 时间线",
+        "title": "← X · 时间线我的喜欢",
+        "position": "1 / 20",
+        "freshness": "",
+        "author": "samzong",
+        "body": "开发 recall，被 worktree 折腾的好烦... 开几个磁盘就开始吃紧",
+        "liked": true,
+        "loading": "",
+        "detail": false,
+        "help": "↑↓ 切换帖子　 顶部 ↑ 刷新 ← X · 时间线　 确认 帖子详情　 → 查看媒体　 菜单 更多操作",
+        "notice": ""
+      },
+      "request": [
+        "TvXApiPerf Likes status=200 ms=962",
+        "TvXReaderPerf likes request ms=11049 result=ok"
+      ],
+      "probe": [
+        {
+          "ok": true,
+          "error": "",
+          "liked": 20,
+          "posts": 20,
+          "id": "r1"
+        }
+      ]
+    },
+    {
+      "at": "2026-09-10T17:44:53.512Z",
+      "step": "likes-paged",
+      "scene": {
+        "tabNow": "我的喜欢",
+        "tabAlt": "← X · 时间线",
+        "title": "← X · 时间线我的喜欢",
+        "position": "2 / 20",
+        "freshness": "",
+        "author": "Shriram Krishnamurthi (primary: Bluesky)",
+        "body": "Super excited to share \"A Design Space E",
+        "liked": true,
+        "loading": "",
+        "detail": false,
+        "help": "↑↓ 切换帖子　 顶部 ↑ 刷新 ← X · 时间线　 确认 帖子详情　 → 查看媒体　 菜单 更多操作",
+        "notice": ""
+      }
+    },
+    {
+      "at": "2026-09-10T17:44:56.253Z",
+      "step": "likes-detail",
+      "scene": {
+        "tabNow": "",
+        "tabAlt": "",
+        "title": "← 帖子详情",
+        "position": "",
+        "freshness": "正文已载入 · 评论更新中",
+        "author": "samzong",
+        "body": "开发 recall，被 worktree 折腾的好烦... 开几个磁盘就开始吃紧",
+        "liked": true,
+        "loading": "",
+        "detail": true,
+        "help": "↑↓ 阅读正文　 → 评论　 确认 查看媒体　 菜单 更多操作　 返回 上一层",
+        "notice": ""
+      }
+    },
+    {
+      "at": "2026-09-10T17:44:57.697Z",
+      "step": "likes-restored",
+      "scene": {
+        "tabNow": "我的喜欢",
+        "tabAlt": "← X · 时间线",
+        "title": "← X · 时间线我的喜欢",
+        "position": "1 / 20",
+        "freshness": "",
+        "author": "samzong",
+        "body": "开发 recall，被 worktree 折腾的好烦... 开几个磁盘就开始吃紧",
+        "liked": true,
+        "loading": "",
+        "detail": false,
+        "help": "↑↓ 切换帖子　 顶部 ↑ 刷新 ← X · 时间线　 确认 帖子详情　 → 查看媒体　 菜单 更多操作",
+        "notice": ""
+      }
+    },
+    {
+      "at": "2026-09-10T17:45:00.835Z",
+      "step": "likes-refreshed",
+      "scene": {
+        "tabNow": "我的喜欢",
+        "tabAlt": "← X · 时间线",
+        "title": "← X · 时间线我的喜欢",
+        "position": "1 / 20",
+        "freshness": "",
+        "author": "samzong",
+        "body": "开发 recall，被 worktree 折腾的好烦... 开几个磁盘就开始吃紧",
+        "liked": true,
+        "loading": "",
+        "detail": false,
+        "help": "↑↓ 切换帖子　 顶部 ↑ 刷新 ← X · 时间线　 确认 帖子详情　 → 查看媒体　 菜单 更多操作",
+        "notice": ""
+      },
+      "reads": [
+        "TvXApiPerf Likes status=200 ms=811",
+        "TvXReaderPerf likes request ms=1816 result=ok"
+      ]
+    },
+    {
+      "at": "2026-09-10T17:45:04.095Z",
+      "step": "timeline-restored",
+      "scene": {
+        "tabNow": "X · 时间线",
+        "tabAlt": "← 我的喜欢",
+        "title": "← 我的喜欢X · 时间线",
+        "position": "1 / 35",
+        "freshness": "刚刚更新",
+        "author": "Meng To",
+        "body": "I built StoryComet with Fable 5.1 in thr",
+        "liked": false,
+        "loading": "",
+        "detail": false,
+        "help": "↑↓ 切换帖子　 顶部 ↑ 刷新 ← 我的喜欢　 确认 帖子详情　 → 查看媒体　 菜单 更多操作",
+        "notice": ""
+      },
+      "reads": []
+    },
+    {
+      "at": "2026-09-10T17:45:04.227Z",
+      "step": "no-writes",
+      "writes": []
+    }
+  ]
+}

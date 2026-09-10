@@ -50,7 +50,7 @@ public class BrowserActivity extends Activity {
     private XReadClient mReadClient;
     private FastReader mReader;
     private XWriteClient mWriteClient;
-    private WritePreparation mWritePreparation;
+    private XMetadata mMetadata;
     private boolean mWritePageLoading;
     private boolean mPrewarmScheduled;
     private final Handoff mHandoff = new Handoff();
@@ -75,17 +75,18 @@ public class BrowserActivity extends Activity {
         mLoading = findViewById(R.id.loading_overlay);
 
         mReadClient=TvXApplication.takeReadClient();
-        mWritePreparation = new WritePreparation(new WritePreparation.Page() {
+        mMetadata = new XMetadata(new XMetadata.Page() {
             public boolean ensureXPage() { return ensureWritePage(); }
             public void prepare(String operation, java.util.function.Consumer<org.json.JSONObject> callback) {
-                mBridge.prepareWrite(operation, callback);
+                mBridge.prepareApi(operation, callback);
             }
         }, (delay, task) -> mUiHandler.postDelayed(task, delay));
-        mWriteClient = new XWriteClient(this, mReadClient, mWritePreparation::prepare);
+        mWriteClient = new XWriteClient(this, mReadClient, mMetadata::prepare);
+        mReadClient.metadata = mMetadata::prepare;
         mReadClient.accountChanged=()->{
             if(isFinishing()||isDestroyed())return;
             if(mReader!=null){((android.view.ViewGroup)mReader.getParent()).removeView(mReader);mReader.dispose();mReader=null;}
-            mWritePreparation.cancel();
+            mMetadata.cancel();
             closeHandoff();initializeBrowser();loadXHome();
         };
         if(mReadClient.available()&&!getIntent().hasExtra("url")&&!getIntent().hasExtra("action")) {
@@ -471,11 +472,11 @@ public class BrowserActivity extends Activity {
         // Debug-build acceptance seam: exercise the real metadata path without a mutation.
         if (BuildConfig.DEBUG && "check_write_preparation".equals(intent.getStringExtra("action"))) {
             final long started = SystemClock.elapsedRealtime();
-            final org.json.JSONObject auth = mReadClient.writeSession();
-            mWritePreparation.prepare("FavoriteTweet", metadata -> {
+            final org.json.JSONObject auth = mReadClient.credentials();
+            mMetadata.prepare("FavoriteTweet", metadata -> {
                 boolean ready = metadata != null && !metadata.has("error")
                     && metadata.has("csrf") && metadata.has("queries")
-                    && mReadClient.matchesWriteSession(auth);
+                    && mReadClient.matchesCredentials(auth);
                 Log.w("TvXWriteReady", "ready=" + ready + " ms=" + (SystemClock.elapsedRealtime() - started));
             });
             return;
@@ -579,7 +580,7 @@ public class BrowserActivity extends Activity {
         Log.e(TAG, "===> BrowserActivity.onDestroy START <===");
         if(mReader!=null){mReader.dispose();mReader=null;}
         if(mWriteClient!=null)mWriteClient.close();
-        if(mWritePreparation!=null)mWritePreparation.cancel();
+        if(mMetadata!=null)mMetadata.cancel();
         if(mReadClient!=null)mReadClient.close();
         if (mPopupSession != null && mPopupSession.isOpen()) {
             mPopupSession.close();

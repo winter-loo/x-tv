@@ -130,7 +130,8 @@ final class FastReader extends FrameLayout {
         }
         @JavascriptInterface
         public void request(String id, String mode, String postId, String cursor) {
-            if (!id.matches("r[0-9]+") || (!mode.equals("home") && !mode.equals("detail"))
+            if (!id.matches("r[0-9]+")
+                || (!mode.equals("home") && !mode.equals("detail") && !mode.equals("likes"))
                 || cursor.length() > 10000)
                 return;
             post(() -> {
@@ -141,20 +142,26 @@ final class FastReader extends FrameLayout {
                 pending = id;
                 started = SystemClock.elapsedRealtime();
                 setContentDescription("tvx-reader-loading");
-                client.fetch(id, mode, postId, cursor, (data, error) -> receive(id, data, error));
+                if (mode.equals("likes"))
+                    client.fetchLikes(id, cursor, (data, error) -> receive(id, data, error));
+                else
+                    client.fetch(id, mode, postId, cursor, (data, error) -> receive(id, data, error));
             });
         }
         @JavascriptInterface
         public void rendered(String id, String kind) {
             post(() -> {
                 if (disposed || !pending.equals(id)
-                    || (!kind.equals("home") && !kind.equals("detail") && !kind.equals("home_cached")
-                        && !kind.equals("detail_cached") && !kind.equals("detail_reused")))
+                    || (!kind.equals("home") && !kind.equals("detail") && !kind.equals("likes")
+                        && !kind.equals("home_cached") && !kind.equals("detail_cached")
+                        && !kind.equals("detail_reused")))
                     return;
                 postOnAnimation(() -> postOnAnimation(() -> {
                     if (disposed || !pending.equals(id))
                         return;
-                    String mode = kind.startsWith("detail") ? "detail" : "home";
+                    String mode = kind.startsWith("detail") ? "detail"
+                        : kind.startsWith("likes")          ? "likes"
+                                                            : "home";
                     String stage = kind.endsWith("_cached") ? "cached"
                         : kind.endsWith("_reused")          ? "reused"
                                                             : "live";
@@ -168,6 +175,8 @@ final class FastReader extends FrameLayout {
         }
         @JavascriptInterface
         public void restoreScene(String id, String kind) {
+            if (!kind.equals("home") && !kind.equals("detail") && !kind.equals("likes"))
+                return;
             post(() -> {
                 if (disposed)
                     return;

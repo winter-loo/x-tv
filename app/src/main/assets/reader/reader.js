@@ -5,7 +5,7 @@ var stage = document.getElementById('stage'), title = document.getElementById('t
 var sequence = 0, pending = 'r0', stack = [], homeRefresh = '',
     state = {mode: 'home', posts: [], index: 0, cursor: '', region: 'post'}, paging = false,
     refreshing = false;
-var homeScene = state, actionMenu = null, external = null, likeOps = {}, likeQueue = [],
+var homeScene = state, likesScene = null, actionMenu = null, external = null, likeOps = {}, likeQueue = [],
     likeSending = '', verifySequence = 0, writeSequence = 0, pendingWrite = null, writeRevision = 0, readRevision = 0, written = {};
 function esc(v) {
     return String(v == null ? '' : v).replace(/[&<>"']/g, function(c) {
@@ -15,8 +15,19 @@ function esc(v) {
 function notice(text) {
     document.getElementById('notice').textContent = text;
 }
+/** The timeline and the reader's own likes are both lists; a detail is one post with replies. */
+function listMode(scene) {
+    var mode = (scene || state).mode;
+    return mode === 'home' || mode === 'likes';
+}
+function listLabel(mode) {
+    return mode === 'likes' ? '我的喜欢' : 'X · 时间线';
+}
+function otherList() {
+    return state.mode === 'likes' ? 'home' : 'likes';
+}
 function current() {
-    return state.mode === 'home' ? state.posts[state.index] : state.root;
+    return listMode() ? state.posts[state.index] : state.root;
 }
 /** Recent posts read better as an age; older ones need a date, and another year needs the year. */
 function timeLabel(created) {
@@ -127,7 +138,7 @@ function activateAction() {
     ReaderHost.write(id, post.id, 'reply', false, post.author.name || post.author.handle);
 }
 function scenes() {
-    return [state, homeScene].concat(stack);
+    return [state, homeScene].concat(likesScene ? [likesScene] : []).concat(stack);
 }
 /** Puts a like state on every copy of the post and shields it from reads already in flight. */
 function applyLike(postId, liked, likes) {
@@ -487,7 +498,7 @@ function render() {
     var post = current();
     notice(post && written[post.id] ? written[post.id].message || '' : '');
     var freshness = document.getElementById('freshness'), refresh = document.getElementById('refresh');
-    refresh.hidden = state.mode !== 'home';
+    refresh.hidden = !listMode();
     refresh.textContent = homeRefresh ? '正在刷新…' : '刷新';
     freshness.textContent = state.mode !== 'home' ?
         (state.cachedAt            ? '上次内容 ' + new Date(state.cachedAt).toLocaleString() :
@@ -497,24 +508,32 @@ function render() {
         state.cachedAt    ? '上次时间线 ' + new Date(state.cachedAt).toLocaleString() +
             (state.updateFailed ? ' · 更新未完成' : ' · 正在更新') :
                          '刚刚更新';
-    title.textContent = state.mode === 'home' ? 'X · 时间线' : '← 帖子详情';
+    // The two lists sit side by side in the header, the one a left press reaches shown first.
+    title.innerHTML = listMode() ?
+        '<span class="tab-alt">← ' + esc(listLabel(otherList())) + '</span><span class="tab-now">' +
+            esc(listLabel(state.mode)) + '</span>' :
+        '← 帖子详情';
     document.getElementById('position').textContent =
-        state.mode === 'home' && post ? (state.index + 1) + ' / ' + state.posts.length : '';
+        listMode() && post ? (state.index + 1) + ' / ' + state.posts.length : '';
     if (!post) {
         stage.innerHTML = '<div class="loading">' +
-            (state.error               ? '加载未完成，按确认重试 · 返回上一层' :
-                 state.mode === 'home' ? '正在加载时间线…' :
-                                         '正在加载完整帖子…') +
+            (state.error                ? '加载未完成，按确认重试 · 返回上一层' :
+                 state.empty            ? '还没有喜欢的帖子' :
+                 state.mode === 'home'  ? '正在加载时间线…' :
+                 state.mode === 'likes' ? '正在加载我的喜欢…' :
+                                          '正在加载完整帖子…') +
             '</div>';
-        help.textContent = '确认 重试　 返回 上一层';
+        help.textContent = listMode() ? '确认 重新加载　 ← ' + listLabel(otherList()) + '　 返回 上一层' :
+                                        '确认 重试　 返回 上一层';
         return;
     }
-    if (state.mode === 'home') {
+    if (listMode()) {
         stage.innerHTML = postHtml(post, false) + media(post);
         help.textContent = state.region === 'media' ?
             TvXMedia.prompt(post.media[mediaIndex(post)]) +
                 (post.media.length > 1 ? '　 ←→ 切换媒体' : '　 ← 返回正文') + '　 ↑↓ 切换帖子' :
-            '↑↓ 切换帖子　 顶部 ↑ 刷新　 确认 帖子详情　 → 查看媒体　 菜单 更多操作';
+            '↑↓ 切换帖子　 顶部 ↑ 刷新 ← ' + listLabel(otherList()) +
+                '　 确认 帖子详情　 → 查看媒体　 菜单 更多操作';
     } else {
         var comments = state.posts
                            .map(function(comment, i) {
@@ -634,10 +653,19 @@ function saveScroll() {
     state.bodyY = pendingScroll(stage.querySelector('.body'));
     state.commentsY = pendingScroll(stage.querySelector('.comment-list'));
 }
+/**
+ * Claims the scene's single request slot. A refresh the reader has walked away from is forgotten
+ * here, so leaving the timeline mid-refresh cannot leave it permanently unable to refresh again.
+ */
+function claim() {
+    if (homeRefresh === pending) homeRefresh = '';
+    pending = 'r' + (++sequence);
+    return pending;
+}
 function request(cursor) {
     recheckLikes();
     refreshing = false;
-    pending = 'r' + (++sequence);
+    claim();
     readRevision = writeRevision;
     state.error = false;
     state.requestCursor = cursor || '';
@@ -700,6 +728,37 @@ function countNew(posts) {
         if (!known[post.id]) count++;
     });
     return count;
+}
+/** Sideways at the top of a list: the timeline and the reader's own likes are siblings. */
+function switchList() {
+    if (!listMode()) return;
+    saveScroll();
+    if (state.mode === 'home' && !likesScene)
+        likesScene = {mode: 'likes', posts: [], index: 0, cursor: '', region: 'post'};
+    state = state.mode === 'home' ? likesScene : homeScene;
+    if (state.mode === 'likes' && !state.posts.length && !state.empty && !state.error) {
+        render();
+        request('');
+        notice('正在加载我的喜欢…');
+        return;
+    }
+    claim();
+    paging = false;
+    refreshing = false;
+    render();
+    ReaderHost.restoreScene(pending, state.mode);
+}
+function refreshList() {
+    if (state.mode === 'likes') refreshLikes();
+    else refreshHome();
+}
+/** Likes carry no cached copy and no pending merge: a refresh is simply the list again. */
+function refreshLikes() {
+    if (paging) return;
+    state.empty = false;
+    request('');
+    render();
+    notice('正在刷新…');
 }
 /** Up at the top of the timeline: take what is waiting, otherwise go and ask. */
 function refreshHome() {
@@ -788,7 +847,7 @@ function receive(id, payload, error) {
             var updated = preserveWrites(TvXReadData.parse(payload, 'detail', current().id), readRevision).root;
             if (updated && updated.complete) {
                 saveScroll();
-                if (state.mode === 'home')
+                if (listMode())
                     state.posts[state.index] = updated;
                 else
                     state.root = updated;
@@ -837,6 +896,21 @@ function receive(id, payload, error) {
         paging = false;
         return;
     }
+    // Nothing liked yet is an answer, not a failure, so it is shown as one.
+    if (state.mode === 'likes' && !paging && !data.posts.length) {
+        state.posts = [];
+        state.cursor = '';
+        state.empty = true;
+        state.error = false;
+        render();
+        notice('');
+        requestAnimationFrame(function() {
+            requestAnimationFrame(function() {
+                if (id === pending) ReaderHost.rendered(id, 'likes');
+            });
+        });
+        return;
+    }
     saveScroll();
     if (paging) {
         var ids = new Set(state.posts.map(function(p) {
@@ -847,6 +921,13 @@ function receive(id, payload, error) {
         }));
     } else {
         state.posts = data.posts;
+        if (state.mode === 'likes') {
+            state.empty = false;
+            state.index = 0;
+            state.bodyY = 0;
+            state.mediaIndex = 0;
+            state.region = 'post';
+        }
         if (state.mode === 'detail') {
             state.root = data.root;
             state.cachedAt = 0;
@@ -867,7 +948,7 @@ function refreshCurrent() {
     recheckLikes();
     var post = current();
     if (!post) return;
-    pending = 'r' + (++sequence);
+    claim();
     refreshing = true;
     readRevision = writeRevision;
     ReaderHost.request(pending, 'detail', post.id, '');
@@ -898,7 +979,7 @@ function back() {
     }
     if (stack.length) {
         state = stack.pop();
-        pending = 'r' + (++sequence);
+        claim();
         paging = false;
         refreshing = false;
         render();
@@ -914,6 +995,10 @@ function back() {
         state.index = 0;
         state.bodyY = 0;
         render();
+        return;
+    }
+    if (state.mode === 'likes') {
+        switchList();
         return;
     }
     ReaderHost.exit();
@@ -958,12 +1043,22 @@ function key(key) {
         }
         return;
     }
-    if (!post) return;
+    if (!post) {
+        // An empty or failed list still answers its two structural keys.
+        if (!listMode()) return;
+        if (key === 'ok') {
+            state.empty = false;
+            render();
+            request('');
+        } else if (key === 'left')
+            switchList();
+        return;
+    }
     saveScroll();
-    if (state.mode === 'home') {
+    if (listMode()) {
         state.interacted = true;
         if (key === 'up' && state.index === 0 && state.region === 'post') {
-            refreshHome();
+            refreshList();
             return;
         }
 
@@ -977,6 +1072,10 @@ function key(key) {
                 render();
             } else if (key === 'down')
                 more();
+            return;
+        }
+        if (key === 'left' && state.index === 0 && state.region === 'post') {
+            switchList();
             return;
         }
         if (key === 'right' && post.media.length) {
@@ -1045,7 +1144,7 @@ function key(key) {
     }
 }
 document.getElementById('refresh').onclick = function() {
-    if (state === homeScene && !actionMenu && !TvXMedia.isOpen() && !external) refreshHome();
+    if (listMode() && !actionMenu && !TvXMedia.isOpen() && !external) refreshList();
 };
 window.TvXReader = {
     receive: receive,
