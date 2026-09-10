@@ -49,8 +49,6 @@ async function mount(page) {
 const receive = (page, id, data, error = '') =>
     page.evaluate(([id, data, error]) => TvXReader.receive(id, data, error), [id, data, error]);
 const key = (page, k) => page.evaluate(k => TvXReader.key(k), k);
-/** Confirm reads the post full screen; a second confirm opens its detail. */
-const openDetail = async page => { await key(page, 'ok'); await key(page, 'ok'); };
 const box = (page, selector) => page.evaluate(sel => {
     const node = document.querySelector(sel);
     if (!node) return null;
@@ -142,7 +140,7 @@ test('the detail starts at the same left edge as the timeline', async ({page}) =
     await mount(page);
     await receive(page, 'r0', payload([post('101')]));
     const timeline = await box(page, '.post');
-    await openDetail(page);
+    await key(page, 'ok');
     await receive(page, 'r1', payload([post('101'), post('201', {replyTo: '101'})]));
     const detail = await box(page, '.detail-post');
     expect(Math.abs(detail.left - timeline.left)).toBeLessThanOrEqual(1);

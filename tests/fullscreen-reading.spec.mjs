@@ -2,8 +2,9 @@ import {expect, test} from '@playwright/test';
 import {readFile} from 'node:fs/promises';
 
 const assets = new URL('../app/src/main/assets/reader/', import.meta.url);
+const LONG = 'A paragraph of the post that has to wrap across the column.\n'.repeat(120);
 
-function post(id, {text = 'Post ' + id, media = false, replyTo = ''} = {}) {
+function post(id, {text = 'Post ' + id, media = false, replyTo = '', complete = true} = {}) {
     return {
         rest_id: id,
         core: {user_results: {result: {core: {name: 'Author ' + id, screen_name: 'author' + id}}}},
@@ -12,6 +13,7 @@ function post(id, {text = 'Post ' + id, media = false, replyTo = ''} = {}) {
             reply_count: 0,
             favorite_count: 0,
             conversation_id_str: replyTo || id,
+            ...(complete ? {} : {truncated: true}),
             ...(replyTo ? {in_reply_to_status_id_str: replyTo} : {}),
             ...(media ? {extended_entities: {media: [{type: 'photo', media_url_https: 'https://pbs.twimg.com/a.jpg'}]}} : {})
         }
@@ -56,18 +58,19 @@ const requests = page => page.evaluate(() => calls.filter(c => c[0] === 'request
 const box = (page, selector) => page.locator(selector).boundingBox();
 const reading = page => page.evaluate(() => document.body.classList.contains('reading'));
 
-async function timeline(page, tweets = [post('101', {media: true}), post('102')]) {
+/** Long enough not to fit: reading mode is only offered for a post that overflows its pane. */
+async function timeline(page, tweets = [post('101', {text: LONG, media: true}), post('102')]) {
     await mount(page);
     await receive(page, 'r0', payload(tweets));
 }
 /** The timeline, then into the detail of its first post, both panes populated. */
-async function detail(page) {
-    await timeline(page, [post('101', {media: true})]);
+async function detail(page, {text = LONG} = {}) {
+    await timeline(page, [post('101', {text: LONG, media: true})]);
     await key(page, 'ok');
     await key(page, 'ok');
     const asked = (await requests(page)).filter(c => c[2] === 'detail');
     await receive(page, asked[0][1],
-        payload([post('101', {media: true}), post('201', {text: 'Reply 201', replyTo: '101'})]));
+        payload([post('101', {text, media: true}), post('201', {text: 'Reply 201', replyTo: '101'})]));
     await expect(page.locator('.detail-post')).toHaveCount(1);
 }
 
@@ -111,7 +114,7 @@ test('back leaves reading mode and puts the page back the way it was', async ({p
     expect(await reading(page)).toBe(false);
     await expect(page.locator('header')).toBeVisible();
     await expect(page.locator('#position')).toHaveText('1 / 2');
-    await expect(page.locator('.post .text')).toHaveText('Post 101');
+    await expect(page.locator('.post .text')).toContainText('A paragraph of the post');
     expect(await box(page, '#stage')).toEqual(before.stage);
     expect(await box(page, '.post')).toEqual(before.post);
     await page.evaluate(() => calls.length = 0);
@@ -170,6 +173,7 @@ test('reading mode belongs to the scene it was entered from', async ({page}) => 
 
 test('a third confirm in a full-screen detail opens the media, as confirm always did', async ({page}) => {
     await detail(page);
+    await expect(page.locator('#help')).toContainText('确认 全屏阅读');
     await key(page, 'ok');
     await key(page, 'ok');
     await expect(page.locator('.viewer')).toHaveCount(1);
@@ -199,4 +203,41 @@ test('the footer says what confirm and back mean in each mode', async ({page}) =
     await key(page, 'ok');
     await expect(page.locator('#help')).toContainText('确认 查看媒体');
     await expect(page.locator('#help')).toContainText('返回 退出全屏');
+});
+
+test('a post that already fits keeps confirm on its detail, with no extra press', async ({page}) => {
+    await timeline(page, [post('101'), post('102')]);
+    await expect(page.locator('#help')).toContainText('确认 帖子详情');
+    await key(page, 'ok');
+    expect(await reading(page)).toBe(false);
+    const asked = (await requests(page)).filter(c => c[2] === 'detail');
+    expect(asked).toHaveLength(1);
+    expect(asked[0][3]).toBe('101');
+});
+
+test('a detail that already fits keeps confirm on its media', async ({page}) => {
+    await detail(page, {text: 'Short enough to fit the pane'});
+    await expect(page.locator('#help')).toContainText('确认 查看媒体');
+    await key(page, 'ok');
+    expect(await reading(page)).toBe(false);
+    await expect(page.locator('.viewer')).toHaveCount(1);
+});
+
+test('an excerpt X has not sent in full goes to fetch it rather than into reading mode', async ({page}) => {
+    await timeline(page, [post('101', {text: LONG, complete: false})]);
+    await expect(page.locator('.post .show-more')).toHaveCount(1);
+    await expect(page.locator('#help')).toContainText('确认 帖子详情');
+    await key(page, 'ok');
+    expect(await reading(page)).toBe(false);
+    expect((await requests(page)).filter(c => c[2] === 'detail')).toHaveLength(1);
+});
+
+test('a post grown too long to fit offers reading mode without being reloaded', async ({page}) => {
+    await timeline(page, [post('101'), post('102')]);
+    await expect(page.locator('#help')).toContainText('确认 帖子详情');
+    await receive(page, 'r0', payload([post('101', {text: LONG}), post('102')]));
+    await expect(page.locator('#help')).toContainText('确认 全屏阅读');
+    await key(page, 'ok');
+    expect(await reading(page)).toBe(true);
+    expect(await requests(page)).toHaveLength(0);
 });

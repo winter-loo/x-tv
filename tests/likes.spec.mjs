@@ -171,8 +171,6 @@ test('a like taken in the likes list shows on the same post in the timeline', as
 
 test('opening a liked post and coming back restores the likes list', async ({page}) => {
     await openLikes(page);
-    // Confirm reads the post full screen; a second confirm opens its detail.
-    await key(page, 'ok');
     await key(page, 'ok');
     const detail = (await requests(page)).filter(c => c[2] === 'detail');
     expect(detail).toHaveLength(1);

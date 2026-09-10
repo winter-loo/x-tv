@@ -544,8 +544,8 @@ function render() {
             TvXMedia.prompt(post.media[mediaIndex(post)]) +
                 (post.media.length > 1 ? '　 ←→ 切换媒体' : '　 ← 返回正文') + '　 ↑↓ 切换帖子' :
             state.full ? '↑↓ 切换帖子　 确认 帖子详情　 → 查看媒体　 菜单 更多操作　 返回 退出全屏' :
-                         '↑↓ 切换帖子　 顶部 ↑ 刷新 ← ' + listLabel(otherList()) +
-                '　 确认 全屏阅读　 → 查看媒体　 菜单 更多操作';
+                         '↑↓ 切换帖子　 顶部 ↑ 刷新 ← ' + listLabel(otherList()) + '　 确认 ' +
+                (readsFull() ? '全屏阅读' : '帖子详情') + '　 → 查看媒体　 菜单 更多操作';
     } else {
         var comments = state.posts
                            .map(function(comment, i) {
@@ -567,9 +567,8 @@ function render() {
                  '</div>') +
             '</div><div class="write-hint">菜单 · 写评论 / 喜欢</div></aside>';
         help.textContent = (state.region === 'post' ?
-                               state.full ? '↑↓ 阅读正文　 → 评论　 确认 查看媒体　 菜单 更多操作' :
-                                            '↑↓ 阅读正文　 → 评论　 确认 全屏阅读　 菜单 更多操作' :
-                               '↑↓ 阅读评论　 确认 打开评论　 ← 正文　 菜单 更多操作') +
+                '↑↓ 阅读正文　 → 评论　 确认 ' + (readsFull() ? '全屏阅读' : '查看媒体') + '　 菜单 更多操作' :
+                '↑↓ 阅读评论　 确认 打开评论　 ← 正文　 菜单 更多操作') +
             (state.full ? '　 返回 退出全屏' : '　 返回 上一层');
     }
     bindLinkCards(post);
@@ -649,11 +648,23 @@ function bindCommentMore() {
         };
     })(markers[i]);
 }
+/** Text that does not fit the pane holding it. Measured, never guessed from its length. */
+function clipped(body) {
+    return !!body && body.scrollHeight - body.clientHeight > 1;
+}
+/**
+ * Confirm reads a long post full screen. A post that already fits needs no reading mode, and an
+ * excerpt X has not sent in full has nothing more to show until the detail fetches it — both keep
+ * confirm as it was.
+ */
+function readsFull() {
+    var post = current();
+    return !state.full && !!post && post.complete && clipped(stage.querySelector('.body'));
+}
 function markTruncated(post, body) {
     var slot = stage.querySelector('.more-slot');
     if (!slot || !body) return;
-    var clipped = body.scrollHeight - body.clientHeight > 1;
-    if (!clipped && post.complete) {
+    if (!clipped(body) && post.complete) {
         slot.innerHTML = '';
         return;
     }
@@ -1114,7 +1125,7 @@ function key(key) {
         if (key === 'ok') {
             if (state.region === 'media')
                 showMedia();
-            else if (!state.full)
+            else if (readsFull())
                 enterFull();
             else
                 open(post);
@@ -1134,7 +1145,7 @@ function key(key) {
     if (key === 'ok') {
         if (state.region === 'comments')
             open(state.posts[state.comment]);
-        else if (!state.full)
+        else if (readsFull())
             enterFull();
         else
             showMedia();

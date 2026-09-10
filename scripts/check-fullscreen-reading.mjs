@@ -1,7 +1,8 @@
 /**
- * Real-device acceptance for full-screen reading: confirm on the post body drops the header,
- * stacks the post above what accompanies it, and gives the column three quarters of the screen;
- * back puts the page back exactly as it was.
+ * Real-device acceptance for full-screen reading: on a post whose text does not fit, confirm
+ * drops the header, stacks the post above what accompanies it, and gives the column three
+ * quarters of the screen; back puts the page back exactly as it was. On a post that already
+ * fits, confirm keeps its old meaning and opens the detail straight away.
  *
  * Read-only against X: it only reads the timeline and one detail, and checks for write traffic.
  *
@@ -75,6 +76,10 @@ const scene = `(function(){
         media: box('#stage>.media'),
         comments: box('.comments'),
         detail: !!document.querySelector('.detail-post'),
+        clipped: (function(){
+            var b = document.querySelector('.body');
+            return b ? b.scrollHeight - b.clientHeight > 1 : null;
+        })(),
         position: document.getElementById('position').textContent,
         freshness: document.getElementById('freshness').textContent,
         author: (document.querySelector('.post .name') || {textContent: ''}).textContent,
@@ -103,14 +108,29 @@ try {
     await key('back');
     await until(async () => (await state()).position.indexOf('1 /') === 0, 'the first post', 20);
 
-    // Find a post that has media, so the side-by-side layout really is side by side.
-    let before = await state(), steps = 0;
-    while (!before.media && steps < 8) {
+    // Walk the live timeline once and note which posts overflow their pane and which fit,
+    // so both halves of the rule are exercised against real content.
+    const scan = [];
+    for (let i = 0; i < 12; i++) {
+        const at = await state();
+        scan.push({step: i, position: at.position, clipped: at.clipped, media: !!at.media});
+        if (at.position.split('/')[0].trim() === at.position.split('/')[1].trim()) break;
         await key('down');
-        before = await state();
-        steps++;
     }
-    record('timeline', {pid: globalThis.__pid, steppedTo: steps, scene: before});
+    record('scan', {pid: globalThis.__pid, posts: scan});
+    const long = scan.find(p => p.clipped && p.media) || scan.find(p => p.clipped);
+    const short = scan.find(p => !p.clipped);
+    check(!!long, 'no post in the live timeline overflows its pane, so reading mode cannot be checked');
+
+    /** Back jumps to the first post in one press, so any post is two moves away. */
+    async function goTo(step) {
+        if ((await state()).position.split('/')[0].trim() !== '1') await key('back');
+        for (let i = 0; i < step; i++) await key('down');
+        return state();
+    }
+    let before = await goTo(long.step);
+    check(before.clipped, 'the post picked as too long no longer overflows');
+    record('timeline', {picked: long, scene: before});
     check(before.headerShown, 'the header was not showing before reading mode');
     check(before.direction === 'row', 'the ordinary timeline is not a row layout');
     if (before.media)
@@ -146,6 +166,7 @@ try {
         check(full.post.height > full.media.height, 'the post is not the taller pane');
     }
     check(/退出全屏/.test(full.help), 'the footer does not say back leaves reading mode');
+    check(/确认 帖子详情/.test(full.help), 'the footer does not say the next confirm opens the detail');
 
     await key('back');
     const restored = await until(async () => {
@@ -158,15 +179,35 @@ try {
         'the page did not come back to the same geometry');
     check(restored.position === before.position && restored.author === before.author,
         'the reader lost its place leaving reading mode');
+    check(/确认 全屏阅读/.test(restored.help), 'the footer does not offer reading mode for a long post');
+
+    // A post that already fits keeps confirm on its detail, with no extra press.
+    if (short) {
+        const fits = await goTo(short.step);
+        check(!fits.clipped, 'the post picked as short now overflows');
+        check(/确认 帖子详情/.test(fits.help), 'a post that fits still advertises reading mode');
+        await key('ok');
+        const opened = await until(async () => {
+            const at = await state();
+            return at.detail ? at : null;
+        }, 'the short post detail to open on one press', 60);
+        record('short-post', {picked: short, before: fits, scene: opened});
+        check(!opened.reading, 'a post that fits went into reading mode instead of its detail');
+        await key('back');
+        await until(async () => !(await state()).detail, 'the timeline to come back', 30);
+        before = await goTo(long.step);
+    } else
+        record('short-post', {skipped: 'every post in this timeline overflows its pane'});
 
     // The same journey in the detail, where the second pane is the comments.
     await key('ok');
     await key('ok');
     const detail = await until(async () => {
         const at = await state();
-        return at.detail && at.comments ? at : null;
+        return at.detail && at.comments && at.clipped ? at : null;
     }, 'the post detail with its comments', 60);
     record('detail', {scene: detail});
+    check(/确认 全屏阅读/.test(detail.help), 'the detail does not offer reading mode for a long post');
     check(detail.comments.x >= detail.post.x + detail.post.width - 1,
         'the comments are not beside the post before reading mode');
 

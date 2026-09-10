@@ -60,8 +60,6 @@ const like = page => page.evaluate(() => {
     };
 });
 
-/** Confirm reads the post full screen; a second confirm opens its detail. */
-const openDetail = page => page.evaluate(() => { TvXReader.key('ok'); TvXReader.key('ok'); });
 test('confirming like lights the heart and moves the count with no host round trip', async ({page}) => {
     await mount(page);
     await receive(page, 'r0', payload([post('101')]));
@@ -80,7 +78,7 @@ test('the new state follows the post into its detail and back', async ({page}) =
     await mount(page);
     await receive(page, 'r0', payload([post('101'), post('102')]));
     await like(page);
-    await openDetail(page);
+    await page.evaluate(() => TvXReader.key('ok'));
     // The detail read was already in flight and still carries the old server state.
     await receive(page, 'r1', payload([post('101'), post('201', {replyTo: '101'})]));
     await expect(page.locator('.detail-post .stats .like')).toContainText('已喜欢 4');
@@ -91,7 +89,7 @@ test('the new state follows the post into its detail and back', async ({page}) =
 test('liking inside a detail carries back to the timeline it came from', async ({page}) => {
     await mount(page);
     await receive(page, 'r0', payload([post('101'), post('102')]));
-    await openDetail(page);
+    await page.evaluate(() => TvXReader.key('ok'));
     await receive(page, 'r1', payload([post('101'), post('201', {replyTo: '101'})]));
     await expect(page.locator('.detail-post')).toHaveCount(1);
     expect(await like(page)).toEqual({stats: '已喜欢 4', dialog: false});

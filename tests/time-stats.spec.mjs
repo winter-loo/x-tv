@@ -64,9 +64,7 @@ async function mount(page) {
 const receive = (page, id, data, error = '') =>
     page.evaluate(([id, data, error]) => TvXReader.receive(id, data, error), [id, data, error]);
 const key = (page, k) => page.evaluate(k => TvXReader.key(k), k);
-/** Confirm reads the post full screen; a second confirm opens its detail. */
 async function openDetail(page, tweets) {
-    await key(page, 'ok');
     await key(page, 'ok');
     await receive(page, 'r1', payload(tweets));
     await expect(page.locator('.detail-post')).toHaveCount(1);
@@ -90,7 +88,6 @@ test('the detail spells the publication time out in full, year and minutes inclu
 test('every comment shows when it was published, first batch and next page alike', async ({page}) => {
     await mount(page);
     await receive(page, 'r0', payload([post('101')]));
-    await key(page, 'ok');
     await key(page, 'ok');
     await receive(page, 'r1', payload([
         post('101'),
