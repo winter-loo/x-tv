@@ -143,6 +143,7 @@ function tweet(value) {
         replies: legacy.reply_count || 0,
         likes: legacy.favorite_count || 0,
         liked: !!legacy.favorited,
+        likeKnown: typeof legacy.favorited === 'boolean',
         views: at(t, 'views.count') || '',
         created: legacy.created_at || '',
         media: media,

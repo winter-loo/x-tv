@@ -48,6 +48,14 @@ python3 scripts/check-projector-ux.py --serial 192.168.10.100:5555
 
 回归测试 `app/src/test/.../HandoffTest.java` 与 `tests/external-links.spec.mjs`，真机验收 `node scripts/check-reader-foreground.mjs`（只读）。验证记录见 [启动与返回界面验收](docs/validation/issue-22-reader-foreground.md)。
 
+## 喜欢即时反馈（GitHub #13）
+
+在操作菜单确认喜欢或取消喜欢后，图标、文案和计数立即更新，请求在后台提交。时间线、详情和返回后的同一帖子保持一致；回调只更新统计和菜单，不重建阅读正文或打断其他帖子的导航。
+
+明确失败恢复最后确认状态并说明原因。结果未知时通过只读核对收敛，不自动重发原来的写入；核对暂时失败会有限退避，仍无法核对则保留未确认状态，刷新可继续核对。连续操作保留最后一次意图，同帖不会并发提交；未就绪和忙碌状态按 800/1600/3200 ms 退避，连按不会绕过等待。统计区仍只读，操作入口保留在菜单。
+
+回归测试见 `tests/like.spec.mjs`。真机验收 `node scripts/check-like-feedback.mjs` 在按键前替换为合成桥接，不向 X 发出写入，记录已安装 APK 哈希、DOM/动画帧时序和未完成请求下的导航。详见 [喜欢即时反馈验收](docs/validation/issue-13-optimistic-like.md)。
+
 ## 当前进度（2026-09-07）
 
 #1 平衡阅读布局已完成验收：9 项 Firefox DOM 回归、150 条真实帖子连续导航、真实 X Article 显示、详情往返、返回顶部、Google 登录与冷启动登录保持均通过。GeckoView 已更新至 `155.0.20260903215306`，修复真机 RGB PNG 解码崩溃。详见 [验收记录](docs/validation/issue-1.md)。

@@ -222,10 +222,25 @@ final class FastReader extends FrameLayout {
                 else writer.submit(postId, true, desired, "", result -> writeResult(id, postId, result));
             });
         }
+        /** A read-only re-check of one post, kept off the scene's request slot. */
+        @JavascriptInterface
+        public void verify(String id, String postId) {
+            if (!id.matches("v[0-9]+") || !postId.matches("[0-9]{1,25}")) return;
+            post(() -> {
+                if (disposed) return;
+                client.fetch(id, "detail", postId, "", (data, error) -> verifyResult(id, postId, data, error));
+            });
+        }
         @JavascriptInterface
         public void exit() {
             post(listener::exit);
         }
+    }
+    private void verifyResult(String id, String postId, String data, String error) {
+        if (disposed) return;
+        web.evaluateJavascript("TvXReader.verifyResult(" + quote(id) + "," + quote(postId) + ","
+                + (data == null ? "null" : "JSON.parse(" + quote(data) + ")") + "," + quote(error) + ")",
+            null);
     }
     private void writeResult(String id, String postId, JSONObject result) {
         if (!disposed) web.evaluateJavascript("TvXReader.writeResult(" + quote(id) + "," + quote(postId)

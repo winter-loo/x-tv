@@ -70,3 +70,19 @@ cold-start foreground with the one after an external return, restores timeline, 
 detail and comment focus, hammers cancel/repeat with an unroutable target, exercises the
 explicit X and login handoffs, and records the reading budget and Gecko session count into
 `docs/validation/issue-22-samples.json`. Read-only against X.
+
+`tests/like.spec.mjs` covers issue #13 against the reader document: the like state moves
+with the keypress, follows the post into its detail and back, survives stale reads, rolls
+back with an explanation on a definite failure, and converges through a read-only check when
+the result is unknown. Backoff is driven with Playwright's fake clock, not real waits.
+
+`scripts/check-like-feedback.mjs` is the device counterpart. Before any remote action it
+replaces `ReaderHost` with a synthetic bridge, so no mutation reaches X. It verifies the
+installed APK SHA256 against the local build, records like/unlike DOM and animation-frame
+timing, holds the callback while navigating, and exercises rejection and read-only
+convergence. It restarts the app afterward to restore the normal bridge. Timing is not
+an optical measurement of the projector. A local screenshot is saved under `.scratch/issue-13/`.
+
+Additional regressions cover verification outages and refresh recovery, missing explicit
+like state, toggles during verification/backoff, count rollback, wrong-post callbacks,
+background notices and preserving the reading DOM and open-menu focus.

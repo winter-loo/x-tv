@@ -49,6 +49,7 @@ async function mount(page) {
                 window.calls.push(['browser', ...args]);
             },
             write(...args) { window.calls.push(['write', ...args]); },
+            verify(...args) { window.calls.push(['verify', ...args]); },
             exit() {
                 window.calls.push(['exit']);
             }
@@ -111,7 +112,8 @@ test('post menu opens locally, traps navigation and submits writes without a bro
     expect(await page.evaluate(() => calls.filter(c => c[0] === 'browser'))).toEqual([]);
     expect(await page.evaluate(() => calls.filter(c => c[0] === 'write')))
         .toEqual([['write', 'w1', '102', 'like', true, 'Author']]);
-    await expect(page.locator('.stats .like')).toContainText('喜欢 3');
+    // The heart moves with the keypress; the request is only catching up.
+    await expect(page.locator('.stats .like')).toContainText('已喜欢 4');
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await page.evaluate(() => TvXReader.writeResult('w1', '102', {status:'ok',liked:true,likes:4}));
     await expect(page.locator('.stats .like')).toContainText('已喜欢 4');
@@ -375,6 +377,7 @@ test('write result is correlated, deduplicated and updates saved scenes without 
     await receive(page, 'r0', payload([tweet('101'), tweet('102','Second')]));
     await key(page,'menu'); await key(page,'down'); await key(page,'ok');
     await key(page,'menu'); await key(page,'down'); await key(page,'ok');
+    // Two presses, one request: the second only changed the intent the first is carrying.
     expect(await page.evaluate(() => calls.filter(c => c[0] === 'write').length)).toBe(1);
     await page.evaluate(() => TvXReader.writeResult('wrong','101',{status:'ok',liked:true,likes:99}));
     await expect(page.locator('.stats .like')).toContainText('喜欢 3');
@@ -383,18 +386,25 @@ test('write result is correlated, deduplicated and updates saved scenes without 
     await expect(page.locator('#position')).toHaveText('2 / 2');
     await expect(page.locator('.stats .like')).toContainText('喜欢 3');
     await key(page,'up');
-    await expect(page.locator('.stats .like')).toContainText('已喜欢 4');
+    // The server confirmed the first press, but the user's last intent still wins the screen.
+    await expect(page.locator('.stats .like')).toContainText('喜欢 3');
+    expect(await page.evaluate(() => calls.filter(c => c[0] === 'write').at(-1)))
+        .toEqual(['write','w2','101','like',false,'Author']);
     await page.evaluate(() => TvXReader.writeResult('w1','101',{status:'ok',liked:false,likes:3}));
-    await expect(page.locator('.stats .like')).toContainText('已喜欢 4');
+    await expect(page.locator('.stats .like')).toContainText('喜欢 3');
 });
 
 test('ambiguous writes never fall back to DOM actions and cancelled drafts do not increment comments', async ({page}) => {
     await mount(page); await receive(page,'r0',payload([tweet('101')]));
     await key(page,'menu'); await key(page,'down'); await key(page,'ok');
     await page.evaluate(() => TvXReader.writeResult('w1','101',{status:'unknown'}));
-    await expect(page.locator('#notice')).toContainText('勿重复提交');
-    await expect(page.locator('.stats .like')).toContainText('喜欢 3');
+    // Unknown is not failure: the state stands and a read-only check settles it.
+    await expect(page.locator('#notice')).toContainText('核对');
+    await expect(page.locator('.stats .like')).toContainText('已喜欢 4');
+    expect(await page.evaluate(() => calls.filter(c=>c[0]==='verify'))).toEqual([['verify','v1','101']]);
     expect(await page.evaluate(() => calls.filter(c=>c[0]==='browser'))).toEqual([]);
+    await page.evaluate(() => TvXReader.verifyResult('v1','101',null,'network'));
+    await expect(page.locator('#notice')).toContainText('正在核对');
     await key(page,'menu'); await key(page,'ok');
     await page.evaluate(() => TvXReader.writeResult('w2','101',{status:'cancelled'}));
     await expect(page.locator('.stats')).toContainText('评论 2');

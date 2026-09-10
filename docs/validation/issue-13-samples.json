@@ -1,0 +1,242 @@
+[
+  {
+    "at": "2026-09-10T00:01:03.004Z",
+    "step": "installed-build",
+    "sha256": "088b22f871ee85e45baf4b08ef76ef0776730d30c855953e091670114da8e90e",
+    "installedSha256": "088b22f871ee85e45baf4b08ef76ef0776730d30c855953e091670114da8e90e",
+    "serial": "192.168.10.100:5555",
+    "package": [
+      "versionCode=2 minSdk=28 targetSdk=28",
+      "versionName=0.2.0",
+      "lastUpdateTime=2026-09-10 08:00:48"
+    ]
+  },
+  {
+    "at": "2026-09-10T00:01:09.441Z",
+    "step": "immediate-feedback",
+    "confirm": {
+      "key": "ok",
+      "domMs": 15.899999998509884,
+      "stats": "已喜欢 4",
+      "frameMs": 42.49999999956344
+    }
+  },
+  {
+    "at": "2026-09-10T00:01:11.126Z",
+    "step": "navigation-pending",
+    "scene": {
+      "stats": "喜欢 3",
+      "position": "2 / 2",
+      "notice": "",
+      "writes": [
+        {
+          "id": "w1",
+          "postId": "101",
+          "action": "like",
+          "desired": true
+        }
+      ],
+      "checks": [],
+      "presses": [
+        {
+          "key": "menu",
+          "domMs": 14.900000001944136,
+          "stats": "喜欢 3",
+          "frameMs": 34.899999998742715
+        },
+        {
+          "key": "down",
+          "domMs": 2.10000000151922,
+          "stats": "喜欢 3",
+          "frameMs": 28.600000001461012
+        },
+        {
+          "key": "ok",
+          "domMs": 15.899999998509884,
+          "stats": "已喜欢 4",
+          "frameMs": 42.49999999956344
+        },
+        {
+          "key": "down",
+          "domMs": 12.900000001536682,
+          "stats": "喜欢 3",
+          "frameMs": 44.30000000138534
+        }
+      ]
+    },
+    "callbackDelivered": false
+  },
+  {
+    "at": "2026-09-10T00:01:11.812Z",
+    "step": "rejection",
+    "scene": {
+      "stats": "喜欢 3",
+      "position": "1 / 2",
+      "notice": "操作过于频繁，请稍后再试。",
+      "writes": [
+        {
+          "id": "w1",
+          "postId": "101",
+          "action": "like",
+          "desired": true
+        }
+      ],
+      "checks": [],
+      "presses": [
+        {
+          "key": "menu",
+          "domMs": 14.900000001944136,
+          "stats": "喜欢 3",
+          "frameMs": 34.899999998742715
+        },
+        {
+          "key": "down",
+          "domMs": 2.10000000151922,
+          "stats": "喜欢 3",
+          "frameMs": 28.600000001461012
+        },
+        {
+          "key": "ok",
+          "domMs": 15.899999998509884,
+          "stats": "已喜欢 4",
+          "frameMs": 42.49999999956344
+        },
+        {
+          "key": "down",
+          "domMs": 12.900000001536682,
+          "stats": "喜欢 3",
+          "frameMs": 44.30000000138534
+        },
+        {
+          "key": "up",
+          "domMs": 30.099999999947613,
+          "stats": "喜欢 3",
+          "frameMs": 64.00000000212458
+        }
+      ]
+    }
+  },
+  {
+    "at": "2026-09-10T00:01:14.493Z",
+    "step": "immediate-feedback",
+    "confirm": {
+      "key": "ok",
+      "domMs": 35.500000001775334,
+      "stats": "已喜欢 4",
+      "frameMs": 98.9000000008673
+    }
+  },
+  {
+    "at": "2026-09-10T00:01:17.402Z",
+    "step": "immediate-feedback",
+    "confirm": {
+      "key": "ok",
+      "domMs": 49.999999999272404,
+      "stats": "喜欢 3",
+      "frameMs": 79.89999999699648
+    }
+  },
+  {
+    "at": "2026-09-10T00:01:17.568Z",
+    "step": "readonly-convergence",
+    "scene": {
+      "stats": "喜欢 3",
+      "position": "1 / 2",
+      "notice": "核对完成：未喜欢",
+      "writes": [
+        {
+          "id": "w1",
+          "postId": "101",
+          "action": "like",
+          "desired": true
+        },
+        {
+          "id": "w2",
+          "postId": "101",
+          "action": "like",
+          "desired": true
+        },
+        {
+          "id": "w3",
+          "postId": "101",
+          "action": "like",
+          "desired": false
+        }
+      ],
+      "checks": [
+        {
+          "id": "v1",
+          "postId": "101"
+        }
+      ],
+      "presses": [
+        {
+          "key": "menu",
+          "domMs": 14.900000001944136,
+          "stats": "喜欢 3",
+          "frameMs": 34.899999998742715
+        },
+        {
+          "key": "down",
+          "domMs": 2.10000000151922,
+          "stats": "喜欢 3",
+          "frameMs": 28.600000001461012
+        },
+        {
+          "key": "ok",
+          "domMs": 15.899999998509884,
+          "stats": "已喜欢 4",
+          "frameMs": 42.49999999956344
+        },
+        {
+          "key": "down",
+          "domMs": 12.900000001536682,
+          "stats": "喜欢 3",
+          "frameMs": 44.30000000138534
+        },
+        {
+          "key": "up",
+          "domMs": 30.099999999947613,
+          "stats": "喜欢 3",
+          "frameMs": 64.00000000212458
+        },
+        {
+          "key": "menu",
+          "domMs": 9.200000000419095,
+          "stats": "喜欢 3",
+          "frameMs": 32.80000000086147
+        },
+        {
+          "key": "down",
+          "domMs": 2.10000000151922,
+          "stats": "喜欢 3",
+          "frameMs": 45.2000000004773
+        },
+        {
+          "key": "ok",
+          "domMs": 35.500000001775334,
+          "stats": "已喜欢 4",
+          "frameMs": 98.9000000008673
+        },
+        {
+          "key": "menu",
+          "domMs": 5.9000000001105946,
+          "stats": "已喜欢 4",
+          "frameMs": 27.40000000267173
+        },
+        {
+          "key": "down",
+          "domMs": 15.300000002753222,
+          "stats": "已喜欢 4",
+          "frameMs": 33.999999999650754
+        },
+        {
+          "key": "ok",
+          "domMs": 49.999999999272404,
+          "stats": "喜欢 3",
+          "frameMs": 79.89999999699648
+        }
+      ]
+    }
+  }
+]

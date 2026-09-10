@@ -5,7 +5,8 @@ var stage = document.getElementById('stage'), title = document.getElementById('t
 var sequence = 0, pending = 'r0', stack = [],
     state = {mode: 'home', posts: [], index: 0, cursor: '', region: 'post'}, viewer = null, paging = false,
     refreshing = false;
-var homeScene = state, actionMenu = null, external = null, writeSequence = 0, pendingWrite = null, writeRevision = 0, readRevision = 0, written = {};
+var homeScene = state, actionMenu = null, external = null, likeOps = {}, likeQueue = [],
+    likeSending = '', verifySequence = 0, writeSequence = 0, pendingWrite = null, writeRevision = 0, readRevision = 0, written = {};
 function esc(v) {
     return String(v == null ? '' : v).replace(/[&<>"']/g, function(c) {
         return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;'}[c];
@@ -73,48 +74,248 @@ function focusAction() {
     }
 }
 function activateAction() {
-    var item = actionMenu.items[actionMenu.index], post = current();
+    var item = actionMenu.items[actionMenu.index], post = actionMenu.post;
     closeActions();
     if (item.action === 'external') { openExternal(item.link); return; }
+    if (item.action === 'like') { toggleLike(post); return; }
     if (pendingWrite) { notice('上一项操作正在完成…'); return; }
     var id = 'w' + (++writeSequence);
-    pendingWrite = {id:id,postId:post.id,action:item.action,desired:!post.liked};
-    notice(item.action === 'like' ? '正在更新喜欢状态…' : '');
-    ReaderHost.write(id, post.id, item.action, !post.liked, post.author.name || post.author.handle);
+    pendingWrite = {id: id, postId: post.id};
+    notice('');
+    ReaderHost.write(id, post.id, 'reply', false, post.author.name || post.author.handle);
+}
+function scenes() {
+    return [state, homeScene].concat(stack);
+}
+/** Puts a like state on every copy of the post and shields it from reads already in flight. */
+function applyLike(postId, liked, likes) {
+    var seen = [], revision = ++writeRevision, count = likes;
+    function update(post) {
+        if (!post || post.id !== postId || seen.indexOf(post) >= 0) return;
+        seen.push(post);
+        var changed = post.liked !== liked;
+        if (typeof count === 'number') post.likes = count;
+        else if (changed && /^\d+$/.test(String(post.likes)))
+            post.likes = Math.max(0, Number(post.likes) + (liked ? 1 : -1));
+        post.liked = liked;
+        if (typeof count !== 'number' && /^\d+$/.test(String(post.likes))) count = Number(post.likes);
+    }
+    scenes().forEach(function(scene) {
+        update(scene.root);
+        (scene.posts || []).forEach(update);
+        if (scene.pendingHome) scene.pendingHome.posts.forEach(update);
+    });
+    var change = written[postId] || (written[postId] = {});
+    change.likeRevision = revision;
+    change.like = {liked: liked};
+    if (typeof count === 'number') change.like.likes = count;
+    updateLikeView(postId);
+}
+// Update only the statistics and menu: network callbacks must not rebuild a reading scene.
+function updateLikeView(postId) {
+    var post = current();
+    if (post && post.id === postId) {
+        var node = stage.querySelector('.stats');
+        if (node) node.outerHTML = stats(post);
+    }
+    if (actionMenu && actionMenu.post.id === postId) {
+        post = actionMenu.post;
+        var change = written[postId].like;
+        post.liked = change.liked;
+        if (typeof change.likes === 'number') post.likes = change.likes;
+        var button = actionMenu.node.querySelectorAll('button')[1];
+        actionMenu.items[1].label = post.liked ? '取消喜欢' : '喜欢';
+        button.querySelector('.label').textContent = actionMenu.items[1].label;
+        button.classList.toggle('liked', post.liked);
+        actionMenu.node.querySelector('.action-counts').textContent =
+            '评论 ' + post.replies + ' · 喜欢 ' + post.likes;
+    }
+}
+function likeNotice(postId, message) {
+    written[postId].message = message;
+    if (current() && current().id === postId) notice(message);
+}
+/** The remote is the only authority on intent; the request that carries it goes out behind it. */
+function toggleLike(post) {
+    var postId = post.id, op = likeOps[postId];
+    if (!op)
+        op = likeOps[postId] = {
+            confirmed: !!post.liked,
+            desired: !!post.liked,
+            author: post.author.name || post.author.handle,
+            count: /^\d+$/.test(String(post.likes)) ? Number(post.likes) : undefined,
+            attempts: 0,
+            sending: '',
+            verifying: ''
+        };
+    op.desired = !op.desired;
+    applyLike(postId, op.desired, typeof op.count === 'number' ?
+        Math.max(0, op.count + (op.desired === op.confirmed ? 0 : op.desired ? 1 : -1)) : undefined);
+    likeNotice(postId, op.unknown ? '喜欢结果正在核对…' : '');
+    if (op.unknown) verifyLike(postId);
+    else queueLike(postId);
+}
+/**
+ * Delays before each retry. A cold app answers "not ready" until the browser has warmed up,
+ * which took ~2.8 s on the projector, so the ladder has to outlast that and still be bounded.
+ */
+var LIKE_RETRY_MS = [800, 1600, 3200];
+function queueLike(postId) {
+    if (likeQueue.indexOf(postId) < 0) likeQueue.push(postId);
+    pumpLikes();
+}
+function retryLike(postId) {
+    var op = likeOps[postId];
+    if (!op) return;
+    var delay = LIKE_RETRY_MS[op.attempts - 1];
+    if (delay === undefined) { giveUpLike(postId); return; }
+    op.waiting = setTimeout(function() {
+        op.waiting = 0;
+        queueLike(postId);
+    }, delay);
+}
+function giveUpLike(postId) {
+    var op = likeOps[postId];
+    if (!op) return;
+    applyLike(postId, op.confirmed, op.count);
+    delete likeOps[postId];
+    likeNotice(postId, '喜欢状态未能提交，请稍后重试。');
+    pumpLikes();
+}
+/** One like request in flight at a time: the native writer serialises them anyway. */
+function pumpLikes() {
+    while (!likeSending && likeQueue.length) {
+        var postId = likeQueue.shift(), op = likeOps[postId];
+        if (!op || op.sending || op.unknown) continue;
+        if (op.waiting) continue;
+        if (op.confirmed === op.desired) { delete likeOps[postId]; continue; }
+        if (op.attempts >= LIKE_RETRY_MS.length + 1) { giveUpLike(postId); continue; }
+        op.attempts++;
+        op.sentDesired = op.desired;
+        op.sending = likeSending = 'w' + (++writeSequence);
+        ReaderHost.write(op.sending, postId, 'like', op.desired, op.author);
+    }
+}
+/** Shows the intent the user is waiting on, keeping the server's count as the baseline. */
+function showIntent(postId, op) {
+    applyLike(postId, op.desired,
+        typeof op.count === 'number' ? Math.max(0, op.count + (op.desired ? 1 : -1)) : undefined);
+}
+function likeResult(postId, id, result) {
+    var op = likeOps[postId];
+    op.sending = '';
+    if (likeSending === id) likeSending = '';
+    if (result.status === 'ok') {
+        op.attempts = 0;
+        if (typeof result.likes === 'number') op.count = result.likes;
+        else if (typeof op.count === 'number' && op.confirmed !== !!result.liked)
+            op.count = Math.max(0, op.count + (result.liked ? 1 : -1));
+        op.confirmed = !!result.liked;
+        if (op.confirmed === op.desired) {
+            applyLike(postId, op.confirmed, op.count);
+            likeNotice(postId, '');
+            delete likeOps[postId];
+        } else {
+            showIntent(postId, op);
+            queueLike(postId);
+        }
+    } else if (result.status === 'unknown') {
+        op.unknown = true;
+        op.checks = 0;
+        verifyLike(postId);
+    } else if (result.status === 'busy' || result.status === 'not_ready') {
+        retryLike(postId);
+    } else {
+        applyLike(postId, op.confirmed, op.count);
+        likeNotice(postId, writeMessage(result.status));
+        delete likeOps[postId];
+    }
+    pumpLikes();
+}
+/** Keep uncertainty separate from failure, even if the read itself fails. */
+function verifyLike(postId) {
+    var op = likeOps[postId];
+    if (!op || !op.unknown || op.verifying || op.checkWaiting) return;
+    op.verifying = 'v' + (++verifySequence);
+    op.checks++;
+    likeNotice(postId, '喜欢结果正在核对…');
+    ReaderHost.verify(op.verifying, postId);
+}
+function verifyResult(id, postId, payload, error) {
+    var op = likeOps[postId];
+    if (!op || op.verifying !== id) return;
+    op.verifying = '';
+    var root = !error && payload ? TvXReadData.parse(payload, 'detail', postId).root : null;
+    if (!root || !root.likeKnown) {
+        var delay = LIKE_RETRY_MS[op.checks - 1];
+        if (delay !== undefined) op.checkWaiting = setTimeout(function() {
+            op.checkWaiting = 0;
+            verifyLike(postId);
+        }, delay);
+        else likeNotice(postId, '喜欢结果暂时无法核对，请刷新后查看。');
+        pumpLikes();
+        return;
+    }
+    op.unknown = false;
+    op.confirmed = root.liked;
+    if (/^\d+$/.test(String(root.likes))) op.count = Number(root.likes);
+    // Only an intent different from the uncertain submission may cause a new write.
+    // A read that disagrees with that submission is not proof it can safely be replayed.
+    if (op.desired === op.sentDesired || op.confirmed === op.desired) {
+        applyLike(postId, op.confirmed, op.count);
+        likeNotice(postId, op.confirmed ? '核对完成：已喜欢' : '核对完成：未喜欢');
+        delete likeOps[postId];
+    } else {
+        showIntent(postId, op);
+        queueLike(postId);
+    }
+    pumpLikes();
+}
+function recheckLikes() {
+    Object.keys(likeOps).forEach(function(postId) {
+        var op = likeOps[postId];
+        if (op.unknown && !op.verifying && !op.checkWaiting) {
+            op.checks = 0;
+            verifyLike(postId);
+        }
+    });
+}
+function writeMessage(status) {
+    var messages = {
+        unknown: '操作结果尚未确认，请刷新查看，勿重复提交。',
+        not_ready: '登录会话正在准备，请稍后重试。',
+        session: '登录状态已变化，请重新登录。',
+        rate_limit: '操作过于频繁，请稍后再试。',
+        busy: '上一项操作正在完成，请稍候。'
+    };
+    return messages[status] || '操作未完成，请稍后重试。';
 }
 function writeResult(id, postId, result) {
+    var op = likeOps[postId];
+    if (op && op.sending === id) { likeResult(postId, id, result); return; }
     if (!pendingWrite || pendingWrite.id !== id || pendingWrite.postId !== postId) return;
-    var action = pendingWrite.action;
     pendingWrite = null;
     if (result.status === 'ok') {
         var seen = [], revision = ++writeRevision;
         var reply = result.reply ? TvXReadData.parse({data:{tweet_results:{result:result.reply}}},'home').posts[0] : null;
         var change = written[postId] || {};
-        if (action === 'like') { change.likeRevision = revision; change.like = result; }
-        else { change.replyRevision = revision; change.reply = reply; }
+        change.replyRevision = revision;
+        change.reply = reply;
         written[postId] = change;
         function update(post) {
             if (!post || post.id !== postId || seen.indexOf(post) >= 0) return;
             seen.push(post);
-            if (action === 'like') {
-                var changed = post.liked !== result.liked;
-                if (typeof result.likes === 'number') post.likes = result.likes;
-                else if (changed && /^\d+$/.test(String(post.likes))) post.likes = Math.max(0,Number(post.likes)+(result.liked?1:-1));
-                post.liked = result.liked;
-            } else if (/^\d+$/.test(String(post.replies))) { post.replies = Number(post.replies)+1; change.replyCount = post.replies; }
+            if (/^\d+$/.test(String(post.replies))) { post.replies = Number(post.replies)+1; change.replyCount = post.replies; }
         }
-        [state,homeScene].concat(stack).forEach(function(scene) {
+        scenes().forEach(function(scene) {
             update(scene.root); (scene.posts || []).forEach(update);
             if (scene.pendingHome) scene.pendingHome.posts.forEach(update);
             if (reply && scene.mode === 'detail' && scene.id === postId && !scene.posts.some(function(p){return p.id===reply.id;})) scene.posts.unshift(reply);
         });
         saveScroll(); render();
-        notice(action === 'reply' ? '评论已发送' : result.liked ? '已喜欢' : '已取消喜欢');
+        notice('评论已发送');
     } else if (result.status !== 'cancelled') {
-        var messages = {unknown:'操作结果尚未确认，请刷新查看，勿重复提交。',
-            not_ready:'登录会话正在准备，请稍后重试。',session:'登录状态已变化，请重新登录。',
-            rate_limit:'操作过于频繁，请稍后再试。',busy:'上一项操作正在完成，请稍候。'};
-        notice(messages[result.status] || '操作未完成，请稍后重试。');
+        notice(writeMessage(result.status));
     }
 }
 // Protect successful writes against reads that were already in flight when the write completed.
@@ -123,7 +324,8 @@ function preserveWrites(data, requestedAt) {
         if (!post) return;
         var change = written[post.id];
         if (!change) return;
-        if (change.likeRevision > requestedAt) {
+        // A like still being coordinated outranks any read, however fresh that read looks.
+        if (change.likeRevision > requestedAt || likeOps[post.id]) {
             post.liked = change.like.liked;
             if (typeof change.like.likes === 'number') post.likes = change.like.likes;
         }
@@ -201,7 +403,7 @@ function openActions() {
                 '</span></button>';
         }).join('') + '</div><p>↑↓ 选择　 确认 打开　 返回 关闭</p></section>';
     document.body.appendChild(node);
-    actionMenu = {node: node, items: items, index: 0};
+    actionMenu = {node: node, items: items, index: 0, post: post};
     var buttons = node.querySelectorAll('button');
     for (var i = 0; i < buttons.length; i++) (function(index) {
         buttons[index].onclick = function() {
@@ -237,7 +439,7 @@ function postHtml(post, detail) {
 }
 function render() {
     var post = current();
-    notice('');
+    notice(post && written[post.id] ? written[post.id].message || '' : '');
     var freshness = document.getElementById('freshness'), refresh = document.getElementById('refresh');
     refresh.hidden = state.mode !== 'home';
     refresh.className = state.region === 'refresh' ? 'selected' : '';
@@ -302,6 +504,7 @@ function saveScroll() {
     state.commentsY = list ? list.scrollTop : 0;
 }
 function request(cursor) {
+    recheckLikes();
     refreshing = false;
     pending = 'r' + (++sequence);
     readRevision = writeRevision;
@@ -470,6 +673,7 @@ function receive(id, payload, error) {
     });
 }
 function refreshCurrent() {
+    recheckLikes();
     var post = current();
     if (!post) return;
     pending = 'r' + (++sequence);
@@ -715,6 +919,7 @@ window.TvXReader = {
     refreshCurrent: refreshCurrent,
     cachedHome: cachedHome,
     externalFailed: externalFailed,
+    verifyResult: verifyResult,
     externalClosed: externalClosed,
     homeUpdated: homeUpdated,
     writeResult: writeResult
