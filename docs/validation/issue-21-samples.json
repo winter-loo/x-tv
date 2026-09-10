@@ -1,49 +1,49 @@
 [
  {
-  "at": "2026-09-10T08:24:41.741Z",
+  "at": "2026-09-10T09:42:53.952Z",
   "step": "cold-start",
-  "pid": "28847",
+  "pid": "31101",
   "scene": {
-   "position": "1 / 36",
-   "author": "The Hacker News",
+   "position": "1 / 35",
+   "author": "Dark Factor",
    "freshness": "刚刚更新",
    "refresh": "刷新",
    "notice": ""
   }
  },
  {
-  "at": "2026-09-10T08:24:44.127Z",
+  "at": "2026-09-10T09:42:56.032Z",
   "step": "shortened",
   "realPosts": 35,
   "showing": 33,
   "scene": {
    "position": "1 / 33",
-   "author": "Foad S. Farimani",
+   "author": "Tom Dörr",
    "freshness": "刚刚更新",
    "refresh": "刷新",
    "notice": ""
   }
  },
  {
-  "at": "2026-09-10T08:24:47.590Z",
+  "at": "2026-09-10T09:42:59.118Z",
   "step": "back-to-top",
   "read": "3 / 33",
   "top": "1 / 33",
-  "author": "Foad S. Farimani"
+  "author": "Tom Dörr"
  },
  {
-  "at": "2026-09-10T08:24:50.107Z",
+  "at": "2026-09-10T09:43:01.943Z",
   "step": "refresh",
   "whileRefreshing": {
    "position": "1 / 33",
-   "author": "Foad S. Farimani",
+   "author": "Tom Dörr",
    "freshness": "刚刚更新",
    "refresh": "正在刷新…",
    "notice": "正在刷新…"
   },
   "arrived": {
    "position": "1 / 35",
-   "author": "The Hacker News",
+   "author": "idan levin",
    "freshness": "刚刚更新",
    "refresh": "刷新",
    "notice": "已加入 35 条新帖子"
@@ -55,30 +55,30 @@
   },
   "reportedCount": 35,
   "reads": [
-   "home request ms=1299 result=ok"
+   "home request ms=1526 result=ok"
   ]
  },
  {
-  "at": "2026-09-10T08:24:53.036Z",
+  "at": "2026-09-10T09:43:05.263Z",
   "step": "merged-presses",
   "scene": {
    "position": "1 / 35",
-   "author": "Dan McAteer",
+   "author": "Lewis Campbell",
    "freshness": "刚刚更新",
    "refresh": "刷新",
-   "notice": "已加入 34 条新帖子"
+   "notice": "已加入 35 条新帖子"
   },
-  "burstMs": 2455,
+  "burstMs": 2709,
   "reads": [
-   "home request ms=1927 result=ok"
+   "home request ms=2037 result=ok"
   ]
  },
  {
-  "at": "2026-09-10T08:24:55.818Z",
+  "at": "2026-09-10T09:43:08.058Z",
   "step": "up-is-navigation-below-the-top",
   "scene": {
    "position": "1 / 35",
-   "author": "Dan McAteer",
+   "author": "Lewis Campbell",
    "freshness": "刚刚更新",
    "refresh": "刷新",
    "notice": ""

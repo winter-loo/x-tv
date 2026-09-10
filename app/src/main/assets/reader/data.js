@@ -135,7 +135,9 @@ function tweet(value) {
             type: m.type,
             image: https(m.media_url_https),
             video: video ? https(video.url) : '',
-            alt: m.ext_alt_text || ''
+            alt: m.ext_alt_text || '',
+            // An animated gif has no length worth showing, so it is not given one.
+            duration: m.type === 'video' ? count(at(m, 'video_info.duration_millis')) : null
         };
     });
     if (article && at(article, 'cover_media.media_info.original_img_url'))

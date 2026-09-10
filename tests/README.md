@@ -126,3 +126,13 @@ up, both ends clamp, and the cut-off marker appears only when the body really is
 lines either side of a page turn. These two poll for the animation to come to rest rather than
 using Playwright's fake clock: the tween runs on `requestAnimationFrame`, which a frozen clock
 never advances.
+
+`tests/media.spec.mjs` covers issues #17, #18 and #15 against `media.js`: what each item's
+mark says before anything is played, the video control bar and its degraded form for an
+unseekable stream, seek clamping by key and by mouse, and the picture's fit/2x/4x cycle with
+bounded panning. It serves a 4000x3000 SVG so zoom and pan have a real intrinsic size to work
+on, which an aborted image request would not give.
+
+`scripts/check-media.mjs` runs the same journeys on the projector, including a video that
+really plays: it asserts `currentTime` advanced, that confirm pauses, and that a seek moves.
+

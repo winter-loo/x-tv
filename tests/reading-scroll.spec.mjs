@@ -203,8 +203,10 @@ test('the media viewer keeps the up key for zooming', async ({page}) => {
     await key(page, 'right');
     await key(page, 'ok');
     await expect(page.locator('.viewer')).toHaveCount(1);
+    // The viewer owns up: it pans the picture and never reaches the timeline behind it.
     await key(page, 'up');
-    await expect(page.locator('.viewer img')).toHaveAttribute('style', /scale\(1\.25\)/);
+    await expect(page.locator('.viewer')).toHaveCount(1);
+    expect(await page.evaluate(() => calls.filter(c => c[0] === 'request'))).toEqual([]);
 });
 
 test('a preview that is cut off says so, and a short one does not', async ({page}) => {

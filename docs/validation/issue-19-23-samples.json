@@ -1,27 +1,27 @@
 [
  {
-  "at": "2026-09-10T08:29:59.554Z",
-  "step": 0,
+  "at": "2026-09-10T09:37:34.088Z",
+  "step": 3,
   "top": 0,
   "view": 265,
-  "full": 571,
+  "full": 574,
   "line": 22.4,
   "marker": true,
   "fetching": false
  },
  {
-  "at": "2026-09-10T08:30:02.644Z",
+  "at": "2026-09-10T09:37:37.228Z",
   "step": "full-reading",
   "top": 0,
   "view": 278,
-  "full": 932,
+  "full": 678,
   "line": 22.4,
   "marker": false,
   "fetching": false,
   "long": true
  },
  {
-  "at": "2026-09-10T08:30:03.822Z",
+  "at": "2026-09-10T09:37:38.373Z",
   "step": "page-down",
   "from": 0,
   "to": 210,
@@ -31,25 +31,25 @@
   "overlapLines": 3.04
  },
  {
-  "at": "2026-09-10T08:30:05.233Z",
+  "at": "2026-09-10T09:37:39.529Z",
   "step": "page-up",
   "to": 0
  },
  {
-  "at": "2026-09-10T08:30:07.955Z",
+  "at": "2026-09-10T09:37:42.623Z",
   "step": "chained-presses",
-  "to": 630,
+  "to": 400,
   "oneStep": 210,
-  "reachable": 654,
-  "expected": 630,
-  "stepsTravelled": 3
+  "reachable": 400,
+  "expected": 400,
+  "stepsTravelled": 1.9
  },
  {
-  "at": "2026-09-10T08:30:44.098Z",
+  "at": "2026-09-10T09:38:17.847Z",
   "step": "bottom",
-  "top": 654,
+  "top": 400,
   "view": 278,
-  "full": 932,
+  "full": 678,
   "line": 22.4,
   "marker": false,
   "fetching": false

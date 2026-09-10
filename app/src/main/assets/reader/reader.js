@@ -3,7 +3,7 @@
 var stage = document.getElementById('stage'), title = document.getElementById('title'),
     help = document.getElementById('help');
 var sequence = 0, pending = 'r0', stack = [], homeRefresh = '',
-    state = {mode: 'home', posts: [], index: 0, cursor: '', region: 'post'}, viewer = null, paging = false,
+    state = {mode: 'home', posts: [], index: 0, cursor: '', region: 'post'}, paging = false,
     refreshing = false;
 var homeScene = state, actionMenu = null, external = null, likeOps = {}, likeQueue = [],
     likeSending = '', verifySequence = 0, writeSequence = 0, pendingWrite = null, writeRevision = 0, readRevision = 0, written = {};
@@ -51,10 +51,14 @@ function author(post, detail) {
         '<div><div class="name">' + esc(post.author.name) + '</div><div class="handle">@' +
         esc(post.author.handle) + timeHtml(post, detail) + '</div></div></div>';
 }
+function mediaIndex(post) {
+    return Math.max(0, Math.min(post.media.length - 1, state.mediaIndex || 0));
+}
 function media(post) {
-    var item = post.media[0];
+    var index = mediaIndex(post), item = post.media[index];
     return item ? '<div class="media' + (state.region === 'media' ? ' focus' : '') + '"><img src="' +
-            esc(item.image) + '" alt="' + esc(item.alt) + '"></div>' :
+            esc(item.image) + '" alt="' + esc(item.alt) + '">' +
+            TvXMedia.mark(item, index, post.media.length) + '</div>' :
                   '';
 }
 function text(post) {
@@ -508,7 +512,8 @@ function render() {
     if (state.mode === 'home') {
         stage.innerHTML = postHtml(post, false) + media(post);
         help.textContent = state.region === 'media' ?
-            '确认 查看媒体　 ← 返回正文　 ↑↓ 切换帖子' :
+            TvXMedia.prompt(post.media[mediaIndex(post)]) +
+                (post.media.length > 1 ? '　 ←→ 切换媒体' : '　 ← 返回正文') + '　 ↑↓ 切换帖子' :
             '↑↓ 切换帖子　 顶部 ↑ 刷新　 确认 帖子详情　 → 查看媒体　 菜单 更多操作';
     } else {
         var comments = state.posts
@@ -536,6 +541,7 @@ function render() {
     }
     bindLinkCards(post);
     bindCommentMore();
+    bindMediaPane(post);
     stopScrolling();
     var body = stage.querySelector('.body');
     if (body) body.scrollTop = state.bodyY || 0;
@@ -591,6 +597,16 @@ function commentMore(comment, index) {
         '<div class="show-more" role="button" data-comment="' + index + '">Show more</div>';
 }
 /** Only a body that is really clipped, or a text X truncated, gets the marker. */
+/** The mouse opens the viewer exactly where confirm would. */
+function bindMediaPane(post) {
+    var pane = stage.querySelector('.media');
+    if (!pane || !post.media.length) return;
+    pane.style.cursor = 'pointer';
+    pane.onclick = function() {
+        state.region = 'media';
+        showMedia();
+    };
+}
 function bindCommentMore() {
     var markers = stage.querySelectorAll('.comment .show-more');
     for (var i = 0; i < markers.length; i++) (function(marker) {
@@ -862,36 +878,10 @@ function more() {
         request(state.cursor);
     }
 }
-function closeViewer() {
-    if (!viewer) return;
-    var v = viewer.querySelector('video');
-    if (v) {
-        v.pause();
-        v.removeAttribute('src');
-        v.load();
-    }
-    viewer.remove();
-    viewer = null;
-}
 function showMedia() {
     var post = current();
     if (!post || !post.media.length) return;
-    var item = post.media[0];
-    viewer = document.createElement('div');
-    viewer.className = 'viewer';
-    viewer.innerHTML = (item.video ? '<video src="' + esc(item.video) + '" poster="' + esc(item.image) +
-                                '" playsinline></video>' :
-                                     '<img src="' + esc(item.image) + '" alt="' + esc(item.alt) + '">') +
-        '<div class="hint">' + (item.video ? '确认 播放 / 暂停　 ←→ 快进快退' : '←→ 切换图片　 ↑↓ 缩放') +
-        '　 返回 关闭</div>';
-    viewer.dataset.index = '0';
-    viewer.dataset.scale = '1';
-    document.body.appendChild(viewer);
-    var v = viewer.querySelector('video');
-    if (v)
-        v.play().catch(function() {
-            notice('按确认播放');
-        });
+    TvXMedia.open(post.media, mediaIndex(post), {notice: notice});
 }
 function back() {
     if (closeExternal()) {
@@ -902,8 +892,8 @@ function back() {
         closeActions();
         return;
     }
-    if (viewer) {
-        closeViewer();
+    if (TvXMedia.isOpen()) {
+        if (TvXMedia.back()) render();
         return;
     }
     if (stack.length) {
@@ -950,29 +940,8 @@ function key(key) {
         }
         return;
     }
-    if (viewer) {
-        var video = viewer.querySelector('video');
-        if (video) {
-            if (key === 'ok') {
-                if (video.paused)
-                    video.play().catch(function() {});
-                else
-                    video.pause();
-            }
-            if (key === 'left' || key === 'right')
-                video.currentTime = Math.max(
-                    0,
-                    Math.min(video.duration || Infinity, video.currentTime + (key === 'right' ? 10 : -10)));
-        } else if (key === 'left' || key === 'right') {
-            var index = (Number(viewer.dataset.index) + (key === 'right' ? 1 : -1) + post.media.length) %
-                post.media.length;
-            viewer.dataset.index = String(index);
-            viewer.querySelector('img').src = post.media[index].image;
-        } else if (key === 'up' || key === 'down') {
-            var scale = Math.max(1, Math.min(3, Number(viewer.dataset.scale) + (key === 'up' ? .25 : -.25)));
-            viewer.dataset.scale = String(scale);
-            viewer.querySelector('img').style.transform = 'scale(' + scale + ')';
-        }
+    if (TvXMedia.isOpen()) {
+        TvXMedia.key(key);
         return;
     }
     if (key === 'menu') {
@@ -1003,6 +972,7 @@ function key(key) {
             if (next >= 0 && next < state.posts.length) {
                 state.index = next;
                 state.bodyY = 0;
+                state.mediaIndex = 0;
                 state.region = 'post';
                 render();
             } else if (key === 'down')
@@ -1010,12 +980,17 @@ function key(key) {
             return;
         }
         if (key === 'right' && post.media.length) {
-            state.region = 'media';
+            if (state.region !== 'media') state.region = 'media';
+            else if (post.media.length > 1)
+                state.mediaIndex = (mediaIndex(post) + 1) % post.media.length;
             render();
             return;
         }
         if (key === 'left') {
-            state.region = 'post';
+            if (state.region === 'media' && post.media.length > 1 && mediaIndex(post) > 0)
+                state.mediaIndex = mediaIndex(post) - 1;
+            else
+                state.region = 'post';
             render();
             return;
         }
@@ -1070,7 +1045,7 @@ function key(key) {
     }
 }
 document.getElementById('refresh').onclick = function() {
-    if (state === homeScene && !actionMenu && !viewer && !external) refreshHome();
+    if (state === homeScene && !actionMenu && !TvXMedia.isOpen() && !external) refreshHome();
 };
 window.TvXReader = {
     receive: receive,
