@@ -1,0 +1,53 @@
+[
+ {
+  "at": "2026-09-10T07:15:32.870Z",
+  "step": "timeline-post",
+  "time": "1 小时前",
+  "stats": "评论 5喜欢 143浏览 5373",
+  "position": "1 / 35",
+  "replies": 5
+ },
+ {
+  "at": "2026-09-10T07:15:32.871Z",
+  "step": "post-with-replies",
+  "time": "1 小时前",
+  "stats": "评论 5喜欢 143浏览 5373",
+  "position": "1 / 35",
+  "replies": 5
+ },
+ {
+  "at": "2026-09-10T07:15:37.131Z",
+  "step": "detail",
+  "detailTime": "2026 年 9 月 10 日 13:20",
+  "detailStats": "评论 5喜欢 143浏览 5401",
+  "detailSizes": {
+   "fontPx": 13.4,
+   "iconPx": 15.8
+  },
+  "timeSizes": {
+   "fontPx": 12,
+   "iconPx": null
+  },
+  "commentSizes": {
+   "fontPx": 11.5,
+   "iconPx": 13
+  },
+  "comments": 5,
+  "withTime": 5,
+  "numbersWithoutIcon": 0,
+  "sample": [
+   {
+    "time": "1 小时前",
+    "stats": "评论 1喜欢 1浏览 150"
+   },
+   {
+    "time": "1 小时前",
+    "stats": "评论 1喜欢 1浏览 117"
+   },
+   {
+    "time": "1 小时前",
+    "stats": "评论 0喜欢 0浏览 50"
+   }
+  ]
+ }
+]

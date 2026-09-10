@@ -136,6 +136,11 @@ final class Handoff {
         if (kind != Kind.NONE) showing = true;
     }
 
+    /** True once a document this handoff owns has committed. */
+    boolean arrived() {
+        return arrived;
+    }
+
     /** True once this handoff no longer needs its failure timer. */
     boolean settled() {
         return kind.settlesOnArrival() ? arrived : showing;

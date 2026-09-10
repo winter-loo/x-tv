@@ -18,11 +18,38 @@ function notice(text) {
 function current() {
     return state.mode === 'home' ? state.posts[state.index] : state.root;
 }
-function author(post) {
+/** Recent posts read better as an age; older ones need a date, and another year needs the year. */
+function timeLabel(created) {
+    var at = Date.parse(created || '');
+    if (isNaN(at)) return '';
+    var seconds = Math.floor((Date.now() - at) / 1000), when = new Date(at);
+    if (seconds < 60) return '刚刚';
+    if (seconds < 3600) return Math.floor(seconds / 60) + ' 分钟前';
+    if (seconds < 86400) return Math.floor(seconds / 3600) + ' 小时前';
+    if (seconds < 86400 * 7) return Math.floor(seconds / 86400) + ' 天前';
+    return (when.getFullYear() === new Date().getFullYear() ? '' : when.getFullYear() + ' 年 ') +
+        (when.getMonth() + 1) + ' 月 ' + when.getDate() + ' 日';
+}
+/** The detail spells it out, so a post from another year is never ambiguous. */
+function fullTime(created) {
+    var at = Date.parse(created || '');
+    if (isNaN(at)) return '';
+    var when = new Date(at);
+    function pad(value) {
+        return (value < 10 ? '0' : '') + value;
+    }
+    return when.getFullYear() + ' 年 ' + (when.getMonth() + 1) + ' 月 ' + when.getDate() + ' 日 ' +
+        pad(when.getHours()) + ':' + pad(when.getMinutes());
+}
+function timeHtml(post, detail) {
+    var label = detail ? fullTime(post.created) : timeLabel(post.created);
+    return label ? '<span class="time">' + esc(label) + '</span>' : '';
+}
+function author(post, detail) {
     return '<div class="author">' +
         (post.author.avatar ? '<img class="avatar" src="' + esc(post.author.avatar) + '" alt="">' : '') +
         '<div><div class="name">' + esc(post.author.name) + '</div><div class="handle">@' +
-        esc(post.author.handle) + '</div></div></div>';
+        esc(post.author.handle) + timeHtml(post, detail) + '</div></div></div>';
 }
 function media(post) {
     var item = post.media[0];
@@ -36,13 +63,24 @@ function text(post) {
                  esc(post.quoted.text) + '</div>' :
                        '');
 }
+/** A label with its count, or just the label when X sent no count for it. */
+function countLabel(label, value) {
+    return value == null ? label : label + ' ' + esc(value);
+}
+function actionCounts(post) {
+    return [countLabel('评论', post.replies), countLabel('喜欢', post.likes)].join(' · ');
+}
+/** Only counts X actually sent are shown, and every number carries its own icon. */
+function stat(kind, label, value, extra) {
+    if (value == null) return '';
+    return '<span class="stat' + (extra || '') + '">' + statIcon(kind) + '<span>' + label + ' ' +
+        esc(value) + '</span></span>';
+}
 function stats(post) {
-    return '<div class="stats"><span class="stat">' + statIcon('comments') +
-        '<span>评论 ' + esc(post.replies) + '</span></span><span class="stat like' +
-        (post.liked ? ' liked' : '') + '">' + statIcon('like') +
-        '<span>' + (post.liked ? '已喜欢 ' : '喜欢 ') + esc(post.likes) +
-        '</span></span><span class="stat">' + statIcon('views') +
-        '<span>浏览 ' + esc(post.views || '0') + '</span></span></div>';
+    var row = stat('comments', '评论', post.replies) +
+        stat('like', post.liked ? '已喜欢' : '喜欢', post.likes, post.liked ? ' like liked' : ' like') +
+        stat('views', '浏览', post.views);
+    return row ? '<div class="stats">' + row + '</div>' : '';
 }
 function statIcon(kind) {
     var paths = {
@@ -127,8 +165,7 @@ function updateLikeView(postId) {
         actionMenu.items[1].label = post.liked ? '取消喜欢' : '喜欢';
         button.querySelector('.label').textContent = actionMenu.items[1].label;
         button.classList.toggle('liked', post.liked);
-        actionMenu.node.querySelector('.action-counts').textContent =
-            '评论 ' + post.replies + ' · 喜欢 ' + post.likes;
+        actionMenu.node.querySelector('.action-counts').textContent = actionCounts(post);
     }
 }
 function likeNotice(postId, message) {
@@ -392,8 +429,7 @@ function openActions() {
     var node = document.createElement('div');
     node.className = 'action-overlay';
     node.innerHTML = '<section class="action-dialog" role="dialog" aria-modal="true" aria-labelledby="action-title">' +
-        '<h2 id="action-title">帖子操作</h2><div class="action-counts">评论 ' + esc(post.replies) +
-        ' · 喜欢 ' + esc(post.likes) + '</div><div class="action-options">' +
+        '<h2 id="action-title">帖子操作</h2><div class="action-counts">' + actionCounts(post) + '</div><div class="action-options">' +
         items.map(function(item, i) {
             return '<button type="button" class="' +
                 (item.action === 'external' ? 'external' : i === 1 && post.liked ? 'liked' : '') + '">' +
@@ -434,7 +470,7 @@ function postHtml(post, detail) {
     return '<section class="post ' + (detail ? 'detail-post ' : '') +
         (state.region === 'post' ? 'focus' : '') + '">' +
         (post.repostedBy ? '<div class="repost">' + esc(post.repostedBy) + ' 转帖</div>' : '') +
-        author(post) + '<div class="body">' + text(post) + linkCards(post) +
+        author(post, detail) + '<div class="body">' + text(post) + linkCards(post) +
         (detail ? media(post) : '') + '</div>' + stats(post) + '</section>';
 }
 function render() {
@@ -474,15 +510,15 @@ function render() {
                                return '<div class="comment' +
                                    (state.region === 'comments' && state.comment === i ? ' selected' : '') +
                                    '" data-index="' + i + '"><div class="name">' + esc(comment.author.name) +
-                                   ' <span class="handle">@' + esc(comment.author.handle) + '</span></div>' +
-                                   text(comment) +
+                                   ' <span class="handle">@' + esc(comment.author.handle) +
+                                   timeHtml(comment, false) + '</span></div>' + text(comment) +
                                    (comment.media[0] ? '<img style="max-width:100%" src="' +
                                             esc(comment.media[0].image) + '" alt="">' :
                                                        '') +
-                                   '</div>';
+                                   stats(comment) + '</div>';
                            })
                            .join('');
-        stage.innerHTML = postHtml(post, true) + '<aside class="comments"><h2>评论 ' + esc(post.replies) +
+        stage.innerHTML = postHtml(post, true) + '<aside class="comments"><h2>' + countLabel('评论', post.replies) +
             '</h2><div class="comment-list">' +
             (comments ||
              '<div class="handle">' + (state.commentsLoading ? '正在加载评论…' : '暂无已加载评论') +

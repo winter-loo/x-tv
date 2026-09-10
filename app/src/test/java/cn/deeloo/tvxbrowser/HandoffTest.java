@@ -156,4 +156,15 @@ public class HandoffTest {
         handoff.begin(Handoff.Kind.POST, "/author/status/2", "menu");
         assertFalse("a new handoff starts unrouted", handoff.routedFrom("https://x.com/home"));
     }
+    @Test public void aHandoffKnowsWhetherItsOwnDocumentHasArrived() {
+        Handoff handoff = new Handoff();
+        handoff.begin(Handoff.Kind.EXTERNAL, "https://example.org/a", "");
+        assertFalse(handoff.arrived());
+        handoff.commit("https://x.com/home");
+        assertFalse("a page this handoff does not own has not arrived", handoff.arrived());
+        handoff.commit("https://example.org/a");
+        assertTrue(handoff.arrived());
+        handoff.end();
+        assertFalse(handoff.arrived());
+    }
 }

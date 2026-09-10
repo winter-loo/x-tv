@@ -421,7 +421,8 @@ test('an earlier detail response cannot revert a confirmed like or hide the newl
     await key(page,'menu');await key(page,'ok');
     await page.evaluate(reply=>TvXReader.writeResult('w2','101',{status:'ok',replyId:'201',reply}),tweet('201','My new reply','101'));
     await receive(page,'r1',payload([tweet('101'),tweet('202','Earlier comment','101')]));
-    await expect(page.locator('.stats .like')).toContainText('已喜欢 4');
-    await expect(page.locator('.stats')).toContainText('评论 3');
+    // Comments carry their own counts now, so name the post's row rather than any row.
+    await expect(page.locator('.detail-post .stats .like')).toContainText('已喜欢 4');
+    await expect(page.locator('.detail-post .stats')).toContainText('评论 3');
     await expect(page.locator('.comment-list')).toContainText('My new reply');
 });

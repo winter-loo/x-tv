@@ -1,49 +1,49 @@
 [
  {
-  "at": "2026-09-10T05:59:51.106Z",
+  "at": "2026-09-10T07:19:10.953Z",
   "step": "cold-start",
-  "pid": "18057",
+  "pid": "30684",
   "scene": {
    "position": "1 / 35",
-   "author": "Zentrix⌚️",
+   "author": "牙仔⇌",
    "freshness": "刚刚更新",
    "refresh": "刷新",
    "notice": ""
   }
  },
  {
-  "at": "2026-09-10T05:59:53.073Z",
+  "at": "2026-09-10T07:19:13.437Z",
   "step": "shortened",
   "realPosts": 35,
   "showing": 33,
   "scene": {
    "position": "1 / 33",
-   "author": "Cristóbal Valenzuela",
+   "author": "almonk",
    "freshness": "刚刚更新",
    "refresh": "刷新",
    "notice": ""
   }
  },
  {
-  "at": "2026-09-10T05:59:56.163Z",
+  "at": "2026-09-10T07:19:16.624Z",
   "step": "back-to-top",
   "read": "3 / 33",
   "top": "1 / 33",
-  "author": "Cristóbal Valenzuela"
+  "author": "almonk"
  },
  {
-  "at": "2026-09-10T05:59:58.633Z",
+  "at": "2026-09-10T07:19:19.361Z",
   "step": "refresh",
   "whileRefreshing": {
    "position": "1 / 33",
-   "author": "Cristóbal Valenzuela",
+   "author": "almonk",
    "freshness": "刚刚更新",
    "refresh": "正在刷新…",
    "notice": "正在刷新…"
   },
   "arrived": {
    "position": "1 / 35",
-   "author": "Ryan Peters",
+   "author": "Tom Yeh",
    "freshness": "刚刚更新",
    "refresh": "刷新",
    "notice": "已加入 35 条新帖子"
@@ -55,30 +55,30 @@
   },
   "reportedCount": 35,
   "reads": [
-   "home request ms=1188 result=ok"
+   "home request ms=1510 result=ok"
   ]
  },
  {
-  "at": "2026-09-10T06:00:02.861Z",
+  "at": "2026-09-10T07:19:22.749Z",
   "step": "merged-presses",
   "scene": {
    "position": "1 / 35",
-   "author": "samzong",
+   "author": "Xudong Han",
    "freshness": "刚刚更新",
    "refresh": "刷新",
    "notice": "已加入 35 条新帖子"
   },
-  "burstMs": 2275,
+  "burstMs": 2636,
   "reads": [
-   "home request ms=3031 result=ok"
+   "home request ms=2006 result=ok"
   ]
  },
  {
-  "at": "2026-09-10T06:00:05.491Z",
+  "at": "2026-09-10T07:19:25.411Z",
   "step": "up-is-navigation-below-the-top",
   "scene": {
    "position": "1 / 35",
-   "author": "samzong",
+   "author": "Xudong Han",
    "freshness": "刚刚更新",
    "refresh": "刷新",
    "notice": ""

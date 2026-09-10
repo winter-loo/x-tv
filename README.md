@@ -72,6 +72,14 @@ python3 scripts/check-projector-ux.py --serial 192.168.10.100:5555
 
 回归测试 `tests/layout.spec.mjs`，真机验收 `node scripts/check-reader-layout.mjs`（只读，`--shots` 可另存 1920×1080 截图）。验证记录见 [阅读器布局验收](docs/validation/issue-14-reader-layout.md)。
 
+## 发布时间与完整统计（GitHub #16）
+
+时间线主帖、详情主帖和每条评论都显示发布时间：近期用「刚刚 / N 分钟前 / N 小时前 / N 天前」，较早用月日，跨年带上年份；详情主帖另起一行给出含年份与时分的完整本地时间。评论恢复了评论数、喜欢数、浏览量三组图标，与主帖同一套。
+
+计数只显示 X 真正发来的数字：真实的 0 照常显示为 0，缺失的字段整条不渲染，不再把缺失伪造成「浏览 0」。时间无法解析时不显示，也不会生成错误日期。时间与统计都是只读的，不进遥控器焦点，喜欢与评论仍从菜单进入。
+
+回归测试 `tests/time-stats.spec.mjs`，真机验收 `node scripts/check-time-stats.mjs`（只读）。验证记录见 [时间与统计验收](docs/validation/issue-16-time-stats.md)。
+
 ## 当前进度（2026-09-07）
 
 #1 平衡阅读布局已完成验收：9 项 Firefox DOM 回归、150 条真实帖子连续导航、真实 X Article 显示、详情往返、返回顶部、Google 登录与冷启动登录保持均通过。GeckoView 已更新至 `155.0.20260903215306`，修复真机 RGB PNG 解码崩溃。详见 [验收记录](docs/validation/issue-1.md)。

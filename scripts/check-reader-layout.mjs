@@ -107,7 +107,13 @@ function checkFrame(where, m) {
 }
 
 try {
-    await cdp.evaluate("typeof TvXReader === 'object'");
+    for (let i = 0; i < 120; i++) {
+        const ready = await cdp
+            .evaluate("typeof TvXReader === 'object' && !!document.querySelector('.post')")
+            .catch(() => false);
+        if (ready) break;
+        await wait(500);
+    }
     for (let i = 0; i < 120; i++) {
         if ((await cdp.evaluate("document.getElementById('freshness').textContent")) === '刚刚更新') break;
         await wait(500);

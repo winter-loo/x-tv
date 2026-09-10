@@ -110,3 +110,10 @@ its own frame, and that the text-only and media layouts keep their proportions.
 `scripts/check-reader-layout.mjs` measures the same constraints on the projector at
 1920x1080 and computes the ring clearance from the live computed styles. `--shots <dir>`
 saves screenshots outside the repo; they contain the signed-in timeline.
+
+`tests/time-stats.spec.mjs` covers issue #16 with a fake clock: relative and dated publication
+times including the cross-year case, the detail's full local time, times on first-batch, paged
+and freshly posted comments, and the difference between a real zero and a field X never sent.
+
+`scripts/check-time-stats.mjs` checks the same on the projector against live data, and reports
+the computed font and icon sizes so "readable on the projector" is a measurement.

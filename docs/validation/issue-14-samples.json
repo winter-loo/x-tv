@@ -1,8 +1,8 @@
 [
  {
-  "at": "2026-09-10T05:54:37.428Z",
+  "at": "2026-09-10T07:16:26.459Z",
   "step": "timeline-top",
-  "pid": "15106",
+  "pid": "28335",
   "viewport": {
    "width": 960,
    "height": 540,
@@ -83,7 +83,7 @@
   }
  },
  {
-  "at": "2026-09-10T05:54:41.410Z",
+  "at": "2026-09-10T07:16:28.890Z",
   "step": "timeline-scrolled",
   "viewport": {
    "width": 960,
@@ -140,25 +140,32 @@
   },
   "focused": {
    "left": 48,
-   "right": 768,
+   "right": 478,
    "top": 78,
    "bottom": 467,
-   "width": 720,
+   "width": 430,
    "height": 389
   },
-  "media": null,
+  "media": {
+   "left": 502,
+   "right": 912,
+   "top": 78,
+   "bottom": 467,
+   "width": 410,
+   "height": 389
+  },
   "comments": null,
   "ring": 6,
   "freshnessText": "刚刚更新",
   "clearance": {
    "left": 4,
-   "right": 148,
+   "right": 438,
    "top": 2,
    "bottom": 2
   }
  },
  {
-  "at": "2026-09-10T05:54:45.880Z",
+  "at": "2026-09-10T07:16:31.709Z",
   "step": "detail",
   "viewport": {
    "width": 960,
@@ -168,32 +175,32 @@
   "title": {
    "left": 48,
    "right": 138,
-   "top": 16,
-   "bottom": 42,
+   "top": 20,
+   "bottom": 46,
    "width": 90,
    "height": 26
   },
   "status": {
    "left": 48,
-   "right": 179,
-   "top": 47,
-   "bottom": 55,
-   "width": 131,
-   "height": 9
+   "right": 63,
+   "top": 51,
+   "bottom": 51,
+   "width": 15,
+   "height": 0
   },
   "freshness": {
    "left": 48,
-   "right": 164,
-   "top": 47,
-   "bottom": 62,
-   "width": 116,
-   "height": 15
+   "right": 48,
+   "top": 51,
+   "bottom": 51,
+   "width": 0,
+   "height": 0
   },
   "position": {
-   "left": 179,
-   "right": 179,
-   "top": 58,
-   "bottom": 58,
+   "left": 63,
+   "right": 63,
+   "top": 51,
+   "bottom": 51,
    "width": 0,
    "height": 0
   },
@@ -231,7 +238,7 @@
    "height": 389
   },
   "ring": 6,
-  "freshnessText": "正文已载入 · 评论更新中",
+  "freshnessText": "",
   "clearance": {
    "left": 4,
    "right": 371,
@@ -240,7 +247,7 @@
   }
  },
  {
-  "at": "2026-09-10T05:54:48.755Z",
+  "at": "2026-09-10T07:16:32.794Z",
   "step": "long-status",
   "status": {
    "left": 48,

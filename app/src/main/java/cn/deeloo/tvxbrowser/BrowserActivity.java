@@ -225,6 +225,9 @@ public class BrowserActivity extends Activity {
                     mHandoff.commit(url);
                     if (mHandoff.settled()) clearHandoffTimeout();
                     if (mHandoff.active()) Log.w(TAG, "===> handoff loading url=" + url);
+                    // A navigation that started before this handoff has just won the session
+                    // (X can take seconds to commit). Take it back rather than time out.
+                    if (mHandoff.active() && !mHandoff.arrived()) driveHandoff();
                 }
 
                 @Override
@@ -300,7 +303,11 @@ public class BrowserActivity extends Activity {
         if (kind != Handoff.Kind.EXTERNAL) mReader.browserWaiting();
         boolean starting = mSession == null;
         initializeBrowser();
-        if (!starting) driveHandoff();
+        if (!starting) {
+            // A pre-warm of X may still be in flight; this handoff owns the session now.
+            mSession.stop();
+            driveHandoff();
+        }
         mHandoffTimeout = () -> failHandoff(generation, "timeout");
         mUiHandler.postDelayed(mHandoffTimeout, HANDOFF_TIMEOUT_MS);
         showHandoff();
@@ -312,7 +319,7 @@ public class BrowserActivity extends Activity {
         switch (mHandoff.kind()) {
             case EXTERNAL:
             case LOGIN:
-                mSession.loadUri(mHandoff.target());
+                loadInSession(mHandoff.target(), "handoff");
                 break;
             case POST:
                 // Only a live X document can route to the post; otherwise load it and wait for
@@ -320,7 +327,7 @@ public class BrowserActivity extends Activity {
                 boolean routable = ExternalTarget.isX(mCommitted) && mBridge != null;
                 Log.w(TAG, "===> handoff drive kind=POST routable=" + routable + " at=" + mCommitted);
                 if (!routable)
-                    mSession.loadUri("https://x.com" + mHandoff.target());
+                    loadInSession("https://x.com" + mHandoff.target(), "handoff-post");
                 else if (!mHandoff.routedFrom(mCommitted)) {
                     mHandoff.routedVia(mCommitted);
                     mBridge.openReaderAction(mHandoff.target(), mHandoff.action());
@@ -371,9 +378,20 @@ public class BrowserActivity extends Activity {
         if (kind == Handoff.Kind.EXTERNAL && mSession != null) {
             mCommitted = "";
             mWritePageLoading = false;
-            ensureWritePage();
+            // Restore the metadata page behind the reader, but only once the user has settled:
+            // opening another link straight away must not have to race this navigation.
+            mUiHandler.postDelayed(() -> {
+                if (!mHandoff.active()) ensureWritePage();
+            }, 1200);
         }
         return kind;
+    }
+
+    /** Every navigation of the shared session goes through here, so the log names who asked. */
+    private void loadInSession(String url, String why) {
+        if (mSession == null) return;
+        Log.w(TAG, "===> handoff load by=" + why + " active=" + mHandoff.active() + " url=" + url);
+        mSession.loadUri(url);
     }
 
     /** Reuse the existing engine without changing the reader's scene or foreground. */
@@ -387,7 +405,7 @@ public class BrowserActivity extends Activity {
         if (!ExternalTarget.isX(mCommitted)) {
             if (!mWritePageLoading) {
                 mWritePageLoading = true;
-                mSession.loadUri(X_HOME_URL);
+                loadInSession(X_HOME_URL, "write-page");
             }
             return false;
         }
@@ -475,7 +493,7 @@ public class BrowserActivity extends Activity {
             } else {
                 Log.i(TAG, "Loading URL from intent: " + url);
                 mShowingMock = false;
-                mSession.loadUri(url);
+                loadInSession(url, "intent");
             }
         } else {
             // Default to real x.com/home, user can toggle to mock with Menu key
@@ -490,8 +508,7 @@ public class BrowserActivity extends Activity {
 
     public void loadXHome() {
         mShowingMock = false;
-        Log.i(TAG, "Loading x.com/home...");
-        mSession.loadUri(X_HOME_URL);
+        loadInSession(X_HOME_URL, "x-home");
     }
 
     private void loadAssetPage(String assetName) {
@@ -510,7 +527,7 @@ public class BrowserActivity extends Activity {
             String base64 = Base64.encodeToString(bytes, Base64.NO_WRAP);
             String dataUri = "data:text/html;charset=utf-8;base64," + base64;
             Log.i(TAG, "Loading asset [" + assetName + "] via Base64 data URI...");
-            mSession.loadUri(dataUri);
+            loadInSession(dataUri, "asset");
         } catch (Exception e) {
             Log.e(TAG, "Failed to read asset: " + assetName, e);
         }

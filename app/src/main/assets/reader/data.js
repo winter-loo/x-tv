@@ -46,6 +46,12 @@ function cardLink(t) {
         domain: (values.domain || values.vanity_url || '').replace(/^www\./, '')
     };
 }
+/** A count X actually sent. Absent stays absent: a missing field is not a zero. */
+function count(value) {
+    if (typeof value === 'number' && isFinite(value)) return value;
+    if (typeof value === 'string' && /^\d+$/.test(value)) return Number(value);
+    return null;
+}
 function linkText(url) {
     try {
         var u = new URL(url);
@@ -140,11 +146,11 @@ function tweet(value) {
                             !!(note && typeof note.text === 'string') || (!t.note_tweet && !legacy.truncated),
         replyTo: legacy.in_reply_to_status_id_str || '',
         conversation: legacy.conversation_id_str || '',
-        replies: legacy.reply_count || 0,
-        likes: legacy.favorite_count || 0,
+        replies: count(legacy.reply_count),
+        likes: count(legacy.favorite_count),
         liked: !!legacy.favorited,
         likeKnown: typeof legacy.favorited === 'boolean',
-        views: at(t, 'views.count') || '',
+        views: count(at(t, 'views.count')),
         created: legacy.created_at || '',
         media: media,
         links: links(t, legacy, note),

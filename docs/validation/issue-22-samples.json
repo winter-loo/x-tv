@@ -1,6 +1,6 @@
 [
  {
-  "at": "2026-09-10T06:02:27.591Z",
+  "at": "2026-09-10T07:20:14.467Z",
   "step": "cold-start",
   "foreground": "reader",
   "surfaces": {
@@ -10,24 +10,24 @@
   },
   "scene": {
    "title": "X · 时间线",
-   "toolbar": "X · 时间线上次时间线 2026/9/10 下午2:01:13 · 正在更新1 / 35刷新 | help: ↑↓ 切换帖子 顶部 ↑ 刷新 确认 帖子详情 → 查看媒体 菜单 更多操作",
-   "freshness": "上次时间线 2026/9/10 下午2:01:13 · 正在更新",
+   "toolbar": "X · 时间线上次时间线 2026/9/10 下午3:19:21 · 正在更新1 / 35刷新 | help: ↑↓ 切换帖子 顶部 ↑ 刷新 确认 帖子详情 → 查看媒体 菜单 更多操作",
+   "freshness": "上次时间线 2026/9/10 下午3:19:21 · 正在更新",
    "position": "1 / 35",
    "detail": false,
    "comment": "",
-   "author": "Ian (伊恩)",
+   "author": "Xudong Han",
    "bodyY": 0,
    "external": false,
    "posts": 1
   },
-  "msToTimeline": 3319,
+  "msToTimeline": 3726,
   "marks": [
-   "home cached ms=1260"
+   "home cached ms=1381"
   ],
   "cache": "warm"
  },
  {
-  "at": "2026-09-10T06:02:29.317Z",
+  "at": "2026-09-10T07:20:16.922Z",
   "step": "sample",
   "post": "2091922092543402349",
   "path": "/pepeller/status/2091922092543402349",
@@ -40,7 +40,7 @@
   ]
  },
  {
-  "at": "2026-09-10T06:02:43.023Z",
+  "at": "2026-09-10T07:20:29.801Z",
   "step": "timeline-return",
   "foreground": "reader",
   "before": {
@@ -76,7 +76,7 @@
   ]
  },
  {
-  "at": "2026-09-10T06:02:54.005Z",
+  "at": "2026-09-10T07:20:38.533Z",
   "step": "timeline-scroll-return",
   "scrolledTo": 600,
   "after": {
@@ -99,7 +99,7 @@
   ]
  },
  {
-  "at": "2026-09-10T06:03:24.722Z",
+  "at": "2026-09-10T07:21:07.057Z",
   "step": "cancel-and-repeat",
   "owners": [
    "reader",
@@ -132,7 +132,7 @@
   ]
  },
  {
-  "at": "2026-09-10T06:03:37.864Z",
+  "at": "2026-09-10T07:21:21.351Z",
   "step": "detail-return",
   "foreground": "reader",
   "before": {
@@ -141,7 +141,7 @@
    "freshness": "",
    "position": "",
    "detail": true,
-   "comment": "Petr @pepeller@nbrempel ",
+   "comment": "Petr @pepeller8 月 25 日@n",
    "author": "Petr",
    "bodyY": 0,
    "external": false,
@@ -153,7 +153,7 @@
    "freshness": "",
    "position": "",
    "detail": true,
-   "comment": "Petr @pepeller@nbrempel ",
+   "comment": "Petr @pepeller8 月 25 日@n",
    "author": "Petr",
    "bodyY": 0,
    "external": false,
@@ -167,7 +167,7 @@
   ]
  },
  {
-  "at": "2026-09-10T06:03:46.977Z",
+  "at": "2026-09-10T07:21:33.060Z",
   "step": "explicit-x-handoff",
   "handedOver": true,
   "surfaces": {
@@ -183,7 +183,7 @@
   ]
  },
  {
-  "at": "2026-09-10T06:03:54.077Z",
+  "at": "2026-09-10T07:21:39.856Z",
   "step": "explicit-x-return",
   "foreground": "reader",
   "presses": 2,
@@ -204,7 +204,7 @@
   ]
  },
  {
-  "at": "2026-09-10T06:04:04.089Z",
+  "at": "2026-09-10T07:21:50.118Z",
   "step": "login-handoff",
   "surfaces": {
    "reader": "G",
@@ -219,7 +219,7 @@
   ]
  },
  {
-  "at": "2026-09-10T06:04:07.983Z",
+  "at": "2026-09-10T07:21:54.493Z",
   "step": "login-return",
   "foreground": "reader",
   "presses": 1,
@@ -240,15 +240,15 @@
   ]
  },
  {
-  "at": "2026-09-10T06:04:08.086Z",
+  "at": "2026-09-10T07:21:54.580Z",
   "step": "reading-budget",
-  "msToTimeline": 3319,
+  "msToTimeline": 3726,
   "cache": "warm",
   "coldMarks": [
-   "home cached ms=1260"
+   "home cached ms=1381"
   ],
   "detailMarks": [
-   "detail reused ms=44"
+   "detail reused ms=77"
   ],
   "geckoSessionsOpened": 1
  }
