@@ -56,6 +56,8 @@ python3 scripts/check-projector-ux.py --serial 192.168.10.100:5555
 
 回归测试见 `tests/like.spec.mjs`。真机验收 `node scripts/check-like-feedback.mjs` 在按键前替换为合成桥接，不向 X 发出写入，记录已安装 APK 哈希、DOM/动画帧时序和未完成请求下的导航。详见 [喜欢即时反馈验收](docs/validation/issue-13-optimistic-like.md)。
 
+外链返回后会在后台恢复 X 页面，真实写入准备等待元数据就绪，不占用阅读前台。回归命令 `node scripts/check-write-recovery.mjs` 只检查真实准备链路，不提交点赞。见 [外链返回后的写入恢复验收](docs/validation/issue-13-write-recovery.md)。
+
 ## 当前进度（2026-09-07）
 
 #1 平衡阅读布局已完成验收：9 项 Firefox DOM 回归、150 条真实帖子连续导航、真实 X Article 显示、详情往返、返回顶部、Google 登录与冷启动登录保持均通过。GeckoView 已更新至 `155.0.20260903215306`，修复真机 RGB PNG 解码崩溃。详见 [验收记录](docs/validation/issue-1.md)。

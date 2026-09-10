@@ -86,3 +86,10 @@ an optical measurement of the projector. A local screenshot is saved under `.scr
 Additional regressions cover verification outages and refresh recovery, missing explicit
 like state, toggles during verification/backoff, count rollback, wrong-post callbacks,
 background notices and preserving the reading DOM and open-menu focus.
+
+`node scripts/check-write-recovery.mjs` verifies the real metadata dependency after an
+external return, without submitting a mutation. Install the current debug APK first.
+It checks the installed hash, invokes the debug-only `check_write_preparation` intent,
+opens and closes an external page, and asserts metadata readiness and retained reader
+foreground/scene. It does not replace `ReaderHost`. The native `WritePreparationTest`
+exercises bounded waiting, external ownership, timeout, cancellation and late callbacks.

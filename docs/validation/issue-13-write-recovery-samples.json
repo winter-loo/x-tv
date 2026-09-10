@@ -1,0 +1,53 @@
+[
+  {
+    "at": "2026-09-10T02:05:53.477Z",
+    "step": "build",
+    "sha256": "a5a3d91d9b2048485b75e0f5e403d9ed0dfcf79aa38364a91d4c8799a0dc4872",
+    "package": [
+      "versionName=0.2.0",
+      "lastUpdateTime=2026-09-10 10:05:25"
+    ]
+  },
+  {
+    "at": "2026-09-10T02:06:10.181Z",
+    "step": "initial-real-metadata",
+    "result": "ready=true ms=6257",
+    "surface": {
+      "reader": "V",
+      "loading": "G"
+    }
+  },
+  {
+    "at": "2026-09-10T02:06:17.047Z",
+    "step": "external-preserved",
+    "surface": {
+      "reader": "G",
+      "loading": "G"
+    },
+    "preparationPending": true
+  },
+  {
+    "at": "2026-09-10T02:06:23.629Z",
+    "step": "metadata-after-external-return",
+    "result": "ready=true ms=8509",
+    "surface": {
+      "reader": "V",
+      "loading": "G"
+    }
+  },
+  {
+    "at": "2026-09-10T02:06:27.018Z",
+    "step": "subsequent-real-metadata",
+    "result": "ready=true ms=1248",
+    "surface": {
+      "reader": "V",
+      "loading": "G"
+    }
+  },
+  {
+    "at": "2026-09-10T02:06:27.018Z",
+    "step": "pass",
+    "scenePreserved": true,
+    "mutationsSubmitted": 0
+  }
+]

@@ -50,6 +50,8 @@ public class BrowserActivity extends Activity {
     private XReadClient mReadClient;
     private FastReader mReader;
     private XWriteClient mWriteClient;
+    private WritePreparation mWritePreparation;
+    private boolean mWritePageLoading;
     private boolean mPrewarmScheduled;
     private final Handoff mHandoff = new Handoff();
     private String mCommitted = "";
@@ -66,13 +68,17 @@ public class BrowserActivity extends Activity {
         mLoading = findViewById(R.id.loading_overlay);
 
         mReadClient=TvXApplication.takeReadClient();
-        mWriteClient = new XWriteClient(this, mReadClient, (operation, callback) -> {
-            initializeBrowser();
-            if (mBridge == null) callback.accept(null); else mBridge.prepareWrite(operation, callback);
-        });
+        mWritePreparation = new WritePreparation(new WritePreparation.Page() {
+            public boolean ensureXPage() { return ensureWritePage(); }
+            public void prepare(String operation, java.util.function.Consumer<org.json.JSONObject> callback) {
+                mBridge.prepareWrite(operation, callback);
+            }
+        }, (delay, task) -> mUiHandler.postDelayed(task, delay));
+        mWriteClient = new XWriteClient(this, mReadClient, mWritePreparation::prepare);
         mReadClient.accountChanged=()->{
             if(isFinishing()||isDestroyed())return;
             if(mReader!=null){((android.view.ViewGroup)mReader.getParent()).removeView(mReader);mReader.dispose();mReader=null;}
+            mWritePreparation.cancel();
             closeHandoff();initializeBrowser();loadXHome();
         };
         if(mReadClient.available()&&!getIntent().hasExtra("url")&&!getIntent().hasExtra("action")) {
@@ -150,7 +156,7 @@ public class BrowserActivity extends Activity {
 
                 @Override
                 public void onFocusRequest(GeckoSession session) {
-                    if (session == activeSession()) mGeckoView.requestFocus();
+                    if (session == activeSession() && (mReader == null || mHandoff.showing())) mGeckoView.requestFocus();
                 }
 
                 @Override
@@ -162,14 +168,16 @@ public class BrowserActivity extends Activity {
             mSession.setProgressDelegate(new GeckoSession.ProgressDelegate() {
                 @Override
                 public void onPageStart(GeckoSession session, String url) {
-                    if (session != activeSession() || "about:blank".equals(url)) return;
+                    if (session != activeSession()) return;
+                    mWritePageLoading = ExternalTarget.isX(url);
+                    if ("about:blank".equals(url)) return;
 
                     String host = Uri.parse(url).getHost();
                     mWaitingForPresentation = "x.com".equals(host) || "twitter.com".equals(host);
                     mUsingTvAdapter = mWaitingForPresentation;
                     mLoadRetryAvailable = false;
                     mGeckoView.setAlpha(0f);
-                    mLoading.setVisibility(View.VISIBLE);
+                    mLoading.setVisibility(mReader != null && !mHandoff.showing() ? View.GONE : View.VISIBLE);
                     mGeckoView.coverUntilFirstPaint(0xff090d14);
                     ((TextView) findViewById(R.id.loading_text)).setText("正在加载 X…");
                     mUiHandler.removeCallbacks(mLoadTimeout);
@@ -180,6 +188,7 @@ public class BrowserActivity extends Activity {
                 @Override
                 public void onPageStop(GeckoSession session, boolean success) {
                     if (session != activeSession()) return;
+                    if (!success) mWritePageLoading = false;
                     // A client-side redirect (t.co serves one) aborts the page it navigates away
                     // from, so only a real load error or the timeout may fail a handoff.
                     if (mHandoff.kind() == Handoff.Kind.EXTERNAL) {
@@ -285,6 +294,7 @@ public class BrowserActivity extends Activity {
     /** Every reader to browser handoff starts here; the reader stays in front and can cancel. */
     private void beginHandoff(Handoff.Kind kind, String target, String action) {
         if (mReader == null) return;
+        mWritePageLoading = false;
         final int generation = mHandoff.begin(kind, target, action);
         Log.w(TAG, "===> handoff open kind=" + kind + " gen=" + generation + " target=" + target);
         if (kind != Handoff.Kind.EXTERNAL) mReader.browserWaiting();
@@ -354,10 +364,32 @@ public class BrowserActivity extends Activity {
         Log.w(TAG, "===> handoff closed kind=" + kind + " gen=" + mHandoff.generation());
         mHandoff.end();
         clearHandoffTimeout();
-        // Leave the engine on a blank page: it stops the external document and keeps none of
-        // its callbacks pointed at the foreground. X is reloaded on demand by the next handoff.
-        if (kind == Handoff.Kind.EXTERNAL && mSession != null) mSession.loadUri("about:blank");
+        // Stop the external document and restore the metadata source behind the reader.
+        // A blank page cannot prepare native likes or replies, however often they retry.
+        if (kind == Handoff.Kind.EXTERNAL && mSession != null) {
+            mCommitted = "";
+            mWritePageLoading = false;
+            ensureWritePage();
+        }
         return kind;
+    }
+
+    /** Reuse the existing engine without changing the reader's scene or foreground. */
+    private boolean ensureWritePage() {
+        if (isFinishing() || isDestroyed() || mReader == null || mHandoff.active()) return false;
+        boolean starting = mSession == null;
+        initializeBrowser();
+        if (mSession == null || mBridge == null) return false;
+        // Initial creation already schedules /home after the extension is installed.
+        if (starting) { mWritePageLoading = true; return false; }
+        if (!ExternalTarget.isX(mCommitted)) {
+            if (!mWritePageLoading) {
+                mWritePageLoading = true;
+                mSession.loadUri(X_HOME_URL);
+            }
+            return false;
+        }
+        return true;
     }
 
     private void clearHandoffTimeout() {
@@ -399,6 +431,18 @@ public class BrowserActivity extends Activity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+        // Debug-build acceptance seam: exercise the real metadata path without a mutation.
+        if (BuildConfig.DEBUG && "check_write_preparation".equals(intent.getStringExtra("action"))) {
+            final long started = SystemClock.elapsedRealtime();
+            final org.json.JSONObject auth = mReadClient.writeSession();
+            mWritePreparation.prepare("FavoriteTweet", metadata -> {
+                boolean ready = metadata != null && !metadata.has("error")
+                    && metadata.has("csrf") && metadata.has("queries")
+                    && mReadClient.matchesWriteSession(auth);
+                Log.w("TvXWriteReady", "ready=" + ready + " ms=" + (SystemClock.elapsedRealtime() - started));
+            });
+            return;
+        }
         setIntent(intent);
         // A launcher resume must not reload /home and discard the current post.
         if (intent.hasExtra("url") || intent.hasExtra("action")) {
@@ -499,6 +543,7 @@ public class BrowserActivity extends Activity {
         Log.e(TAG, "===> BrowserActivity.onDestroy START <===");
         if(mReader!=null){mReader.dispose();mReader=null;}
         if(mWriteClient!=null)mWriteClient.close();
+        if(mWritePreparation!=null)mWritePreparation.cancel();
         if(mReadClient!=null)mReadClient.close();
         if (mPopupSession != null && mPopupSession.isOpen()) {
             mPopupSession.close();
