@@ -117,3 +117,12 @@ and freshly posted comments, and the difference between a real zero and a field 
 
 `scripts/check-time-stats.mjs` checks the same on the projector against live data, and reports
 the computed font and icon sizes so "readable on the projector" is a measurement.
+
+`tests/reading-scroll.spec.mjs` covers issues #19 and #23: the page step is measured from the
+pane's own line height rather than a fraction of the screen, presses chain instead of piling
+up, both ends clamp, and the cut-off marker appears only when the body really is cut off.
+
+`scripts/check-reading-flow.mjs` measures the same on the projector and records the overlap in
+lines either side of a page turn. These two poll for the animation to come to rest rather than
+using Playwright's fake clock: the tween runs on `requestAnimationFrame`, which a frozen clock
+never advances.

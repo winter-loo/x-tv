@@ -27,6 +27,10 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
 
     public interface ReaderReadyListener { void ready(String path); }
     public interface ContentReadyListener { void ready(String url); }
+    public interface ReadingOverlapListener { void report(double overlap); }
+    private ReadingOverlapListener mReadingOverlapListener;
+    /** Fires when an article reports how much of a screen a page turn should keep. */
+    public void setReadingOverlapListener(ReadingOverlapListener listener) { mReadingOverlapListener=listener; }
     private ContentReadyListener mContentReadyListener;
     /** Fires when a content script exists on a document and can accept reader commands. */
     public void setContentReadyListener(ContentReadyListener listener) { mContentReadyListener=listener; }
@@ -74,7 +78,7 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
         if (mPort != null) { mPort.disconnect(); mPort = null; }
         mReadyListener = null; mPresentationListener = null; mExitListener = null;
         mReadTemplateListener=null;mReadClearListener=null;mReaderReturnListener=null;mReaderReadyListener=null;
-        mContentReadyListener=null;
+        mContentReadyListener=null;mReadingOverlapListener=null;
     }
     private WebExtension mExtension;
     private WebExtension.Port mPort;
@@ -181,6 +185,8 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
                 if(mReaderReturnListener!=null)mReaderReturnListener.ready(json.optString("path"));
             } else if ("content_ready".equals(event)) {
                 if(mContentReadyListener!=null)mContentReadyListener.ready(json.optString("url"));
+            } else if ("reading_overlap".equals(event)) {
+                if(mReadingOverlapListener!=null)mReadingOverlapListener.report(json.optDouble("overlap",0));
             } else if ("ping".equals(event)) {
                 sendCommand("pong", null);
             } else if ("exit_requested".equals(event)) {

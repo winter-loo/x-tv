@@ -1,49 +1,49 @@
 [
  {
-  "at": "2026-09-10T07:19:10.953Z",
+  "at": "2026-09-10T08:24:41.741Z",
   "step": "cold-start",
-  "pid": "30684",
+  "pid": "28847",
   "scene": {
-   "position": "1 / 35",
-   "author": "牙仔⇌",
+   "position": "1 / 36",
+   "author": "The Hacker News",
    "freshness": "刚刚更新",
    "refresh": "刷新",
    "notice": ""
   }
  },
  {
-  "at": "2026-09-10T07:19:13.437Z",
+  "at": "2026-09-10T08:24:44.127Z",
   "step": "shortened",
   "realPosts": 35,
   "showing": 33,
   "scene": {
    "position": "1 / 33",
-   "author": "almonk",
+   "author": "Foad S. Farimani",
    "freshness": "刚刚更新",
    "refresh": "刷新",
    "notice": ""
   }
  },
  {
-  "at": "2026-09-10T07:19:16.624Z",
+  "at": "2026-09-10T08:24:47.590Z",
   "step": "back-to-top",
   "read": "3 / 33",
   "top": "1 / 33",
-  "author": "almonk"
+  "author": "Foad S. Farimani"
  },
  {
-  "at": "2026-09-10T07:19:19.361Z",
+  "at": "2026-09-10T08:24:50.107Z",
   "step": "refresh",
   "whileRefreshing": {
    "position": "1 / 33",
-   "author": "almonk",
+   "author": "Foad S. Farimani",
    "freshness": "刚刚更新",
    "refresh": "正在刷新…",
    "notice": "正在刷新…"
   },
   "arrived": {
    "position": "1 / 35",
-   "author": "Tom Yeh",
+   "author": "The Hacker News",
    "freshness": "刚刚更新",
    "refresh": "刷新",
    "notice": "已加入 35 条新帖子"
@@ -55,30 +55,30 @@
   },
   "reportedCount": 35,
   "reads": [
-   "home request ms=1510 result=ok"
+   "home request ms=1299 result=ok"
   ]
  },
  {
-  "at": "2026-09-10T07:19:22.749Z",
+  "at": "2026-09-10T08:24:53.036Z",
   "step": "merged-presses",
   "scene": {
    "position": "1 / 35",
-   "author": "Xudong Han",
+   "author": "Dan McAteer",
    "freshness": "刚刚更新",
    "refresh": "刷新",
-   "notice": "已加入 35 条新帖子"
+   "notice": "已加入 34 条新帖子"
   },
-  "burstMs": 2636,
+  "burstMs": 2455,
   "reads": [
-   "home request ms=2006 result=ok"
+   "home request ms=1927 result=ok"
   ]
  },
  {
-  "at": "2026-09-10T07:19:25.411Z",
+  "at": "2026-09-10T08:24:55.818Z",
   "step": "up-is-navigation-below-the-top",
   "scene": {
    "position": "1 / 35",
-   "author": "Xudong Han",
+   "author": "Dan McAteer",
    "freshness": "刚刚更新",
    "refresh": "刷新",
    "notice": ""

@@ -147,7 +147,10 @@ test(
         await receive(page, 'r0', payload([partial, tweet('102')]));
         await expect(page.locator('.text')).toContainText('Timeline text');
         await key(page, 'ok');
-        await expect(page.locator('#stage')).toContainText('正在加载完整帖子');
+        // The preview stays on screen and says the full text is still coming; it is never
+        // reported as a complete detail render.
+        await expect(page.locator('.detail-post .text')).toContainText('Timeline text');
+        await expect(page.locator('.detail-post .fetching')).toContainText('正在取完整正文');
         expect(await page.evaluate(() => calls.some(c => c[0] === 'rendered' && c[2].startsWith('detail'))))
             .toBe(false);
         await key(page, 'back');
@@ -164,6 +167,8 @@ test('fresh detail and reply navigation preserve the parent selection and scroll
     await receive(
         page, 'r1', payload([tweet('102', 'Complete root '.repeat(300)), tweet('201', 'Reply', '102')]));
     await key(page, 'down');
+    // Reading now animates, so compare the settled position either side of the round trip.
+    await page.waitForTimeout(400);
     const y = await page.locator('.body').evaluate(n => n.scrollTop);
     expect(y).toBeGreaterThan(0);
     await key(page, 'right');
@@ -171,7 +176,8 @@ test('fresh detail and reply navigation preserve the parent selection and scroll
     await receive(page, 'r2', payload([tweet('201', 'Full reply', '102')]));
     await key(page, 'back');
     await expect(page.locator('.comment.selected')).toContainText('Reply');
-    expect(await page.locator('.body').evaluate(n => n.scrollTop)).toBe(y);
+    expect(Math.abs(await page.locator('.body').evaluate(n => n.scrollTop) - y))
+        .toBeLessThanOrEqual(1);
     await key(page, 'back');
     await expect(page.locator('.text')).toContainText('Second post');
 });

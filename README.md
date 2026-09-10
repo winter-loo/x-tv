@@ -80,6 +80,14 @@ python3 scripts/check-projector-ux.py --serial 192.168.10.100:5555
 
 回归测试 `tests/time-stats.spec.mjs`，真机验收 `node scripts/check-time-stats.mjs`（只读）。验证记录见 [时间与统计验收](docs/validation/issue-16-time-stats.md)。
 
+## 长正文阅读（GitHub #19、#23）
+
+时间线上被折叠的预览会在末尾显示 `Show more`——只在正文真的被裁、或 X 给的本来就是截断文本时出现，短帖不会有无效入口。入口可以点，遥控器确认走同一个「打开详情」。X 只给了截断文本时保留预览并标注「正在取完整正文…」，失败可重试，不再把预览换成空白加载屏。
+
+详情正文和评论栏按页平滑滚动：一页 = 面板可视高度减去三行行高，从面板自身量而不是固定屏幕比例，200 ms 缓出动画，连按从当前动画目标接着走，首尾钳制。内置外链文章由页面自报三行重叠比例，原生侧据此翻页。
+
+回归测试 `tests/reading-scroll.spec.mjs`，真机验收 `node scripts/check-reading-flow.mjs`（只读）。验证记录见 [长正文阅读验收](docs/validation/issue-19-23-reading.md)。
+
 ## 当前进度（2026-09-07）
 
 #1 平衡阅读布局已完成验收：9 项 Firefox DOM 回归、150 条真实帖子连续导航、真实 X Article 显示、详情往返、返回顶部、Google 登录与冷启动登录保持均通过。GeckoView 已更新至 `155.0.20260903215306`，修复真机 RGB PNG 解码崩溃。详见 [验收记录](docs/validation/issue-1.md)。

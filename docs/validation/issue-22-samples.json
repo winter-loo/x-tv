@@ -1,6 +1,6 @@
 [
  {
-  "at": "2026-09-10T07:20:14.467Z",
+  "at": "2026-09-10T08:25:44.451Z",
   "step": "cold-start",
   "foreground": "reader",
   "surfaces": {
@@ -10,24 +10,24 @@
   },
   "scene": {
    "title": "X · 时间线",
-   "toolbar": "X · 时间线上次时间线 2026/9/10 下午3:19:21 · 正在更新1 / 35刷新 | help: ↑↓ 切换帖子 顶部 ↑ 刷新 确认 帖子详情 → 查看媒体 菜单 更多操作",
-   "freshness": "上次时间线 2026/9/10 下午3:19:21 · 正在更新",
+   "toolbar": "X · 时间线上次时间线 2026/9/10 下午4:24:51 · 正在更新1 / 35刷新 | help: ↑↓ 切换帖子 顶部 ↑ 刷新 确认 帖子详情 → 查看媒体 菜单 更多操作",
+   "freshness": "上次时间线 2026/9/10 下午4:24:51 · 正在更新",
    "position": "1 / 35",
    "detail": false,
    "comment": "",
-   "author": "Xudong Han",
+   "author": "Dan McAteer",
    "bodyY": 0,
    "external": false,
    "posts": 1
   },
-  "msToTimeline": 3726,
+  "msToTimeline": 3178,
   "marks": [
-   "home cached ms=1381"
+   "home cached ms=1219"
   ],
   "cache": "warm"
  },
  {
-  "at": "2026-09-10T07:20:16.922Z",
+  "at": "2026-09-10T08:25:46.930Z",
   "step": "sample",
   "post": "2091922092543402349",
   "path": "/pepeller/status/2091922092543402349",
@@ -40,7 +40,7 @@
   ]
  },
  {
-  "at": "2026-09-10T07:20:29.801Z",
+  "at": "2026-09-10T08:25:59.587Z",
   "step": "timeline-return",
   "foreground": "reader",
   "before": {
@@ -76,7 +76,7 @@
   ]
  },
  {
-  "at": "2026-09-10T07:20:38.533Z",
+  "at": "2026-09-10T08:26:08.100Z",
   "step": "timeline-scroll-return",
   "scrolledTo": 600,
   "after": {
@@ -99,7 +99,7 @@
   ]
  },
  {
-  "at": "2026-09-10T07:21:07.057Z",
+  "at": "2026-09-10T08:26:37.853Z",
   "step": "cancel-and-repeat",
   "owners": [
    "reader",
@@ -132,7 +132,7 @@
   ]
  },
  {
-  "at": "2026-09-10T07:21:21.351Z",
+  "at": "2026-09-10T08:26:50.469Z",
   "step": "detail-return",
   "foreground": "reader",
   "before": {
@@ -167,7 +167,7 @@
   ]
  },
  {
-  "at": "2026-09-10T07:21:33.060Z",
+  "at": "2026-09-10T08:27:01.333Z",
   "step": "explicit-x-handoff",
   "handedOver": true,
   "surfaces": {
@@ -177,13 +177,14 @@
   },
   "stages": [
    "open kind=POST gen=13 target=/pepeller/status/2091922092543402349",
+   "loading url=https://x.com/home",
    "loading url=https://x.com/pepeller/status/2091922092543402349",
    "loading url=https://x.com/pepeller/status/2091922092543402349",
    "shown kind=POST target=/pepeller/status/2091922092543402349 at=https://x.com/pepeller/status/2091922092543402349"
   ]
  },
  {
-  "at": "2026-09-10T07:21:39.856Z",
+  "at": "2026-09-10T08:27:08.229Z",
   "step": "explicit-x-return",
   "foreground": "reader",
   "presses": 2,
@@ -204,7 +205,7 @@
   ]
  },
  {
-  "at": "2026-09-10T07:21:50.118Z",
+  "at": "2026-09-10T08:27:20.655Z",
   "step": "login-handoff",
   "surfaces": {
    "reader": "G",
@@ -219,7 +220,7 @@
   ]
  },
  {
-  "at": "2026-09-10T07:21:54.493Z",
+  "at": "2026-09-10T08:27:24.588Z",
   "step": "login-return",
   "foreground": "reader",
   "presses": 1,
@@ -240,15 +241,15 @@
   ]
  },
  {
-  "at": "2026-09-10T07:21:54.580Z",
+  "at": "2026-09-10T08:27:24.687Z",
   "step": "reading-budget",
-  "msToTimeline": 3726,
+  "msToTimeline": 3178,
   "cache": "warm",
   "coldMarks": [
-   "home cached ms=1381"
+   "home cached ms=1219"
   ],
   "detailMarks": [
-   "detail reused ms=77"
+   "detail reused ms=78"
   ],
   "geckoSessionsOpened": 1
  }

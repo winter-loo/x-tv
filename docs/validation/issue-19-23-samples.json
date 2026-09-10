@@ -1,0 +1,57 @@
+[
+ {
+  "at": "2026-09-10T08:29:59.554Z",
+  "step": 0,
+  "top": 0,
+  "view": 265,
+  "full": 571,
+  "line": 22.4,
+  "marker": true,
+  "fetching": false
+ },
+ {
+  "at": "2026-09-10T08:30:02.644Z",
+  "step": "full-reading",
+  "top": 0,
+  "view": 278,
+  "full": 932,
+  "line": 22.4,
+  "marker": false,
+  "fetching": false,
+  "long": true
+ },
+ {
+  "at": "2026-09-10T08:30:03.822Z",
+  "step": "page-down",
+  "from": 0,
+  "to": 210,
+  "view": 278,
+  "line": 22.4,
+  "overlapPx": 68,
+  "overlapLines": 3.04
+ },
+ {
+  "at": "2026-09-10T08:30:05.233Z",
+  "step": "page-up",
+  "to": 0
+ },
+ {
+  "at": "2026-09-10T08:30:07.955Z",
+  "step": "chained-presses",
+  "to": 630,
+  "oneStep": 210,
+  "reachable": 654,
+  "expected": 630,
+  "stepsTravelled": 3
+ },
+ {
+  "at": "2026-09-10T08:30:44.098Z",
+  "step": "bottom",
+  "top": 654,
+  "view": 278,
+  "full": 932,
+  "line": 22.4,
+  "marker": false,
+  "fetching": false
+ }
+]

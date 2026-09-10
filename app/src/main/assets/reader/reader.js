@@ -449,6 +449,11 @@ function openActions() {
     })(i);
     focusAction();
 }
+function fetching(post, detail) {
+    if (!detail || post.complete) return '';
+    return '<div class="fetching">' +
+        (state.error ? '完整正文获取失败　 确认 重试' : '正在取完整正文…') + '</div>';
+}
 function linkCards(post) {
     return (post.links || [])
         .map(function(link, index) {
@@ -470,8 +475,9 @@ function postHtml(post, detail) {
     return '<section class="post ' + (detail ? 'detail-post ' : '') +
         (state.region === 'post' ? 'focus' : '') + '">' +
         (post.repostedBy ? '<div class="repost">' + esc(post.repostedBy) + ' 转帖</div>' : '') +
-        author(post, detail) + '<div class="body">' + text(post) + linkCards(post) +
-        (detail ? media(post) : '') + '</div>' + stats(post) + '</section>';
+        author(post, detail) + '<div class="body">' + text(post) + fetching(post, detail) +
+        linkCards(post) + (detail ? media(post) : '') + '</div>' +
+        (detail ? '' : '<div class="more-slot"></div>') + stats(post) + '</section>';
 }
 function render() {
     var post = current();
@@ -515,7 +521,7 @@ function render() {
                                    (comment.media[0] ? '<img style="max-width:100%" src="' +
                                             esc(comment.media[0].image) + '" alt="">' :
                                                        '') +
-                                   stats(comment) + '</div>';
+                                   commentMore(comment, i) + stats(comment) + '</div>';
                            })
                            .join('');
         stage.innerHTML = postHtml(post, true) + '<aside class="comments"><h2>' + countLabel('评论', post.replies) +
@@ -529,15 +535,88 @@ function render() {
             '↑↓ 阅读评论　 确认 打开评论　 ← 正文　 菜单 更多操作　 返回 上一层';
     }
     bindLinkCards(post);
+    bindCommentMore();
+    stopScrolling();
     var body = stage.querySelector('.body');
     if (body) body.scrollTop = state.bodyY || 0;
+    markTruncated(post, body);
     var list = stage.querySelector('.comment-list');
     if (list) list.scrollTop = state.commentsY || 0;
 }
+/**
+ * A page is what fits on screen less three lines, so the reader keeps their place across the
+ * turn. Measured from the pane, never a fixed fraction, so a font or window change follows.
+ */
+var OVERLAP_LINES = 3;
+function pageStep(node) {
+    var style = getComputedStyle(node), line = parseFloat(style.lineHeight);
+    if (!isFinite(line) || line <= 0) line = parseFloat(style.fontSize) * 1.4;
+    var overlap = Math.min(node.clientHeight / 2, line * OVERLAP_LINES);
+    return Math.max(line, node.clientHeight - overlap);
+}
+var scrolling = null;
+/** One animation at a time; a further press chains from where this one is heading. */
+function pageScroll(node, direction) {
+    if (!node) return;
+    var limit = Math.max(0, node.scrollHeight - node.clientHeight);
+    if (limit <= 0) return;
+    var from = scrolling && scrolling.node === node ? scrolling.to : node.scrollTop;
+    var to = Math.max(0, Math.min(limit, from + direction * pageStep(node)));
+    if (scrolling) cancelAnimationFrame(scrolling.frame);
+    if (to === node.scrollTop) { scrolling = null; return; }
+    scrolling = {node: node, to: to, from: node.scrollTop, started: 0, frame: 0};
+    scrolling.frame = requestAnimationFrame(function step(now) {
+        if (!scrolling || scrolling.node !== node) return;
+        if (!scrolling.started) scrolling.started = now;
+        var progress = Math.min(1, (now - scrolling.started) / 200);
+        var eased = 1 - Math.pow(1 - progress, 3);
+        node.scrollTop = scrolling.from + (scrolling.to - scrolling.from) * eased;
+        if (progress < 1) scrolling.frame = requestAnimationFrame(step);
+        else scrolling = null;
+    });
+}
+function stopScrolling() {
+    if (!scrolling) return;
+    cancelAnimationFrame(scrolling.frame);
+    scrolling = null;
+}
+/** Where a pane is heading, so a re-render lands on the intended spot, not a mid-tween one. */
+function pendingScroll(node) {
+    if (!node) return 0;
+    return scrolling && scrolling.node === node ? scrolling.to : node.scrollTop;
+}
+/** A comment X truncated says so too, and opening it reads the whole thing. */
+function commentMore(comment, index) {
+    return comment.complete ? '' :
+        '<div class="show-more" role="button" data-comment="' + index + '">Show more</div>';
+}
+/** Only a body that is really clipped, or a text X truncated, gets the marker. */
+function bindCommentMore() {
+    var markers = stage.querySelectorAll('.comment .show-more');
+    for (var i = 0; i < markers.length; i++) (function(marker) {
+        marker.onclick = function(event) {
+            event.stopPropagation();
+            open(state.posts[Number(marker.getAttribute('data-comment'))]);
+        };
+    })(markers[i]);
+}
+function markTruncated(post, body) {
+    var slot = stage.querySelector('.more-slot');
+    if (!slot || !body) return;
+    var clipped = body.scrollHeight - body.clientHeight > 1;
+    if (!clipped && post.complete) {
+        slot.innerHTML = '';
+        return;
+    }
+    // A preview is only honest if it admits it is one; the full reading is one confirm away.
+    slot.innerHTML = '<div class="show-more" role="button">Show more</div>';
+    slot.querySelector('.show-more').onclick = function() {
+        open(post);
+    };
+}
 function saveScroll() {
-    var body = stage.querySelector('.body'), list = stage.querySelector('.comment-list');
-    state.bodyY = body ? body.scrollTop : 0;
-    state.commentsY = list ? list.scrollTop : 0;
+    state.bodyY = pendingScroll(stage.querySelector('.body'));
+    state.commentsY = pendingScroll(stage.querySelector('.comment-list'));
 }
 function request(cursor) {
     recheckLikes();
@@ -559,7 +638,9 @@ function open(post) {
         id: post.id,
         path: post.path,
         posts: [],
-        root: post.complete ? post : null,
+        // Keep the preview on screen while the full text is fetched: a blank loading pane
+        // would throw away text the reader already had.
+        root: post,
         cachedAt: savedAt,
         commentsLoading: true,
         region: 'post',
@@ -567,7 +648,7 @@ function open(post) {
     };
     render();
     request('');
-    if (state.root) {
+    if (post.complete) {
         var id = pending, kind = savedAt ? 'detail_cached' : 'detail_reused';
         requestAnimationFrame(function() {
             requestAnimationFrame(function() {
@@ -966,13 +1047,15 @@ function key(key) {
     if (key === 'up' || key === 'down') {
         var delta = key === 'down' ? 1 : -1;
         if (state.region === 'post') {
-            stage.querySelector('.body').scrollTop += delta * stage.clientHeight * .65;
+            pageScroll(stage.querySelector('.body'), delta);
             return;
         }
         var selected = stage.querySelector('.comment.selected'), list = stage.querySelector('.comment-list');
         if (selected) {
             var r = selected.getBoundingClientRect(), area = list.getBoundingClientRect();
             if ((delta > 0 && r.bottom > area.bottom + 4) || (delta < 0 && r.top < area.top - 4)) {
+                // The comment column follows a selection rather than being read straight
+                // through, so it keeps its smaller step: a bigger one loses the selected item.
                 list.scrollTop += delta * list.clientHeight * .65;
                 return;
             }

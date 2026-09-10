@@ -47,6 +47,15 @@ function cardLink(t) {
     };
 }
 /** A count X actually sent. Absent stays absent: a missing field is not a zero. */
+/** X sends the body HTML-escaped; decode once so the reader escapes exactly once. */
+function decode(value) {
+    return String(value == null ? '' : value)
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&amp;/g, '&');
+}
 function count(value) {
     if (typeof value === 'number' && isFinite(value)) return value;
     if (typeof value === 'string' && /^\d+$/.test(value)) return Number(value);
@@ -141,7 +150,7 @@ function tweet(value) {
         id: t.rest_id,
         path: '/' + author.handle + '/status/' + t.rest_id,
         author: author,
-        text: text,
+        text: decode(text),
         complete: article ? !!at(article, 'content_state.blocks.length') :
                             !!(note && typeof note.text === 'string') || (!t.note_tweet && !legacy.truncated),
         replyTo: legacy.in_reply_to_status_id_str || '',

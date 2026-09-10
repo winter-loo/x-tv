@@ -55,6 +55,13 @@ public class BrowserActivity extends Activity {
     private boolean mPrewarmScheduled;
     private final Handoff mHandoff = new Handoff();
     private String mCommitted = "";
+    /**
+     * Three lines of the article being read, as a fraction of the screen. The page reports its
+     * own; this is only what a page that never reported one gets, so a turn still overlaps.
+     */
+    private static final double DEFAULT_READING_OVERLAP = .28;
+    private static final double MAX_READING_OVERLAP = .5;
+    private double mReadingOverlap = DEFAULT_READING_OVERLAP;
     private Runnable mHandoffTimeout;
     private long mLaunchStarted;
 
@@ -123,6 +130,11 @@ public class BrowserActivity extends Activity {
             // A live content script is the real precondition for a post handoff, so drive it here
             // rather than guessing from page-load events an SPA may not deliver in time.
             mBridge.setContentReadyListener(url->{if(ExternalTarget.isX(url)){mCommitted=url;if(mHandoff.kind()==Handoff.Kind.POST)driveHandoff();}});
+            // The fraction crosses from page script, so it is clamped here, at the boundary.
+            mBridge.setReadingOverlapListener(overlap->{
+                if(overlap<=0)return;
+                mReadingOverlap=Math.min(MAX_READING_OVERLAP,overlap);
+                Log.w(TAG,"===> handoff reading overlap="+mReadingOverlap);});
             // Only the handoff that actually took the screen, for the post it was opened for, may
             // be closed by the page. A stale return from an earlier document is ignored.
             mBridge.setReaderReturnListener(path->{if(mHandoff.closedBy(path))endHandoff();});
@@ -298,6 +310,7 @@ public class BrowserActivity extends Activity {
     private void beginHandoff(Handoff.Kind kind, String target, String action) {
         if (mReader == null) return;
         mWritePageLoading = false;
+        if (kind == Handoff.Kind.EXTERNAL) mReadingOverlap = DEFAULT_READING_OVERLAP;
         final int generation = mHandoff.begin(kind, target, action);
         Log.w(TAG, "===> handoff open kind=" + kind + " gen=" + generation + " target=" + target);
         if (kind != Handoff.Kind.EXTERNAL) mReader.browserWaiting();
@@ -421,8 +434,12 @@ public class BrowserActivity extends Activity {
     /** Engine-level scrolling, so the remote reads any page regardless of its own key handling. */
     private void scrollExternal(boolean down) {
         if (mSession == null) return;
+        // A page turn less the three lines the article itself reports, so the reader keeps
+        // their place; an article that never reported falls back to a sensible slice.
+        double page = 1 - mReadingOverlap;
+        Log.w(TAG, "===> handoff reading page=" + page);
         mSession.getPanZoomController().scrollBy(ScreenLength.zero(),
-                ScreenLength.fromVisualViewportHeight(down ? 0.72 : -0.72),
+                ScreenLength.fromVisualViewportHeight(down ? page : -page),
                 PanZoomController.SCROLL_BEHAVIOR_SMOOTH);
     }
 

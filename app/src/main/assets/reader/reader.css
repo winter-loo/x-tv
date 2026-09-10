@@ -41,3 +41,7 @@
 .comment .stats{min-height:0;padding:1vh 0 0;font-size:1.2vw}
 .comment .stats .stat svg{width:1.35vw;height:1.35vw}
 .comment .stats>.stat+.stat{margin-left:1.3vw}
+.show-more{display:inline-block;margin:1vh 0 0;padding:.6vh 1vw;color:#b8d9f1;font-size:1.35vw;border:1px solid #38546a;border-radius:.5vw;cursor:pointer}
+.more-slot:empty{display:none}
+.fetching{margin:2vh 0;color:#a9cae5;font-size:1.4vw}
+

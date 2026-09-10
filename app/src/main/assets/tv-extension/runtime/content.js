@@ -33,6 +33,45 @@
         if (event.persisted && activeAdapter && activeAdapter.init) activeAdapter.init();
     });
 
+    /**
+     * How much of a screen a page turn should keep, as a fraction: three lines of this page's
+     * own text. The native side scrolls the engine by the rest, so an article, a blog post and
+     * a docs page each turn by their own line height rather than a fixed slice of the screen.
+     */
+    const OVERLAP_LINES = 3;
+    /**
+     * Reported once the page has laid out — at document_start there is nothing to measure —
+     * and again when the window changes shape, so the turn follows the text as it reflows.
+     */
+    function reportReadingOverlap() {
+        const overlap = readingOverlap();
+        if (overlap > 0) browser.runtime.sendMessage({event: "reading_overlap", overlap}).catch(() => {});
+    }
+    let overlapTimer = 0;
+    function watchReadingOverlap() {
+        reportReadingOverlap();
+        window.addEventListener("resize", () => {
+            clearTimeout(overlapTimer);
+            overlapTimer = setTimeout(reportReadingOverlap, 250);
+        });
+    }
+    if (document.readyState === "complete") watchReadingOverlap();
+    else window.addEventListener("load", watchReadingOverlap, {once: true});
+
+    function readingOverlap() {
+        const view = window.innerHeight;
+        if (!view) return 0;
+        let line = 0;
+        const middle = document.elementFromPoint(
+            Math.round(window.innerWidth / 2), Math.round(view / 2));
+        for (let node = middle; node && !line; node = node.parentElement) {
+            const measured = parseFloat(getComputedStyle(node).lineHeight);
+            if (isFinite(measured) && measured > 0 && measured < view / 4) line = measured;
+        }
+        if (!line) line = parseFloat(getComputedStyle(document.documentElement).fontSize) * 1.5;
+        return (line * OVERLAP_LINES) / view;
+    }
+
     // Announce readiness to background script
     try {
         browser.runtime.sendMessage({
