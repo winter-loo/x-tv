@@ -7,6 +7,16 @@ var sequence = 0, pending = 'r0', stack = [], homeRefresh = '',
     refreshing = false;
 var homeScene = state, likesScene = null, actionMenu = null, external = null, likeOps = {}, likeQueue = [],
     likeSending = '', verifySequence = 0, writeSequence = 0, pendingWrite = null, writeRevision = 0, readRevision = 0, written = {};
+var seenIds = new Set();
+function markSeen(id) {
+    if (!id || typeof id !== 'string' || !/^\d+$/.test(id)) return;
+    if (!seenIds.has(id)) {
+        seenIds.add(id);
+        if (window.ReaderHost && typeof window.ReaderHost.markSeen === 'function') {
+            window.ReaderHost.markSeen(id);
+        }
+    }
+}
 function esc(v) {
     return String(v == null ? '' : v).replace(/[&<>"']/g, function(c) {
         return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;'}[c];
@@ -519,6 +529,7 @@ function leaveFull() {
 }
 function render() {
     var post = current();
+    if (post && post.id) markSeen(post.id);
     document.body.classList.toggle('reading', !!state.full);
     notice(post && written[post.id] ? written[post.id].message || '' : '');
     var freshness = document.getElementById('freshness'), refresh = document.getElementById('refresh');
@@ -531,7 +542,7 @@ function render() {
         state.pendingHome ? '有 ' + state.pendingHome.fresh + ' 条新帖 · ↑ 刷新' :
         state.cachedAt    ? '上次时间线 ' + new Date(state.cachedAt).toLocaleString() +
             (state.updateFailed ? ' · 更新未完成' : ' · 正在更新') :
-                         '刚刚更新';
+                          '刚刚更新';
     // The two lists sit side by side in the header, the one a left press reaches shown first.
     title.innerHTML = listMode() ?
         '<span class="tab-alt">← ' + esc(listLabel(otherList())) + '</span><span class="tab-now">' +
@@ -541,11 +552,11 @@ function render() {
         listMode() && post ? (state.index + 1) + ' / ' + state.posts.length : '';
     if (!post) {
         stage.innerHTML = '<div class="loading">' +
-            (state.error                ? '加载未完成，按确认重试 · 返回上一层' :
-                 state.empty            ? '还没有喜欢的帖子' :
-                 state.mode === 'home'  ? '正在加载时间线…' :
-                 state.mode === 'likes' ? '正在加载我的喜欢…' :
-                                          '正在加载完整帖子…') +
+            (state.error                 ? '加载未完成，按确认重试 · 返回上一层' :
+                 state.empty             ? '还没有喜欢的帖子' :
+                 state.mode === 'home'   ? '正在加载时间线…' :
+                 state.mode === 'likes'  ? '正在加载我的喜欢…' :
+                                           '正在加载完整帖子…') +
             '</div>';
         help.textContent = listMode() ? '确认 重新加载　 ← ' + listLabel(otherList()) + '　 返回 上一层' :
                                         '确认 重试　 返回 上一层';
@@ -1073,14 +1084,35 @@ function homeUpdated(payload, error) {
 function applyHome() {
     var data = homeScene.pendingHome;
     if (!data) return;
-    homeScene.posts = data.posts;
-    homeScene.cursor = data.cursor;
     homeScene.pendingHome = null;
     homeScene.cachedAt = 0;
     homeScene.updateFailed = false;
-    homeScene.index = 0;
-    homeScene.bodyY = 0;
-    homeScene.region = 'post';
+
+    if (!homeScene.posts.length || !homeScene.interacted) {
+        homeScene.posts = data.posts;
+        homeScene.cursor = data.cursor;
+        homeScene.index = 0;
+        homeScene.bodyY = 0;
+        homeScene.region = 'post';
+    } else {
+        var existingIds = new Set(homeScene.posts.map(function(p) { return p.id; }));
+        var freshPosts = data.posts.filter(function(p) { return !existingIds.has(p.id); });
+        if (freshPosts.length > 0) {
+            homeScene.posts = freshPosts.concat(homeScene.posts);
+            if (homeScene.posts.length > 200) {
+                homeScene.posts = homeScene.posts.slice(0, 200);
+            }
+            if (homeScene.index === 0) {
+                homeScene.bodyY = 0;
+                homeScene.postY = 0;
+            } else {
+                homeScene.index += freshPosts.length;
+            }
+        }
+        if (!homeScene.cursor && data.cursor) {
+            homeScene.cursor = data.cursor;
+        }
+    }
     render();
 }
 
@@ -1162,9 +1194,28 @@ function receive(id, payload, error) {
         var ids = new Set(state.posts.map(function(p) {
             return p.id;
         }));
-        state.posts = state.posts.concat(data.posts.filter(function(p) {
+        var incoming = data.posts.filter(function(p) {
             return !ids.has(p.id);
-        }));
+        });
+        if (incoming.length > 0) {
+            state.posts = state.posts.concat(incoming);
+            if (state.posts.length > 300) {
+                state.posts = state.posts.slice(-300);
+            }
+            state.cursor = data.cursor;
+            state.emptyPagesCount = 0;
+            notice('');
+        } else if (data.cursor && data.cursor !== state.cursor && (state.emptyPagesCount || 0) < 3) {
+            state.emptyPagesCount = (state.emptyPagesCount || 0) + 1;
+            state.cursor = data.cursor;
+            notice('正在跳过重复推文…');
+            request(data.cursor);
+            return;
+        } else {
+            state.emptyPagesCount = 0;
+            state.cursor = data.cursor;
+            notice('已无更多新帖子');
+        }
     } else {
         state.posts = data.posts;
         if (state.mode === 'likes') {
@@ -1339,8 +1390,15 @@ function key(key) {
                 state.mediaIndex = 0;
                 state.region = 'post';
                 render();
-            } else if (key === 'down')
-                more();
+            } else if (key === 'down') {
+                if (paging) {
+                    notice('正在加载下一页…');
+                } else if (state.cursor) {
+                    more();
+                } else {
+                    notice('已到达最后一条帖子');
+                }
+            }
             return;
         }
         if (key === 'right' && post.media.length) {

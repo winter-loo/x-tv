@@ -84,6 +84,23 @@ final class XReadClient {
                 .build());
         return generator.generateKey();
     }
+    private final java.util.LinkedHashSet<String> seenTweetIds = new java.util.LinkedHashSet<>();
+
+    synchronized void recordSeen(String postId) {
+        if (postId != null && postId.matches("[0-9]+")) {
+            seenTweetIds.add(postId);
+            while (seenTweetIds.size() > 100) {
+                java.util.Iterator<String> it = seenTweetIds.iterator();
+                it.next();
+                it.remove();
+            }
+        }
+    }
+
+    synchronized java.util.List<String> getSeenTweetIds() {
+        return new java.util.ArrayList<>(seenTweetIds);
+    }
+
     synchronized boolean available() {
         return session.has("home") && session.has("detail");
     }
@@ -215,6 +232,7 @@ final class XReadClient {
         homeBody = null;
         homeListener = null;
         homePrimed = false;
+        seenTweetIds.clear();
         homeFile.delete();
         generation++;
         session = new JSONObject();
@@ -273,7 +291,7 @@ final class XReadClient {
     private static String operation(URL url) {
         if (!"https".equals(url.getProtocol()) || !"x.com".equals(url.getHost()) || url.getPort() != -1)
             return null;
-        if (!url.getPath().matches("/i/api/graphql/[^/]+/(HomeTimeline|HomeLatestTimeline|TweetDetail)"))
+        if (!url.getPath().matches("/i/api/graphql/[^/]+/(HomeTimeline|TweetDetail)"))
             return null;
         return url.getPath().substring(url.getPath().lastIndexOf('/') + 1);
     }
@@ -303,11 +321,19 @@ final class XReadClient {
                 JSONObject variables = body != null ? body.getJSONObject("variables")
                                                     : new JSONObject(original.getQueryParameter("variables"));
                 if (mode.equals("home")) {
-                    variables.put("count", 5);
+                    variables.put("count", 20);
                     variables.put("includePromotedContent", false);
-                    // A new launch must not inherit another page's impression list.
-                    if (cursor == null || cursor.isEmpty())
+                    java.util.List<String> seen = getSeenTweetIds();
+                    if (!seen.isEmpty()) {
+                        JSONArray arr = new JSONArray();
+                        int start = Math.max(0, seen.size() - 60);
+                        for (int i = start; i < seen.size(); i++) {
+                            arr.put(seen.get(i));
+                        }
+                        variables.put("seenTweetIds", arr);
+                    } else {
                         variables.remove("seenTweetIds");
+                    }
                 } else {
                     if (!postId.matches("[0-9]+"))
                         throw new IllegalArgumentException();

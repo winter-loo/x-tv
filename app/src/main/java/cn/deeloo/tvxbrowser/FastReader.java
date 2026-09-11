@@ -129,6 +129,11 @@ final class FastReader extends FrameLayout {
             });
         }
         @JavascriptInterface
+        public void markSeen(String postId) {
+            if (postId != null && postId.matches("[0-9]+"))
+                client.recordSeen(postId);
+        }
+        @JavascriptInterface
         public void request(String id, String mode, String postId, String cursor) {
             if (!id.matches("r[0-9]+")
                 || (!mode.equals("home") && !mode.equals("detail") && !mode.equals("likes"))
