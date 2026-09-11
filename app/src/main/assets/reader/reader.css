@@ -37,7 +37,10 @@
 .link-card .label{font-size:1.45vw;line-height:1.35}
 .link-card .domain{margin-top:1vh;color:#9eadc2;font-size:1.15vw;line-height:1.2}
 .handle .time{margin-left:.8vw;color:#7d8ea4}
-.detail-post .handle .time{display:block;margin:.4vh 0 0;font-size:1.25vw}
+.detail-post .author-meta{display:flex;align-items:baseline;min-width:0}
+.detail-post .name{margin-right:1.2vw;max-width:20vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.detail-post .handle{margin-top:0;display:inline-flex;align-items:baseline;white-space:nowrap}
+.detail-post .handle .time{display:inline;margin-left:1.2vw;font-size:1.25vw;color:#7d8ea4}
 .comment .stats{min-height:0;padding:1vh 0 0;font-size:1.2vw}
 .comment .stats .stat svg{width:1.35vw;height:1.35vw}
 .comment .stats>.stat+.stat{margin-left:1.3vw}

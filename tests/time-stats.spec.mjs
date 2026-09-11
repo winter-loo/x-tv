@@ -212,3 +212,21 @@ test('times and counts stay out of the remote focus order', async ({page}) => {
     await key(page, 'ok');
     expect(await page.evaluate(() => calls.filter(c => c[0] === 'write'))).toEqual([]);
 });
+
+test('in detail mode the name, user handle and post publication time are on the same line', async ({page}) => {
+    await mount(page);
+    await receive(page, 'r0', payload([post('101')]));
+    await openDetail(page, [post('101'), post('201', {replyTo: '101'})]);
+    const rect = sel => page.evaluate(s => {
+        const r = document.querySelector(s).getBoundingClientRect();
+        return {top: r.top, bottom: r.bottom, left: r.left, right: r.right};
+    }, sel);
+    const name = await rect('.detail-post .name');
+    const handle = await rect('.detail-post .handle');
+    const time = await rect('.detail-post .time');
+    expect(Math.abs(name.top - handle.top)).toBeLessThan(12);
+    expect(Math.abs(handle.top - time.top)).toBeLessThan(12);
+    expect(name.left).toBeLessThan(handle.left);
+    expect(handle.left).toBeLessThan(time.left);
+});
+

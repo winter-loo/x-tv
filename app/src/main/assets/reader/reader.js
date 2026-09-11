@@ -59,7 +59,7 @@ function timeHtml(post, detail) {
 function author(post, detail) {
     return '<div class="author">' +
         (post.author.avatar ? '<img class="avatar" src="' + esc(post.author.avatar) + '" alt="">' : '') +
-        '<div><div class="name">' + esc(post.author.name) + '</div><div class="handle">@' +
+        '<div class="author-meta"><div class="name">' + esc(post.author.name) + '</div><div class="handle">@' +
         esc(post.author.handle) + timeHtml(post, detail) + '</div></div></div>';
 }
 function mediaIndex(post) {
