@@ -578,7 +578,7 @@ function render() {
         help.textContent = state.full ?
             '↑↓ 滚动浏览　 确认 查看媒体　 菜单 更多操作　 返回 退出全屏' :
             ((state.region === 'post' ?
-                '↑↓ 阅读正文　 → 评论　 确认 ' + (readsFull() ? '全屏阅读' : '查看媒体') + '　 菜单 更多操作' :
+                '↑↓ 阅读正文　 ← 返回　 → 评论　 确认 ' + (readsFull() ? '全屏阅读' : '查看媒体') + '　 菜单 更多操作' :
                 '↑↓ 阅读评论　 确认 打开评论　 ← 正文　 菜单 更多操作') +
             '　 返回 上一层');
     }
@@ -1369,8 +1369,12 @@ function key(key) {
     }
     if (key === 'left') {
         if (state.full) return;
-        state.region = 'post';
-        render();
+        if (state.region === 'comments') {
+            state.region = 'post';
+            render();
+            return;
+        }
+        back();
         return;
     }
     if (key === 'right') {

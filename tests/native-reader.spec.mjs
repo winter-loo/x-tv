@@ -82,10 +82,26 @@ test('detail statistics have three SVG icons and stay outside remote focus', asy
     await expect(stats).toContainText('浏览 42');
     await expect(stats.locator('button, [tabindex]')).toHaveCount(0);
     await key(page, 'down');
-    await key(page, 'left');
     await expect(page.locator('.detail-post')).toHaveClass(/focus/);
     await key(page, 'ok');
     expect(await page.evaluate(() => calls.filter(c => c[0] === 'browser'))).toEqual([]);
+});
+
+test('in detail mode left from comments focuses post, and left from post returns to timeline', async ({page}) => {
+    await mount(page);
+    await receive(page, 'r0', payload([tweet('101', 'Post 101'), tweet('102', 'Post 102')]));
+    await key(page, 'ok');
+    await receive(page, 'r1', payload([tweet('101', 'Post 101'), tweet('201', 'Comment 1', '101')]));
+    await expect(page.locator('.detail-post')).toHaveCount(1);
+    await key(page, 'right');
+    await expect(page.locator('.comment.selected')).toHaveCount(1);
+    await key(page, 'left');
+    await expect(page.locator('.detail-post')).toHaveClass(/focus/);
+    await expect(page.locator('.comment.selected')).toHaveCount(0);
+    await key(page, 'left');
+    await expect(page.locator('.detail-post')).toHaveCount(0);
+    await expect(page.locator('#title .tab-now')).toHaveText('X · 时间线');
+    await expect(page.locator('.post .text')).toHaveText('Post 101');
 });
 
 test('post menu opens locally, traps navigation and submits writes without a browser handoff', async ({page}) => {
