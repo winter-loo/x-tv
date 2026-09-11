@@ -63,7 +63,7 @@ const ringExtent = (page, selector) => page.evaluate(sel => {
     return parseFloat(style.outlineWidth) + parseFloat(style.outlineOffset) + spread;
 }, selector);
 
-test('the update line, post count and refresh all sit at the top left', async ({page}) => {
+test('the update line, post count and refresh all sit at the top left on the same line as title', async ({page}) => {
     await mount(page);
     await receive(page, 'r0', payload([post('101'), post('102')]));
     const title = await box(page, '#title');
@@ -74,8 +74,9 @@ test('the update line, post count and refresh all sit at the top left', async ({
         expect(at.left, sel + ' is not on the left').toBeLessThan(half);
     }
     const status = await box(page, '#status');
-    expect(Math.abs(status.left - title.left), 'status is not aligned with the title')
-        .toBeLessThanOrEqual(1);
+    expect(status.left, 'status is to the right of title').toBeGreaterThanOrEqual(title.right - 1);
+    expect(Math.abs(status.top - title.top), 'status and title share the same row')
+        .toBeLessThanOrEqual(15);
 });
 
 test('a long update line neither overlaps the posts nor runs off the screen', async ({page}) => {
