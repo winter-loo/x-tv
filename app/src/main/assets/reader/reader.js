@@ -553,8 +553,8 @@ function render() {
             TvXMedia.prompt(post.media[mediaIndex(post)]) +
                 (post.media.length > 1 ? '　 ←→ 切换媒体' : '　 ← 返回正文') + '　 ↑↓ 切换帖子' :
             state.full ? '↑↓ 滚动浏览　 确认 帖子详情' + (post.media.length ? '　 → 查看媒体' : '') + '　 菜单 更多操作　 返回 退出全屏' :
-                         '↑↓ 切换帖子　 顶部 ↑ 刷新 ← ' + listLabel(otherList()) + '　 确认 ' +
-                (readsFull() ? '全屏阅读' : '帖子详情') + '　 → 查看媒体　 菜单 更多操作';
+                         '↑↓ 切换帖子　 ← ' + listLabel(otherList()) + '　 顶部 ↑ 刷新　 确认 ' +
+                (readsFull() ? '全屏阅读' : '帖子详情') + (post.media.length ? '　 → 查看媒体' : '') + '　 菜单 更多操作';
     } else {
         var comments = state.posts
                            .map(function(comment, i) {
@@ -1338,10 +1338,6 @@ function key(key) {
                 more();
             return;
         }
-        if (key === 'left' && state.index === 0 && state.region === 'post') {
-            switchList();
-            return;
-        }
         if (key === 'right' && post.media.length) {
             if (state.region !== 'media') state.region = 'media';
             else if (post.media.length > 1)
@@ -1350,11 +1346,15 @@ function key(key) {
             return;
         }
         if (key === 'left') {
-            if (state.region === 'media' && post.media.length > 1 && mediaIndex(post) > 0)
-                state.mediaIndex = mediaIndex(post) - 1;
-            else
-                state.region = 'post';
-            render();
+            if (state.region === 'media') {
+                if (post.media.length > 1 && mediaIndex(post) > 0)
+                    state.mediaIndex = mediaIndex(post) - 1;
+                else
+                    state.region = 'post';
+                render();
+                return;
+            }
+            switchList();
             return;
         }
         if (key === 'ok') {

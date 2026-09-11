@@ -100,7 +100,7 @@ test('a second visit to the likes list reuses what was already loaded', async ({
     expect((await calls(page, 'restoreScene')).map(c => c[2])).toEqual(['home', 'likes']);
 });
 
-test('the media pane keeps left, and only the top post switches lists', async ({page}) => {
+test('the media pane keeps left, while posts anywhere in the list switch lists cyclically', async ({page}) => {
     await mount(page);
     await receive(page, 'r0', payload([post('101', {media: true}), post('102')]));
     await key(page, 'right');
@@ -109,9 +109,21 @@ test('the media pane keeps left, and only the top post switches lists', async ({
     await expect(page.locator('.media.focus')).toHaveCount(0);
     expect((await requests(page)).filter(c => c[2] === 'likes')).toHaveLength(0);
     await key(page, 'down');
-    await key(page, 'left');
-    expect((await requests(page)).filter(c => c[2] === 'likes')).toHaveLength(0);
     await expect(page.locator('#position')).toHaveText('2 / 2');
+    await key(page, 'left');
+    const asked = (await requests(page)).filter(c => c[2] === 'likes');
+    expect(asked).toHaveLength(1);
+    await receive(page, asked[0][1], payload([post('501'), post('502')]));
+    await expect(page.locator('#title .tab-now')).toHaveText('我的喜欢');
+    await expect(page.locator('.post .text')).toHaveText('Post 501');
+    await key(page, 'down');
+    await expect(page.locator('#position')).toHaveText('2 / 2');
+    await key(page, 'left');
+    await expect(page.locator('#title .tab-now')).toHaveText('X · 时间线');
+    await expect(page.locator('.post .text')).toHaveText('Post 102');
+    await key(page, 'left');
+    await expect(page.locator('#title .tab-now')).toHaveText('我的喜欢');
+    await expect(page.locator('.post .text')).toHaveText('Post 502');
 });
 
 test('the end of the likes list pages with the cursor it was given', async ({page}) => {
