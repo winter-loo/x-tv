@@ -52,7 +52,6 @@ const calls = (page, name) => page.evaluate(n => calls.filter(c => c[0] === n), 
 const like = page => page.evaluate(() => {
     // One synchronous task: whatever this returns needed no host round trip.
     TvXReader.key('menu');
-    TvXReader.key('down');
     TvXReader.key('ok');
     return {
         stats: document.querySelector('.stats .like').textContent.replace(/\s+/g, ' ').trim(),
@@ -238,7 +237,6 @@ test('the menu acts on the post it was opened for, even if the timeline moves un
     // A fresh timeline lands while the menu is open; the choice was made about post 101.
     await receive(page, 'r0', payload([post('900', {likes: 87})]));
     await page.evaluate(() => {
-        TvXReader.key('down');
         TvXReader.key('ok');
     });
     expect(await calls(page, 'write')).toEqual([['write', 'w1', '101', 'like', true, 'Author']]);
@@ -353,7 +351,6 @@ test('a callback updates an open menu without moving its selection or replacing 
     await like(page);
     await page.evaluate(() => {
         TvXReader.key('menu');
-        TvXReader.key('down');
         window.readingBody = document.querySelector('.body');
     });
     await expect(page.getByRole('button', {name: '取消喜欢'})).toBeFocused();

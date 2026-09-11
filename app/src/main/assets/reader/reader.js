@@ -175,11 +175,16 @@ function updateLikeView(postId) {
         post = actionMenu.post;
         var change = written[postId].like;
         post.liked = change.liked;
-        if (typeof change.likes === 'number') post.likes = change.likes;
-        var button = actionMenu.node.querySelectorAll('button')[1];
-        actionMenu.items[1].label = post.liked ? '取消喜欢' : '喜欢';
-        button.querySelector('.label').textContent = actionMenu.items[1].label;
-        button.classList.toggle('liked', post.liked);
+        var likeIndex = -1;
+        for (var i = 0; i < actionMenu.items.length; i++) {
+            if (actionMenu.items[i].action === 'like') { likeIndex = i; break; }
+        }
+        if (likeIndex >= 0) {
+            var button = actionMenu.node.querySelectorAll('button')[likeIndex];
+            actionMenu.items[likeIndex].label = post.liked ? '取消喜欢' : '喜欢';
+            button.querySelector('.label').textContent = actionMenu.items[likeIndex].label;
+            button.classList.toggle('liked', post.liked);
+        }
         actionMenu.node.querySelector('.action-counts').textContent = actionCounts(post);
     }
 }
@@ -435,8 +440,8 @@ function openActions() {
     saveScroll();
     if (state.mode === 'home') state.interacted = true;
     var items = [
-        {label: '写评论', icon: 'comments', path: post.path, action: 'reply'},
-        {label: post.liked ? '取消喜欢' : '喜欢', icon: 'like', path: post.path, action: 'like'}
+        {label: post.liked ? '取消喜欢' : '喜欢', icon: 'like', path: post.path, action: 'like'},
+        {label: '写评论', icon: 'comments', path: post.path, action: 'reply'}
     ];
     (post.links || []).forEach(function(link) {
         items.push({label: link.title, domain: link.domain, link: link, action: 'external'});
@@ -447,7 +452,7 @@ function openActions() {
         '<h2 id="action-title">帖子操作</h2><div class="action-counts">' + actionCounts(post) + '</div><div class="action-options">' +
         items.map(function(item, i) {
             return '<button type="button" class="' +
-                (item.action === 'external' ? 'external' : i === 1 && post.liked ? 'liked' : '') + '">' +
+                (item.action === 'external' ? 'external' : item.action === 'like' && post.liked ? 'liked' : '') + '">' +
                 (item.icon ? statIcon(item.icon) : linkIcon()) + '<span class="lines"><span class="label">' +
                 esc(item.label) + '</span>' +
                 (item.domain ? '<span class="domain">' + esc(item.domain) + '</span>' : '') +
@@ -574,7 +579,7 @@ function render() {
             (comments ||
              '<div class="handle">' + (state.commentsLoading ? '正在加载评论…' : '暂无已加载评论') +
                  '</div>') +
-            '</div><div class="write-hint">菜单 · 写评论 / 喜欢</div></aside>');
+            '</div><div class="write-hint">菜单 · 喜欢 / 写评论</div></aside>');
         help.textContent = state.full ?
             '↑↓ 滚动浏览　 确认 查看媒体　 菜单 更多操作　 返回 退出全屏' :
             ((state.region === 'post' ?

@@ -113,6 +113,7 @@ test('a comment that was just posted shows its time straight away', async ({page
     await openDetail(page, [post('101'), post('201', {replyTo: '101'})]);
     // Go through the composer so the reader is actually waiting on this reply.
     await key(page, 'menu');
+    await key(page, 'down');
     await key(page, 'ok');
     expect(await page.evaluate(() => calls.filter(c => c[0] === 'write').at(-1)))
         .toEqual(['write', 'w1', '101', 'reply', false, 'Author 101']);

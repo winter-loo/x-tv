@@ -173,7 +173,6 @@ test('a like taken in the likes list shows on the same post in the timeline', as
     const asked = (await requests(page)).filter(c => c[2] === 'likes');
     await receive(page, asked[0][1], payload([post('501', {likes: 4})]));
     await key(page, 'menu');
-    await key(page, 'down');
     await key(page, 'ok');
     await expect(page.locator('.stats .liked')).toContainText('已喜欢 5');
     await key(page, 'left');

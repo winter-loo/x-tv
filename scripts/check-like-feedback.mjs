@@ -55,7 +55,6 @@ const key = async name => {
 };
 async function toggle(expected) {
     await key('menu');
-    await key('down');
     await key('ok');
     const at = await state();
     const confirm = at.presses[at.presses.length - 1];

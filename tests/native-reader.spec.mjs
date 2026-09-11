@@ -114,16 +114,15 @@ test('post menu opens locally, traps navigation and submits writes without a bro
         return !!document.querySelector('.action-dialog');
     })).toBe(true);
     expect(await page.evaluate(() => calls.filter(c => c[0] === 'browser'))).toEqual([]);
-    await expect(page.getByRole('button', {name: '写评论', exact: true})).toBeFocused();
-    await key(page, 'down');
     await expect(page.getByRole('button', {name: '喜欢', exact: true})).toBeFocused();
+    await key(page, 'down');
+    await expect(page.getByRole('button', {name: '写评论', exact: true})).toBeFocused();
     await key(page, 'right');
     await expect(page.locator('#position')).toHaveText('2 / 2');
     await key(page, 'back');
     await expect(page.getByRole('dialog')).toHaveCount(0);
     expect(await page.evaluate(() => calls.filter(c => c[0] === 'browser'))).toEqual([]);
     await key(page, 'menu');
-    await key(page, 'down');
     await key(page, 'ok');
     expect(await page.evaluate(() => calls.filter(c => c[0] === 'browser'))).toEqual([]);
     expect(await page.evaluate(() => calls.filter(c => c[0] === 'write')))
@@ -134,6 +133,7 @@ test('post menu opens locally, traps navigation and submits writes without a bro
     await page.evaluate(() => TvXReader.writeResult('w1', '102', {status:'ok',liked:true,likes:4}));
     await expect(page.locator('.stats .like')).toContainText('已喜欢 4');
     await key(page, 'menu');
+    await key(page, 'down');
     await key(page, 'ok');
     expect(await page.evaluate(() => calls.filter(c => c[0] === 'write').at(-1)))
         .toEqual(['write', 'w2', '102', 'reply', false, 'Author']);
@@ -401,8 +401,8 @@ test('a complete API long note opens immediately while comments load separately'
 test('write result is correlated, deduplicated and updates saved scenes without stealing navigation', async ({page}) => {
     await mount(page);
     await receive(page, 'r0', payload([tweet('101'), tweet('102','Second')]));
-    await key(page,'menu'); await key(page,'down'); await key(page,'ok');
-    await key(page,'menu'); await key(page,'down'); await key(page,'ok');
+    await key(page,'menu'); await key(page,'ok');
+    await key(page,'menu'); await key(page,'ok');
     // Two presses, one request: the second only changed the intent the first is carrying.
     expect(await page.evaluate(() => calls.filter(c => c[0] === 'write').length)).toBe(1);
     await page.evaluate(() => TvXReader.writeResult('wrong','101',{status:'ok',liked:true,likes:99}));
@@ -422,7 +422,7 @@ test('write result is correlated, deduplicated and updates saved scenes without 
 
 test('ambiguous writes never fall back to DOM actions and cancelled drafts do not increment comments', async ({page}) => {
     await mount(page); await receive(page,'r0',payload([tweet('101')]));
-    await key(page,'menu'); await key(page,'down'); await key(page,'ok');
+    await key(page,'menu'); await key(page,'ok');
     await page.evaluate(() => TvXReader.writeResult('w1','101',{status:'unknown'}));
     // Unknown is not failure: the state stands and a read-only check settles it.
     await expect(page.locator('#notice')).toContainText('核对');
@@ -431,10 +431,10 @@ test('ambiguous writes never fall back to DOM actions and cancelled drafts do no
     expect(await page.evaluate(() => calls.filter(c=>c[0]==='browser'))).toEqual([]);
     await page.evaluate(() => TvXReader.verifyResult('v1','101',null,'network'));
     await expect(page.locator('#notice')).toContainText('正在核对');
-    await key(page,'menu'); await key(page,'ok');
+    await key(page,'menu'); await key(page,'down'); await key(page,'ok');
     await page.evaluate(() => TvXReader.writeResult('w2','101',{status:'cancelled'}));
     await expect(page.locator('.stats')).toContainText('评论 2');
-    await key(page,'menu'); await key(page,'ok');
+    await key(page,'menu'); await key(page,'down'); await key(page,'ok');
     await page.evaluate(() => TvXReader.writeResult('w3','101',{status:'ok',replyId:'201'}));
     await expect(page.locator('.stats')).toContainText('评论 3');
 });
@@ -442,9 +442,9 @@ test('ambiguous writes never fall back to DOM actions and cancelled drafts do no
 
 test('an earlier detail response cannot revert a confirmed like or hide the newly posted reply',async({page})=>{
     await mount(page);await receive(page,'r0',payload([tweet('101')]));await key(page,'ok');
-    await key(page,'menu');await key(page,'down');await key(page,'ok');
-    await page.evaluate(()=>TvXReader.writeResult('w1','101',{status:'ok',liked:true,likes:4}));
     await key(page,'menu');await key(page,'ok');
+    await page.evaluate(()=>TvXReader.writeResult('w1','101',{status:'ok',liked:true,likes:4}));
+    await key(page,'menu');await key(page,'down');await key(page,'ok');
     await page.evaluate(reply=>TvXReader.writeResult('w2','101',{status:'ok',replyId:'201',reply}),tweet('201','My new reply','101'));
     await receive(page,'r1',payload([tweet('101'),tweet('202','Earlier comment','101')]));
     // Comments carry their own counts now, so name the post's row rather than any row.
