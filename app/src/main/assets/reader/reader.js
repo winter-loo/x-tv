@@ -140,6 +140,7 @@ function activateAction() {
     var item = actionMenu.items[actionMenu.index], post = actionMenu.post;
     closeActions();
     if (item.action === 'external') { openExternal(item.link); return; }
+    if (item.action === 'tweet_link') { open(item.post); return; }
     if (item.action === 'like') { toggleLike(post); return; }
     if (pendingWrite) { notice('上一项操作正在完成…'); return; }
     var id = 'w' + (++writeSequence);
@@ -444,6 +445,90 @@ function closeExternal() {
 function externalClosed() {
     closeExternal();
 }
+function embeddedPostActions(post) {
+    if (!post) return [];
+    var items = [], seenIds = {};
+    if (post.id) seenIds[post.id] = true;
+
+    // 1. Quoted post from API
+    if (post.quoted && post.quoted.id && !seenIds[post.quoted.id]) {
+        seenIds[post.quoted.id] = true;
+        var q = post.quoted;
+        var qAuthor = q.author || {};
+        var qHandle = qAuthor.handle || '';
+        var qName = qAuthor.name || (qHandle ? '@' + qHandle : 'X 帖子');
+        var qText = q.text ? q.text.replace(/\s+/g, ' ').trim() : '';
+        var label = qName + (qText ? '：' + (qText.length > 40 ? qText.slice(0, 40) + '…' : qText) : ' 的帖子');
+        var path = q.path || ('/' + (qHandle || 'i') + '/status/' + q.id);
+        var domain = 'x.com' + path;
+        items.push({
+            label: label,
+            domain: domain,
+            action: 'tweet_link',
+            post: q
+        });
+    }
+
+    // 2. Extracted from tweetLinks (parsed in data.js from entities.urls)
+    (post.tweetLinks || []).forEach(function(tl) {
+        if (!tl || !tl.id || seenIds[tl.id]) return;
+        seenIds[tl.id] = true;
+        var h = tl.handle || '';
+        items.push({
+            label: h ? '@' + h + ' 的帖子' : 'X 帖子 (' + tl.id + ')',
+            domain: tl.display || ('x.com/' + (h || 'i') + '/status/' + tl.id),
+            action: 'tweet_link',
+            post: {
+                id: tl.id,
+                path: '/' + (h || 'i') + '/status/' + tl.id,
+                author: { name: h ? '@' + h : 'X 帖子', handle: h, avatar: '' },
+                text: '',
+                media: [],
+                links: [],
+                complete: false,
+                replyTo: '',
+                conversation: tl.id,
+                replies: null,
+                likes: null,
+                views: null
+            }
+        });
+    });
+
+    // 3. Fallback: text regex scan for any x.com / twitter.com status URLs
+    if (post.text) {
+        var re = /(?:https?:\/\/)?(?:[a-zA-Z0-9-]+\.)?(?:x\.com|twitter\.com)\/(?:([a-zA-Z0-9_]+)\/status|i\/(?:web\/)?status)\/(\d+)/gi;
+        var m;
+        while ((m = re.exec(post.text)) !== null) {
+            var h = (m[1] && m[1] !== 'i' && m[1] !== 'i/web') ? m[1] : '';
+            var sId = m[2];
+            if (sId && !seenIds[sId]) {
+                seenIds[sId] = true;
+                items.push({
+                    label: h ? '@' + h + ' 的帖子' : 'X 帖子 (' + sId + ')',
+                    domain: 'x.com/' + (h || 'i') + '/status/' + sId,
+                    action: 'tweet_link',
+                    post: {
+                        id: sId,
+                        path: '/' + (h || 'i') + '/status/' + sId,
+                        author: { name: h ? '@' + h : 'X 帖子', handle: h, avatar: '' },
+                        text: '',
+                        media: [],
+                        links: [],
+                        complete: false,
+                        replyTo: '',
+                        conversation: sId,
+                        replies: null,
+                        likes: null,
+                        views: null
+                    }
+                });
+            }
+        }
+    }
+
+    return items;
+}
 function openActions() {
     var post = current();
     if (!post || actionMenu) return;
@@ -453,6 +538,9 @@ function openActions() {
         {label: post.liked ? '取消喜欢' : '喜欢', icon: 'like', path: post.path, action: 'like'},
         {label: '写评论', icon: 'comments', path: post.path, action: 'reply'}
     ];
+    embeddedPostActions(post).forEach(function(item) {
+        items.push(item);
+    });
     (post.links || []).forEach(function(link) {
         items.push({label: link.title, domain: link.domain, link: link, action: 'external'});
     });
@@ -462,7 +550,7 @@ function openActions() {
         '<h2 id="action-title">帖子操作</h2><div class="action-counts">' + actionCounts(post) + '</div><div class="action-options">' +
         items.map(function(item, i) {
             return '<button type="button" class="' +
-                (item.action === 'external' ? 'external' : item.action === 'like' && post.liked ? 'liked' : '') + '">' +
+                (item.action === 'external' ? 'external' : item.action === 'tweet_link' ? 'external tweet-link' : item.action === 'like' && post.liked ? 'liked' : '') + '">' +
                 (item.icon ? statIcon(item.icon) : linkIcon()) + '<span class="lines"><span class="label">' +
                 esc(item.label) + '</span>' +
                 (item.domain ? '<span class="domain">' + esc(item.domain) + '</span>' : '') +
@@ -1489,6 +1577,9 @@ function key(key) {
 }
 document.getElementById('refresh').onclick = function() {
     if (listMode() && !actionMenu && !TvXMedia.isOpen() && !external) refreshList();
+};
+document.getElementById('title').onclick = function() {
+    if (!listMode() && !actionMenu && !TvXMedia.isOpen() && !external) back();
 };
 window.TvXReader = {
     receive: receive,

@@ -96,6 +96,30 @@ function links(t, legacy, note) {
     if (card && card.url) add({url: card.tco, display_url: card.domain}, card);
     return out;
 }
+function tweetLinks(t, legacy, note) {
+    var out = [], seen = {};
+    function add(entry) {
+        if (!entry) return;
+        var target = https(entry.unwound_url || at(entry, 'unwound.url') || entry.expanded_url || entry.url || '');
+        var display = String(entry.display_url || '');
+        var m = (target || display).match(/(?:https?:\/\/)?(?:[a-zA-Z0-9-]+\.)?(?:x\.com|twitter\.com)\/(?:([a-zA-Z0-9_]+)\/status|i\/(?:web\/)?status)\/(\d+)/i);
+        if (!m) return;
+        var handle = (m[1] && m[1] !== 'i' && m[1] !== 'i/web') ? m[1] : '';
+        var statusId = m[2];
+        if (!statusId || seen[statusId]) return;
+        seen[statusId] = true;
+        out.push({
+            id: statusId,
+            handle: handle,
+            url: target || ('https://x.com/' + (handle || 'i') + '/status/' + statusId),
+            display: display || ('x.com/' + (handle || 'i') + '/status/' + statusId)
+        });
+    }
+    (at(note, 'entity_set.urls') || at(legacy, 'entities.urls') || []).forEach(add);
+    var card = cardLink(t);
+    if (card && card.url) add(card);
+    return out;
+}
 function tweet(value) {
     if (!value) return null;
     var t = value.tweet || value;
@@ -165,6 +189,7 @@ function tweet(value) {
         created: legacy.created_at || '',
         media: media,
         links: links(t, legacy, note),
+        tweetLinks: tweetLinks(t, legacy, note),
         quoted: tweet(at(t, 'quoted_status_result.result'))
     };
 }
