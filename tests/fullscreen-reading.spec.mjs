@@ -92,16 +92,26 @@ test('confirm on a timeline post reads it full screen, three quarters wide and c
     expect(await requests(page)).toHaveLength(0);
 });
 
-test('full screen stacks the post above its media instead of beside it', async ({page}) => {
+test('full screen unifies the post and its media into a single scrollable container', async ({page}) => {
     await timeline(page);
     const beside = {post: await box(page, '.post'), media: await box(page, '#stage>.media')};
     expect(beside.media.x).toBeGreaterThan(beside.post.x + beside.post.width - 1);
 
     await key(page, 'ok');
-    const stacked = {post: await box(page, '.post'), media: await box(page, '#stage>.media')};
-    expect(stacked.media.y).toBeGreaterThan(stacked.post.y + stacked.post.height - 1);
-    expect(stacked.post.height).toBeGreaterThan(stacked.media.height);
-    expect(Math.round(stacked.media.x)).toBe(Math.round(stacked.post.x));
+    await expect(page.locator('#stage>.media')).toHaveCount(0);
+    await expect(page.locator('.post .media')).toHaveCount(1);
+
+    const postBox = await box(page, '.post');
+    const mediaBox = await box(page, '.post .media');
+    expect(mediaBox.x).toBeGreaterThanOrEqual(postBox.x);
+
+    const scrollBefore = await page.evaluate(() => (document.querySelector('.post-content') || document.querySelector('.post')).scrollTop);
+    expect(scrollBefore).toBe(0);
+    await key(page, 'down');
+    await expect(page.locator('#guide-canvas')).toHaveCount(1);
+    await page.waitForTimeout(300);
+    const scrollAfter = await page.evaluate(() => (document.querySelector('.post-content') || document.querySelector('.post')).scrollTop);
+    expect(scrollAfter).toBeGreaterThan(0);
 });
 
 test('back leaves reading mode and puts the page back the way it was', async ({page}) => {
@@ -131,7 +141,7 @@ test('a second confirm from reading mode still opens the post detail', async ({p
     expect(asked[0][3]).toBe('101');
 });
 
-test('the detail reads full screen with its comments below the post', async ({page}) => {
+test('the detail reads full screen in a unified container', async ({page}) => {
     await detail(page);
     const beside = {post: await box(page, '.detail-post'), comments: await box(page, '.comments')};
     expect(beside.comments.x).toBeGreaterThan(beside.post.x + beside.post.width - 1);
@@ -139,9 +149,7 @@ test('the detail reads full screen with its comments below the post', async ({pa
     await key(page, 'ok');
     expect(await reading(page)).toBe(true);
     await expect(page.locator('header')).toBeHidden();
-    const stacked = {post: await box(page, '.detail-post'), comments: await box(page, '.comments')};
-    expect(stacked.comments.y).toBeGreaterThan(stacked.post.y + stacked.post.height - 1);
-    expect(stacked.post.height).toBeGreaterThan(stacked.comments.height);
+    await expect(page.locator('.comments')).toBeHidden();
     expect(await box(page, '#stage')).toMatchObject({width: page.viewportSize().width * 0.75});
 });
 
@@ -241,3 +249,65 @@ test('a post grown too long to fit offers reading mode without being reloaded', 
     expect(await reading(page)).toBe(true);
     expect(await requests(page)).toHaveLength(0);
 });
+
+test('a long post in full screen displays an initial idle guide dot at 1/6th from bottom', async ({page}) => {
+    await timeline(page, [post('101', {text: LONG})]);
+    await key(page, 'ok');
+    expect(await reading(page)).toBe(true);
+    await expect(page.locator('#guide-canvas')).toHaveCount(1);
+
+    const checkDot = await page.evaluate(() => {
+        const canvas = document.getElementById('guide-canvas');
+        const post = document.querySelector('.post-content') || document.querySelector('.post');
+        const thresholdRelY = post.clientHeight - Math.round(post.clientHeight / 6);
+        const postNode = post.closest('.post') || post;
+        const cx = postNode.offsetLeft + 30;
+        const headY = postNode.offsetTop + thresholdRelY;
+        const ctx = canvas.getContext('2d');
+        const pixel = ctx.getImageData(cx, headY, 1, 1).data;
+        return { cx, headY, pixel: Array.from(pixel) };
+    });
+    expect(checkDot.pixel[3]).toBeGreaterThan(0);
+});
+
+test('downward guide comet stops at the top of the container where threshold text moved', async ({page}) => {
+    await timeline(page, [post('101', {text: LONG})]);
+    await key(page, 'ok');
+
+    const cometResult = await page.evaluate(() => {
+        const post = document.querySelector('.post-content') || document.querySelector('.post');
+        const step = post.clientHeight - Math.round(post.clientHeight / 6);
+        TvXReader.drawGuideComet(post, 1, 1, false, 0, 0, step);
+        const canvas = document.getElementById('guide-canvas');
+        const ctx = canvas.getContext('2d');
+        const postNode = post.closest('.post') || post;
+        const cx = postNode.offsetLeft + 30;
+        const topY = postNode.offsetTop; // Y_rel = 0
+        const pixel = ctx.getImageData(cx, topY, 1, 1).data;
+        return { cx, topY, pixel: Array.from(pixel) };
+    });
+    expect(cometResult.pixel[3]).toBeGreaterThan(0);
+});
+
+test('stats bar with replies, likes and views stays visible in viewport across scrolling in full screen reading', async ({page}) => {
+    await timeline(page, [post('101', {text: LONG})]);
+    await key(page, 'ok');
+    expect(await reading(page)).toBe(true);
+
+    const statsLocator = page.locator('.post .stats');
+    await expect(statsLocator).toBeVisible();
+    await expect(statsLocator).toBeInViewport();
+
+    // Scroll down to next page of post
+    await key(page, 'down');
+    await page.waitForTimeout(350);
+    const scrollPos = await page.evaluate(() =>
+        (document.querySelector('.post-content') || document.querySelector('.post')).scrollTop
+    );
+    expect(scrollPos).toBeGreaterThan(0);
+
+    // Stats bar must still be visible and in viewport at the bottom of the card!
+    await expect(statsLocator).toBeVisible();
+    await expect(statsLocator).toBeInViewport();
+});
+

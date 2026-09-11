@@ -66,12 +66,14 @@
 #title .tab-alt{color:#7d8ea4;font-size:1.45vw;font-weight:400;margin-right:1.4vw}
 #title .tab-now{color:#e8ebed}
 
-/* Full-screen reading: the header steps aside, the post sits above whatever accompanies it,
-   and the column is three quarters of the screen so a line stays a comfortable length. */
+/* Full-screen reading: header is hidden, post and media share a single scrollable container, stats docked at bottom */
 body.reading header{display:none}
-/* Keeps the same bottom edge as the ordinary stage while clearing the top of the panel:
-   with the header gone the focus ring would otherwise sit on the screen edge. */
-body.reading #stage{height:84vh;width:75vw;margin:4vh auto 0;flex-direction:column}
-body.reading .post,body.reading .detail-post,body.reading #stage>.post:only-child{flex:2 1 0;min-height:0}
-body.reading #stage>.media,body.reading #stage>.comments{flex:1 1 0;min-height:0;margin:2vh 0 0}
-body.reading .comments{border-left:0;border-top:1px solid #253447;padding-left:0;padding-top:2vh}
+body.reading #stage{height:84vh;width:75vw;margin:4vh auto 0;display:flex;flex-direction:column;overflow:hidden}
+body.reading .post{flex:1 1 0;width:100%;height:100%;min-height:0;display:flex;flex-direction:column;overflow:hidden;padding:0;border-radius:.7vw}
+body.reading .post-content{flex:1 1 0;min-height:0;overflow-y:auto;overflow-x:hidden;scroll-behavior:auto;padding:2.5vh 2.2vw 2vh;scrollbar-width:none}
+body.reading .post-content::-webkit-scrollbar{display:none}
+body.reading .post-content .body{overflow:visible;flex:none;padding-right:0}
+body.reading .post-content .media{flex:none;width:100%;min-height:25vh;max-height:52vh;margin:2.5vh 0;border-radius:.8vw;background:#0d121b;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+body.reading .post-content .media img{max-width:100%;max-height:52vh;object-fit:contain}
+body.reading .post .stats{flex:none;min-height:6vh;padding:1.2vh 2.2vw 1.2vh;display:flex;align-items:center;border-top:1px solid rgba(87,158,210,.16);background:rgba(9,13,20,.98);z-index:5}
+body.reading .comments{display:none}

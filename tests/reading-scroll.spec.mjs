@@ -59,6 +59,7 @@ const body = page => page.evaluate(() => {
 });
 /** Waits for the reader's own animation to come to rest. */
 async function settle(page) {
+    await page.waitForTimeout(60);
     let last = -1;
     for (let i = 0; i < 40; i++) {
         const at = (await body(page)).top;
@@ -76,7 +77,7 @@ async function openLongDetail(page) {
     await expect(page.locator('.detail-post')).toHaveCount(1);
 }
 
-test('a page down keeps about three lines of the previous screen', async ({page}) => {
+test('a page down keeps one sixth of the container height as overlap', async ({page}) => {
     await openLongDetail(page);
     const before = await body(page);
     expect(before.full, 'the fixture is not long enough to page').toBeGreaterThan(before.view * 2);
@@ -84,8 +85,7 @@ test('a page down keeps about three lines of the previous screen', async ({page}
     const after = await settle(page);
     const overlap = before.view - after;
     expect(overlap, 'the page moved without leaving any overlap').toBeGreaterThan(0);
-    expect(overlap / before.line, 'the overlap is not about three lines').toBeGreaterThan(2.5);
-    expect(overlap / before.line).toBeLessThan(4);
+    expect(overlap).toBeCloseTo(before.view / 6, 0);
 });
 
 test('paging up mirrors the overlap it left going down', async ({page}) => {
@@ -104,12 +104,12 @@ test('paging up mirrors the overlap it left going down', async ({page}) => {
         .toBeLessThanOrEqual(2);
 });
 
-test('the step is measured, not a fixed fraction of the screen', async ({page}) => {
+test('the step is five sixths of the container height', async ({page}) => {
     await openLongDetail(page);
     await key(page, 'down');
     const step = await settle(page);
-    const {view, line} = await body(page);
-    expect(step, 'the step ignored the line height').toBeCloseTo(view - line * 3, 0);
+    const {view} = await body(page);
+    expect(step).toBeCloseTo(view * 5 / 6, 0);
 });
 
 test('scrolling clamps at both ends of a short and a long body', async ({page}) => {
@@ -141,7 +141,7 @@ test('holding the key does not pile animations up behind the reader', async ({pa
         TvXReader.key('down');
     });
     const at = await settle(page);
-    const expected = (view - line * 3) * 3;
+    const expected = Math.round(view * 5 / 6) * 3;
     expect(Math.abs(at - expected), `chained to ${at}, expected about ${expected}`)
         .toBeLessThanOrEqual(3);
 });

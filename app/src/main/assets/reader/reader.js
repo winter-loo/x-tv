@@ -487,21 +487,29 @@ function bindLinkCards(post) {
     })(i);
 }
 function postHtml(post, detail) {
-    return '<section class="post ' + (detail ? 'detail-post ' : '') +
-        (state.region === 'post' ? 'focus' : '') + '">' +
-        (post.repostedBy ? '<div class="repost">' + esc(post.repostedBy) + ' 转帖</div>' : '') +
+    var inFull = !!state.full;
+    var showMedia = detail || inFull;
+    var inner = (post.repostedBy ? '<div class="repost">' + esc(post.repostedBy) + ' 转帖</div>' : '') +
         author(post, detail) + '<div class="body">' + text(post) + fetching(post, detail) +
-        linkCards(post) + (detail ? media(post) : '') + '</div>' +
-        (detail ? '' : '<div class="more-slot"></div>') + stats(post) + '</section>';
+        linkCards(post) + (showMedia ? media(post) : '') + '</div>' +
+        (detail || inFull ? '' : '<div class="more-slot"></div>');
+    if (inFull) {
+        inner = '<div class="post-content">' + inner + '</div>';
+    }
+    return '<section class="post ' + (detail ? 'detail-post ' : '') +
+        (state.region === 'post' || inFull ? 'focus' : '') + '">' +
+        inner + stats(post) + '</section>';
 }
 /** Reading mode is a property of the scene, so leaving and coming back finds it as it was. */
 function enterFull() {
     state.full = true;
+    state.postY = 0;
     render();
 }
 function leaveFull() {
     saveScroll();
     state.full = false;
+    clearGuide();
     render();
 }
 function render() {
@@ -536,14 +544,15 @@ function render() {
             '</div>';
         help.textContent = listMode() ? '确认 重新加载　 ← ' + listLabel(otherList()) + '　 返回 上一层' :
                                         '确认 重试　 返回 上一层';
+        clearGuide();
         return;
     }
     if (listMode()) {
-        stage.innerHTML = postHtml(post, false) + media(post);
+        stage.innerHTML = postHtml(post, false) + (state.full ? '' : media(post));
         help.textContent = state.region === 'media' ?
             TvXMedia.prompt(post.media[mediaIndex(post)]) +
                 (post.media.length > 1 ? '　 ←→ 切换媒体' : '　 ← 返回正文') + '　 ↑↓ 切换帖子' :
-            state.full ? '↑↓ 切换帖子　 确认 帖子详情　 → 查看媒体　 菜单 更多操作　 返回 退出全屏' :
+            state.full ? '↑↓ 滚动浏览　 确认 帖子详情' + (post.media.length ? '　 → 查看媒体' : '') + '　 菜单 更多操作　 返回 退出全屏' :
                          '↑↓ 切换帖子　 顶部 ↑ 刷新 ← ' + listLabel(otherList()) + '　 确认 ' +
                 (readsFull() ? '全屏阅读' : '帖子详情') + '　 → 查看媒体　 菜单 更多操作';
     } else {
@@ -560,38 +569,227 @@ function render() {
                                    commentMore(comment, i) + stats(comment) + '</div>';
                            })
                            .join('');
-        stage.innerHTML = postHtml(post, true) + '<aside class="comments"><h2>' + countLabel('评论', post.replies) +
+        stage.innerHTML = postHtml(post, true) + (state.full ? '' : '<aside class="comments"><h2>' + countLabel('评论', post.replies) +
             '</h2><div class="comment-list">' +
             (comments ||
              '<div class="handle">' + (state.commentsLoading ? '正在加载评论…' : '暂无已加载评论') +
                  '</div>') +
-            '</div><div class="write-hint">菜单 · 写评论 / 喜欢</div></aside>';
-        help.textContent = (state.region === 'post' ?
+            '</div><div class="write-hint">菜单 · 写评论 / 喜欢</div></aside>');
+        help.textContent = state.full ?
+            '↑↓ 滚动浏览　 确认 查看媒体　 菜单 更多操作　 返回 退出全屏' :
+            ((state.region === 'post' ?
                 '↑↓ 阅读正文　 → 评论　 确认 ' + (readsFull() ? '全屏阅读' : '查看媒体') + '　 菜单 更多操作' :
                 '↑↓ 阅读评论　 确认 打开评论　 ← 正文　 菜单 更多操作') +
-            (state.full ? '　 返回 退出全屏' : '　 返回 上一层');
+            '　 返回 上一层');
     }
     bindLinkCards(post);
     bindCommentMore();
     bindMediaPane(post);
     stopScrolling();
-    var body = stage.querySelector('.body');
-    if (body) body.scrollTop = state.bodyY || 0;
-    markTruncated(post, body);
+    if (state.full) {
+        var postNode = stage.querySelector('.post-content') || stage.querySelector('.post');
+        if (postNode) postNode.scrollTop = state.postY || 0;
+    } else {
+        var body = stage.querySelector('.body');
+        if (body) body.scrollTop = state.bodyY || 0;
+        markTruncated(post, body);
+    }
     var list = stage.querySelector('.comment-list');
     if (list) list.scrollTop = state.commentsY || 0;
+    drawIdleGuide();
+    requestAnimationFrame(function() {
+        drawIdleGuide();
+    });
 }
 /**
  * A page is what fits on screen less three lines, so the reader keeps their place across the
  * turn. Measured from the pane, never a fixed fraction, so a font or window change follows.
  */
-var OVERLAP_LINES = 3;
+var OVERLAP_FRACTION = 1 / 6;
 function pageStep(node) {
-    var style = getComputedStyle(node), line = parseFloat(style.lineHeight);
-    if (!isFinite(line) || line <= 0) line = parseFloat(style.fontSize) * 1.4;
-    var overlap = Math.min(node.clientHeight / 2, line * OVERLAP_LINES);
-    return Math.max(line, node.clientHeight - overlap);
+    if (!node) return 1;
+    var overlap = Math.round(node.clientHeight * OVERLAP_FRACTION);
+    return Math.max(1, node.clientHeight - overlap);
 }
+var guideCanvas = null;
+function ensureGuideCanvas() {
+    if (guideCanvas && guideCanvas.parentNode) return guideCanvas;
+    guideCanvas = document.createElement('canvas');
+    guideCanvas.id = 'guide-canvas';
+    guideCanvas.style.position = 'absolute';
+    guideCanvas.style.top = '0';
+    guideCanvas.style.left = '-30px';
+    guideCanvas.style.width = 'calc(100% + 60px)';
+    guideCanvas.style.height = '100%';
+    guideCanvas.style.pointerEvents = 'none';
+    guideCanvas.style.zIndex = '15';
+    stage.appendChild(guideCanvas);
+    return guideCanvas;
+}
+function clearGuide() {
+    if (!guideCanvas) return;
+    var ctx = guideCanvas.getContext('2d');
+    if (ctx) ctx.clearRect(0, 0, guideCanvas.width, guideCanvas.height);
+}
+function activeScrollNode() {
+    if (!stage) return null;
+    if (state.full) return stage.querySelector('.post-content') || stage.querySelector('.post');
+    if (!listMode() && state.region === 'post') return stage.querySelector('.body');
+    return null;
+}
+function drawIdleGuide(node) {
+    if (!node) node = activeScrollNode();
+    if (!node) { clearGuide(); return; }
+    if (scrolling) return;
+    var limit = Math.max(0, node.scrollHeight - node.clientHeight);
+    if (limit <= 4 || node.scrollTop >= limit - 2) {
+        clearGuide();
+        return;
+    }
+    var canvas = ensureGuideCanvas();
+    if (!canvas) return;
+    var targetW = stage.clientWidth + 60, targetH = stage.clientHeight;
+    if (canvas.width !== targetW || canvas.height !== targetH) {
+        canvas.width = targetW;
+        canvas.height = targetH;
+    }
+    var ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    var H = node.clientHeight;
+    var postNode = node.closest('.post') || node;
+    var cx = (postNode.offsetLeft || 0) + 30;
+    var topOffset = postNode.offsetTop || 0;
+    var thresholdRelY = pageStep(node); // H - Math.round(H * OVERLAP_FRACTION)
+    var headY = topOffset + thresholdRelY;
+
+    var r = 2.5;
+    ctx.save();
+
+    // 1. Subtle soft halo using border color #579ed2
+    ctx.beginPath();
+    ctx.arc(cx, headY, r + 1.5, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(87, 158, 210, 0.25)';
+    ctx.shadowColor = '#579ed2';
+    ctx.shadowBlur = 4;
+    ctx.fill();
+
+    // 2. Ball body using exact border color #579ed2 (no white center)
+    ctx.beginPath();
+    ctx.arc(cx, headY, r, 0, Math.PI * 2);
+    ctx.fillStyle = '#579ed2';
+    ctx.shadowColor = '#579ed2';
+    ctx.shadowBlur = 2;
+    ctx.fill();
+
+    ctx.restore();
+}
+function drawGuideComet(node, direction, progress, isFading, fadeProgress, from, to) {
+    var canvas = ensureGuideCanvas();
+    if (!canvas) return;
+    var targetW = stage.clientWidth + 60, targetH = stage.clientHeight;
+    if (canvas.width !== targetW || canvas.height !== targetH) {
+        canvas.width = targetW;
+        canvas.height = targetH;
+    }
+    var ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    var H = node.clientHeight;
+    var postNode = node.closest('.post') || node;
+    var cx = (postNode.offsetLeft || 0) + 30;
+    var topOffset = postNode.offsetTop || 0;
+
+    var step = pageStep(node);
+    var startRelY, endRelY;
+    if (direction > 0) {
+        // Downward reading scroll: starts at reading threshold (1/6 from bottom: H - overlap = step).
+        startRelY = step;
+        var delta = (from !== undefined && to !== undefined) ? (to - from) : step;
+        // The text originally at startRelY moves up by delta: if delta == step, endRelY = 0 (top of container).
+        endRelY = Math.max(0, startRelY - delta);
+    } else {
+        // Upward return scroll: starts at top of container (0).
+        startRelY = 0;
+        var delta = (from !== undefined && to !== undefined) ? (from - to) : step;
+        // The text originally at 0 moves down by delta: if delta == step, endRelY = step.
+        endRelY = Math.min(H, startRelY + delta);
+    }
+
+    var eased = 1 - Math.pow(1 - progress, 3);
+    var currentRelY = startRelY + (endRelY - startRelY) * eased;
+    var headY = topOffset + currentRelY;
+
+    var travelDist = Math.abs(endRelY - startRelY);
+    var maxTail = Math.min(travelDist * 0.45, (H * 4 / 6) * 0.38);
+    var tailLength = 0;
+    if (!isFading && travelDist > 0) {
+        if (progress < 0.25) {
+            tailLength = maxTail * (progress / 0.25);
+        } else if (progress < 0.65) {
+            tailLength = maxTail;
+        } else {
+            var retract = (progress - 0.65) / 0.35;
+            tailLength = maxTail * (1 - Math.pow(retract, 2));
+        }
+    }
+
+    var alpha = isFading ? Math.max(0, 1 - Math.pow(fadeProgress, 1.8)) : 1;
+    if (alpha <= 0) return;
+
+    var r = 4; // Ball radius: 4px (diameter 8px centered on border)
+    var isUp = (endRelY < startRelY);
+    var tailY = isUp ? (headY + tailLength) : (headY - tailLength);
+
+    ctx.save();
+
+    // 1. Tapering gradient tail: wide at head, shrinks smoothly to a point at tail end
+    if (tailLength > 1) {
+        ctx.beginPath();
+        if (isUp) {
+            ctx.arc(cx, headY, r, Math.PI, 0, false);
+            ctx.quadraticCurveTo(cx + r * 0.85, headY + tailLength * 0.45, cx, tailY);
+            ctx.quadraticCurveTo(cx - r * 0.85, headY + tailLength * 0.45, cx - r, headY);
+        } else {
+            ctx.arc(cx, headY, r, 0, Math.PI, false);
+            ctx.quadraticCurveTo(cx - r * 0.85, headY - tailLength * 0.45, cx, tailY);
+            ctx.quadraticCurveTo(cx + r * 0.85, headY - tailLength * 0.45, cx + r, headY);
+        }
+        ctx.closePath();
+
+        var grad = ctx.createLinearGradient(cx, headY, cx, tailY);
+        grad.addColorStop(0, 'rgba(163, 217, 255, ' + (0.95 * alpha) + ')');
+        grad.addColorStop(0.2, 'rgba(105, 201, 250, ' + (0.75 * alpha) + ')');
+        grad.addColorStop(0.6, 'rgba(87, 158, 210, ' + (0.35 * alpha) + ')');
+        grad.addColorStop(1, 'rgba(87, 158, 210, 0)');
+
+        ctx.fillStyle = grad;
+        ctx.shadowColor = '#69c9fa';
+        ctx.shadowBlur = 6;
+        ctx.fill();
+    }
+
+    // 2. Ball outer glow
+    ctx.beginPath();
+    ctx.arc(cx, headY, r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(105, 201, 250, ' + (0.9 * alpha) + ')';
+    ctx.shadowColor = '#69c9fa';
+    ctx.shadowBlur = 10;
+    ctx.fill();
+
+    // 3. Ball bright white core
+    ctx.beginPath();
+    ctx.arc(cx, headY, r * 0.65, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255, 255, 255, ' + (1.0 * alpha) + ')';
+    ctx.shadowColor = '#ffffff';
+    ctx.shadowBlur = 4;
+    ctx.fill();
+
+    ctx.restore();
+}
+
+var SCROLL_DURATION = 280;
+var GUIDE_FADE_DURATION = 320;
 var scrolling = null;
 /** One animation at a time; a further press chains from where this one is heading. */
 function pageScroll(node, direction) {
@@ -601,22 +799,39 @@ function pageScroll(node, direction) {
     var from = scrolling && scrolling.node === node ? scrolling.to : node.scrollTop;
     var to = Math.max(0, Math.min(limit, from + direction * pageStep(node)));
     if (scrolling) cancelAnimationFrame(scrolling.frame);
-    if (to === node.scrollTop) { scrolling = null; return; }
-    scrolling = {node: node, to: to, from: node.scrollTop, started: 0, frame: 0};
+    if (to === node.scrollTop) { stopScrolling(); return; }
+    scrolling = {node: node, direction: direction, to: to, from: node.scrollTop, started: 0, frame: 0};
     scrolling.frame = requestAnimationFrame(function step(now) {
         if (!scrolling || scrolling.node !== node) return;
         if (!scrolling.started) scrolling.started = now;
-        var progress = Math.min(1, (now - scrolling.started) / 200);
-        var eased = 1 - Math.pow(1 - progress, 3);
+        var elapsed = now - scrolling.started;
+        var scrollProgress = Math.min(1, elapsed / SCROLL_DURATION);
+        var eased = 1 - Math.pow(1 - scrollProgress, 3);
         node.scrollTop = scrolling.from + (scrolling.to - scrolling.from) * eased;
-        if (progress < 1) scrolling.frame = requestAnimationFrame(step);
-        else scrolling = null;
+
+        if (scrollProgress < 1) {
+            drawGuideComet(node, scrolling.direction, scrollProgress, false, 0, scrolling.from, scrolling.to);
+            scrolling.frame = requestAnimationFrame(step);
+        } else {
+            node.scrollTop = scrolling.to;
+            var fadeElapsed = elapsed - SCROLL_DURATION;
+            var fadeProgress = Math.min(1, fadeElapsed / GUIDE_FADE_DURATION);
+            drawGuideComet(node, scrolling.direction, 1, true, fadeProgress, scrolling.from, scrolling.to);
+            if (fadeProgress < 1) {
+                scrolling.frame = requestAnimationFrame(step);
+            } else {
+                scrolling = null;
+                drawIdleGuide(node);
+            }
+        }
     });
 }
 function stopScrolling() {
     if (!scrolling) return;
     cancelAnimationFrame(scrolling.frame);
+    var node = scrolling.node;
     scrolling = null;
+    drawIdleGuide(node);
 }
 /** Where a pane is heading, so a re-render lands on the intended spot, not a mid-tween one. */
 function pendingScroll(node) {
@@ -675,6 +890,7 @@ function markTruncated(post, body) {
     };
 }
 function saveScroll() {
+    state.postY = pendingScroll(stage.querySelector('.post-content') || stage.querySelector('.post'));
     state.bodyY = pendingScroll(stage.querySelector('.body'));
     state.commentsY = pendingScroll(stage.querySelector('.comment-list'));
 }
@@ -985,6 +1201,7 @@ function more() {
     }
 }
 function showMedia() {
+    saveScroll();
     var post = current();
     if (!post || !post.media.length) return;
     TvXMedia.open(post.media, mediaIndex(post), {notice: notice});
@@ -1086,6 +1303,23 @@ function key(key) {
     saveScroll();
     if (listMode()) {
         state.interacted = true;
+        if (state.full) {
+            if (key === 'up' || key === 'down') {
+                var delta = key === 'down' ? 1 : -1;
+                pageScroll(activeScrollNode(), delta);
+                return;
+            }
+            if (key === 'right' && post.media.length) {
+                showMedia();
+                return;
+            }
+            if (key === 'ok') {
+                open(post);
+                return;
+            }
+            return;
+        }
+
         if (key === 'up' && state.index === 0 && state.region === 'post') {
             refreshList();
             return;
@@ -1096,6 +1330,7 @@ function key(key) {
             if (next >= 0 && next < state.posts.length) {
                 state.index = next;
                 state.bodyY = 0;
+                state.postY = 0;
                 state.mediaIndex = 0;
                 state.region = 'post';
                 render();
@@ -1133,16 +1368,25 @@ function key(key) {
         return;
     }
     if (key === 'left') {
+        if (state.full) return;
         state.region = 'post';
         render();
         return;
     }
     if (key === 'right') {
+        if (state.full) {
+            if (post.media.length) showMedia();
+            return;
+        }
         if (state.posts.length) state.region = 'comments';
         render();
         return;
     }
     if (key === 'ok') {
+        if (state.full) {
+            showMedia();
+            return;
+        }
         if (state.region === 'comments')
             open(state.posts[state.comment]);
         else if (readsFull())
@@ -1153,8 +1397,8 @@ function key(key) {
     }
     if (key === 'up' || key === 'down') {
         var delta = key === 'down' ? 1 : -1;
-        if (state.region === 'post') {
-            pageScroll(stage.querySelector('.body'), delta);
+        if (state.full || state.region === 'post') {
+            pageScroll(activeScrollNode(), delta);
             return;
         }
         var selected = stage.querySelector('.comment.selected'), list = stage.querySelector('.comment-list');
@@ -1189,7 +1433,10 @@ window.TvXReader = {
     verifyResult: verifyResult,
     externalClosed: externalClosed,
     homeUpdated: homeUpdated,
-    writeResult: writeResult
+    writeResult: writeResult,
+    drawGuideComet: drawGuideComet,
+    drawIdleGuide: drawIdleGuide,
+    clearGuide: clearGuide
 };
 render();
 ReaderHost.ready();
