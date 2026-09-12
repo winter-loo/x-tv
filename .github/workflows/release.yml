@@ -1,0 +1,63 @@
+name: Build trial APK
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: trial-release
+  cancel-in-progress: false
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci
+      - run: npx playwright install --with-deps firefox
+        env:
+          TMPDIR: /var/tmp
+      - run: npm test
+      - name: Install Android SDK
+        run: '$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-37.1" "build-tools;36.0.0"'
+        env:
+          JAVA_TOOL_OPTIONS: -Djava.io.tmpdir=/var/tmp
+      - name: Build and verify signed APK
+        env:
+          TVX_KEYSTORE_BASE64: ${{ secrets.TVX_KEYSTORE_BASE64 }}
+          TVX_KEYSTORE_PATH: ${{ runner.temp }}/x-tv-release.p12
+          TVX_KEYSTORE_PASSWORD: ${{ secrets.TVX_KEYSTORE_PASSWORD }}
+          TVX_KEY_ALIAS: ${{ secrets.TVX_KEY_ALIAS }}
+          TVX_KEY_PASSWORD: ${{ secrets.TVX_KEY_PASSWORD }}
+        shell: bash
+        run: |
+          umask 077
+          trap 'rm -f "$TVX_KEYSTORE_PATH"' EXIT
+          python3 - <<'PY'
+          import base64, os
+          from pathlib import Path
+          Path(os.environ['TVX_KEYSTORE_PATH']).write_bytes(base64.b64decode(os.environ['TVX_KEYSTORE_BASE64'], validate=True))
+          PY
+          python3 scripts/package-release.py
+      - name: Retain verified distribution
+        uses: actions/upload-artifact@v4
+        with:
+          name: x-tv-trial
+          path: dist/*/*
+          if-no-files-found: error
+      - name: Publish trial release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(sed -n 's/^versionName=//p' version.properties)
+          gh release create "v$version" "dist/$version/"* --target "$GITHUB_SHA" --title "X TV $version（试用版）" --notes-file docs/install.md --prerelease

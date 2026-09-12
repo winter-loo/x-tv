@@ -78,3 +78,11 @@ Android 升级要求 applicationId 和签名一致。当前投影仪的开发 AP
 最终安装包验收通过后，再创建对应 tag 和 Release，附 CHANGELOG 内容、设备限制、APK 和校验文件。未授权自动发布。
 
 参考：[Android 应用签名](https://developer.android.com/studio/publish/app-signing)、[构建变体](https://developer.android.com/build/build-variants)、[发布准备](https://developer.android.com/studio/publish/preparing)。
+
+## GitHub 远端试用发布
+
+`.github/workflows/release.yml` 通过 Actions 的 **Build trial APK → Run workflow** 手动运行，只允许 main 分支。它运行前端回归、Java 测试与 Release Lint，构建长期签名 APK、核验证书指纹，然后创建 `v<versionName>` 的 GitHub 预发布版本，附 APK、安装说明、校验文件和构建信息。
+
+仓库 Actions Secrets 使用 `TVX_KEYSTORE_BASE64`、`TVX_KEYSTORE_PASSWORD`、`TVX_KEY_ALIAS`、`TVX_KEY_PASSWORD`；密钥只在构建步骤临时恢复并于退出时删除。PR 检查不读取这些签名凭据。已有同名 Release 不覆盖，后续分发先递增版本号。
+
+普通 push / PR 的 Verify 工作流仍只做检查。下载和实机验收必须使用远端 Release 附件，核对 SHA256SUMS 以及 build-info.json 的 commit 后再安装。
