@@ -29,17 +29,21 @@ import java.nio.charset.StandardCharsets;
 public class BrowserActivity extends Activity {
     private static final String TAG = "BrowserActivity";
     public static final String X_HOME_URL = "https://x.com/home";
+    public static final String X_LOGIN_URL = "https://x.com/i/flow/login";
     private static final long HANDOFF_TIMEOUT_MS = 25000;
 
     private View mLoading;
+    private View mStartupLoginPreview;
+    private TextView mLoadingText;
     private boolean mWaitingForPresentation = true;
     private boolean mUsingTvAdapter = true;
     private boolean mLoadRetryAvailable = false;
     private final Handler mUiHandler = new Handler(Looper.getMainLooper());
     private final Runnable mLoadTimeout = () -> {
         mLoadRetryAvailable = true;
-        if (mWaitingForPresentation) ((TextView) findViewById(R.id.loading_text)).setText("加载较慢，请检查网络\n按确认重试，返回退出");
+        if (mWaitingForPresentation) showLoadingMessage("加载较慢，请检查网络\n按确认重试，返回退出");
     };
+    private LoginAssist mLoginAssist;
     private GeckoView mGeckoView;
     private GeckoSession mSession;
     private NavigationBridge mBridge;
@@ -72,8 +76,11 @@ public class BrowserActivity extends Activity {
 
         setContentView(R.layout.activity_browser);
         mLoading = findViewById(R.id.loading_overlay);
+        mStartupLoginPreview = findViewById(R.id.startup_login_preview);
+        mLoadingText = findViewById(R.id.loading_text);
 
         mReadClient=TvXApplication.takeReadClient();
+        showStartupCover(!mReadClient.available());
         mMetadata = new XMetadata(new XMetadata.Page() {
             public boolean ensureXPage() { return ensureWritePage(); }
             public void prepare(String operation, java.util.function.Consumer<org.json.JSONObject> callback) {
@@ -88,7 +95,22 @@ public class BrowserActivity extends Activity {
             mMetadata.cancel();
             closeHandoff();initializeBrowser();loadXHome();
         };
-        if(mReadClient.available() && (!BuildConfig.DEBUG || (!getIntent().hasExtra("url") && !getIntent().hasExtra("action")))) {
+        mReadClient.sessionReady = () -> runOnUiThread(this::showReaderWhenReady);
+        // Let Android draw the local login cover before GeckoRuntime performs
+        // its cold process startup on the UI thread.
+        if (!showReaderWhenReady()) mLoading.postOnAnimation(this::initializeBrowser);
+    }
+
+    /** Login can complete after Activity creation; a home session is sufficient to start reading. */
+    private boolean showReaderWhenReady() {
+        if (isFinishing() || isDestroyed() || !mReadClient.available()
+            || mPopupSession != null
+            || (BuildConfig.DEBUG && (getIntent().hasExtra("url") || getIntent().hasExtra("action")))) return false;
+        if (mHandoff.active()) {
+            if (mHandoff.kind() != Handoff.Kind.LOGIN) return false;
+            endHandoff();
+        }
+        if (mReader == null) {
             mReader=new FastReader(this,mReadClient,mWriteClient,new FastReader.Listener(){
                 public void rendered(){if(!mPrewarmScheduled){mPrewarmScheduled=true;mUiHandler.postDelayed(BrowserActivity.this::initializeBrowser,1500);}}
                 public void openBrowser(String path,String action){
@@ -101,7 +123,11 @@ public class BrowserActivity extends Activity {
                 public void exit(){finish();}
             },mLaunchStarted);
             ((android.view.ViewGroup)mLoading.getParent()).addView(mReader,new android.view.ViewGroup.LayoutParams(-1,-1));
-        } else initializeBrowser();
+        }
+        mLoading.setVisibility(View.GONE);
+        if (mGeckoView != null) mGeckoView.setAlpha(0f);
+        mReader.requestFocus();
+        return true;
     }
 
     private void initializeBrowser() {
@@ -121,6 +147,8 @@ public class BrowserActivity extends Activity {
             mSession = new GeckoSession(settings);
 
             mBridge = new NavigationBridge(TvXApplication.getRuntime(), mSession);
+            mBridge.setLoginAssistListener(() -> runOnUiThread(this::startLoginAssist));
+            mBridge.setAuthenticatedListener(() -> runOnUiThread(() -> { if(mLoginAssist!=null)mLoginAssist.close(); showReaderWhenReady(); }));
             mBridge.setPresentationListener(() -> runOnUiThread(this::showPresentation));
             // The page may ask to close only what it actually owns; a background X document
             // firing this while the reader is in front must not exit the app.
@@ -191,7 +219,7 @@ public class BrowserActivity extends Activity {
                     mGeckoView.setAlpha(0f);
                     mLoading.setVisibility(mReader != null && !mHandoff.showing() ? View.GONE : View.VISIBLE);
                     mGeckoView.coverUntilFirstPaint(0xff090d14);
-                    ((TextView) findViewById(R.id.loading_text)).setText("正在加载 X…");
+                    mLoadingText.setText("正在加载 X…");
                     mUiHandler.removeCallbacks(mLoadTimeout);
                     mUiHandler.postDelayed(mLoadTimeout, 25000);
                     AppLog.i(TAG, "===> Page started: " + url);
@@ -209,7 +237,7 @@ public class BrowserActivity extends Activity {
                     }
                     if (mHandoff.kind() == Handoff.Kind.POST) driveHandoff();
                     if (!mUsingTvAdapter) showPresentation();
-                    else if (!success) { mLoadRetryAvailable = true; ((TextView) findViewById(R.id.loading_text)).setText("连接未完成，按确认重试\n返回退出"); }
+                    else if (!success) { mLoadRetryAvailable = true; showLoadingMessage("连接未完成，按确认重试\n返回退出"); }
                     AppLog.i(TAG, "===> Page stopped, success: " + success);
                 }
 
@@ -265,6 +293,7 @@ public class BrowserActivity extends Activity {
                                     mGeckoView.setSession(activeSession());
                                     TvXApplication.getRuntime().getWebExtensionController().setTabActive(activeSession(), true);
                                     mBridge.sendCommand("restoreLogin", null);
+                                    showReaderWhenReady();
                                 }
                                 s.close();
                             });
@@ -450,9 +479,11 @@ public class BrowserActivity extends Activity {
     private void showPresentation() {
         mWaitingForPresentation = false;
         mUiHandler.removeCallbacks(mLoadTimeout);
+        AppLog.i(TAG, "Presentation ready after " + (SystemClock.elapsedRealtime() - mLaunchStarted) + " ms");
         // A hidden page becoming ready may clear the overlay, but never take focus from the reader.
         if (mReader != null && !mHandoff.showing()) {
             mLoading.setVisibility(View.GONE);
+            resetStartupCover();
             return;
         }
         // Revealing is idempotent on purpose: a page that cleared the overlay while the reader
@@ -461,8 +492,26 @@ public class BrowserActivity extends Activity {
         mGeckoView.postOnAnimation(() -> mGeckoView.postOnAnimation(() -> {
             if (mWaitingForPresentation || isFinishing()) return;
             mLoading.setVisibility(View.GONE);
+            resetStartupCover();
             mGeckoView.requestFocus();
         }));
+    }
+
+    private void showStartupCover(boolean login) {
+        mStartupLoginPreview.setVisibility(login ? View.VISIBLE : View.GONE);
+        mLoadingText.setVisibility(login ? View.GONE : View.VISIBLE);
+        if (login) findViewById(R.id.startup_login_input).requestFocus();
+    }
+
+    private void showLoadingMessage(String message) {
+        mStartupLoginPreview.setVisibility(View.GONE);
+        mLoadingText.setVisibility(View.VISIBLE);
+        mLoadingText.setText(message);
+    }
+
+    private void resetStartupCover() {
+        mStartupLoginPreview.setVisibility(View.GONE);
+        mLoadingText.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -491,7 +540,7 @@ public class BrowserActivity extends Activity {
     }
 
     private void handleIntent(Intent intent) {
-        if (!BuildConfig.DEBUG) { loadXHome(); return; }
+        if (!BuildConfig.DEBUG) { loadInitialXPage(); return; }
         if (intent != null && intent.hasExtra("action")) {
             String action = intent.getStringExtra("action");
             AppLog.i(TAG, "Handling action from intent: " + action);
@@ -514,9 +563,20 @@ public class BrowserActivity extends Activity {
                 loadInSession(url, "intent");
             }
         } else {
-            // Default to real x.com/home, user can toggle to mock with Menu key
-            loadXHome();
+            // A signed-out /home must wait for X to boot before it redirects to
+            // login. Open the explicit login route so the document-start adapter
+            // can render the TV login stage as soon as the body exists.
+            loadInitialXPage();
         }
+    }
+
+    static String initialXUrl(boolean hasReadableSession) {
+        return hasReadableSession ? X_HOME_URL : X_LOGIN_URL;
+    }
+
+    private void loadInitialXPage() {
+        mShowingMock = false;
+        loadInSession(initialXUrl(mReadClient.available()), "x-initial");
     }
 
     public void loadMockTimeline() {
@@ -569,14 +629,22 @@ public class BrowserActivity extends Activity {
         AppLog.d(TAG, "BrowserActivity.onPause");
     }
 
+    private void startLoginAssist() {
+        if(mLoginAssist!=null||mGeckoView==null)return;
+        mLoginAssist=new LoginAssist(this,mGeckoView,()->mLoginAssist=null);
+        mLoginAssist.start();
+    }
+
     @Override
     protected void onStop() {
+        if(mLoginAssist!=null)mLoginAssist.close();
         super.onStop();
         AppLog.d(TAG, "BrowserActivity.onStop");
     }
 
     @Override
     protected void onDestroy() {
+        if(mLoginAssist!=null)mLoginAssist.close();
         AppLog.e(TAG, "===> BrowserActivity.onDestroy START <===");
         if(mReader!=null){mReader.dispose();mReader=null;}
         if(mWriteClient!=null)mWriteClient.close();
@@ -600,6 +668,10 @@ public class BrowserActivity extends Activity {
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
+        if(mLoginAssist!=null&&event.getKeyCode()==KeyEvent.KEYCODE_BACK){
+            if(event.getAction()==KeyEvent.ACTION_DOWN)mLoginAssist.close();
+            return true;
+        }
         if(mReader!=null&&mReader.getVisibility()==View.VISIBLE&&mReader.handleKey(event))return true;
         int code = event.getKeyCode();
         if(mGeckoView==null)return super.dispatchKeyEvent(event);
@@ -616,6 +688,11 @@ public class BrowserActivity extends Activity {
         if (mPopupSession == null && mLoading.getVisibility() == View.VISIBLE &&
                 (code == KeyEvent.KEYCODE_BACK || code == KeyEvent.KEYCODE_ENTER || code == KeyEvent.KEYCODE_DPAD_CENTER ||
                 code == KeyEvent.KEYCODE_DPAD_UP || code == KeyEvent.KEYCODE_DPAD_DOWN || code == KeyEvent.KEYCODE_DPAD_LEFT || code == KeyEvent.KEYCODE_DPAD_RIGHT)) {
+            if (mStartupLoginPreview.getVisibility() == View.VISIBLE &&
+                    (code == KeyEvent.KEYCODE_DPAD_UP || code == KeyEvent.KEYCODE_DPAD_DOWN ||
+                    code == KeyEvent.KEYCODE_DPAD_LEFT || code == KeyEvent.KEYCODE_DPAD_RIGHT)) {
+                return super.dispatchKeyEvent(event);
+            }
             if (event.getAction() == KeyEvent.ACTION_DOWN && event.getRepeatCount() == 0) {
                 if (code == KeyEvent.KEYCODE_BACK) finish();
                 else if ((code == KeyEvent.KEYCODE_ENTER || code == KeyEvent.KEYCODE_DPAD_CENTER) && activeSession() != null && mLoadRetryAvailable) activeSession().reload();

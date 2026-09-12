@@ -179,22 +179,18 @@ body.tv-custom-login-active #layers {
 
 /* TV Center Console Card */
 .tv-login-card {
-    background: rgba(17, 23, 34, 0.96) !important;
+    background: #111722 !important;
     border: 2px solid #27354a !important;
     border-radius: 32px !important;
-    box-shadow: 0 30px 100px rgba(0, 0, 0, 0.95), 0 0 60px rgba(29, 155, 240, 0.25) !important;
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.7) !important;
     width: 520px !important;
+    max-height: calc(100vh - 48px) !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
     padding: 40px 48px !important;
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
-    backdrop-filter: blur(25px) !important;
-    animation: tvFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-
-@keyframes tvFadeIn {
-    from { opacity: 0; transform: scale(0.95) translateY(10px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 /* Centered Glowing X Logo */
@@ -258,9 +254,11 @@ body.tv-custom-login-active #layers {
     padding: 0 20px !important;
     font-size: 18px !important;
     color: #ffffff !important;
-    outline: none !important;
+    outline: 3px solid transparent !important;
+    outline-offset: 3px !important;
     box-sizing: border-box !important;
-    transition: all 0.2s ease !important;
+    transition: border-color 0.08s linear, background-color 0.08s linear,
+                outline-color 0.08s linear !important;
 }
 
 .tv-login-input::placeholder {
@@ -281,11 +279,11 @@ body.tv-custom-login-active #layers {
     gap: 12px !important;
     cursor: pointer !important;
     border: 2px solid transparent !important;
+    outline: 3px solid transparent !important;
+    outline-offset: 3px !important;
     box-sizing: border-box !important;
-    transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
-                box-shadow 0.18s ease,
-                background-color 0.18s ease,
-                outline 0.18s ease !important;
+    transition: border-color 0.08s linear, background-color 0.08s linear,
+                outline-color 0.08s linear !important;
 }
 
 .tv-btn-primary {
@@ -328,10 +326,10 @@ body.tv-custom-login-active #layers {
 
 /* TV Focus Glow and Indicator */
 .tv-custom-focused {
-    outline: 4px solid #1d9bf0 !important;
+    outline: 3px solid #1d9bf0 !important;
     outline-offset: 3px !important;
-    box-shadow: 0 0 35px rgba(29, 155, 240, 0.95), 0 10px 30px rgba(0, 0, 0, 0.8) !important;
-    transform: scale(1.03) !important;
+    box-shadow: none !important;
+    transform: none !important;
     z-index: 100 !important;
     position: relative !important;
 }
@@ -355,5 +353,6 @@ body.tv-custom-login-active #layers {
     transform: translateY(-50%);
     font-size: 18px;
     color: #1d9bf0;
-    filter: drop-shadow(0 0 8px #1d9bf0);
 }
+
+.tv-login-card > * { flex-shrink: 0 !important; }

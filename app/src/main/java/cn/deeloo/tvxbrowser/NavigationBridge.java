@@ -66,6 +66,10 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
     private Runnable mReadyListener;
     private Runnable mPresentationListener;
     private Runnable mExitListener;
+    private Runnable mLoginAssistListener;
+    private Runnable mAuthenticatedListener;
+    public void setLoginAssistListener(Runnable listener) { mLoginAssistListener=listener; }
+    public void setAuthenticatedListener(Runnable listener) { mAuthenticatedListener=listener; }
     public void setExitListener(Runnable listener) { mExitListener = listener; }
     public void whenReady(Runnable listener) {
         mReadyListener = listener;
@@ -78,6 +82,7 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
         mReadyListener = null; mPresentationListener = null; mExitListener = null;
         mReadTemplateListener=null;mReadClearListener=null;mReaderReturnListener=null;mReaderReadyListener=null;
         mContentReadyListener=null;mReadingOverlapListener=null;
+        mLoginAssistListener=null;mAuthenticatedListener=null;
     }
     private WebExtension mExtension;
     private WebExtension.Port mPort;
@@ -174,7 +179,9 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
     private void handleJsonMessage(JSONObject json) {
         try {
             String event = json.optString("event");
-            if ("read_api_template".equals(event)) {
+            if ("login_assist".equals(event)) {
+                if(mLoginAssistListener!=null)mLoginAssistListener.run();
+            } else if ("read_api_template".equals(event)) {
                 if(mReadTemplateListener!=null)mReadTemplateListener.accept(json);
             } else if ("read_session_clear".equals(event)) {
                 if(mReadClearListener!=null)mReadClearListener.run();
@@ -193,6 +200,7 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
             } else if ("presentation_ready".equals(event)) {
                 if (mPresentationListener != null) mPresentationListener.run();
             } else if ("state".equals(event)) {
+                if(json.optBoolean("authenticated",false)&&mAuthenticatedListener!=null)mAuthenticatedListener.run();
                 String pageType = json.optString("pageType", "unknown");
                 boolean hasOverlay = json.optBoolean("hasOverlay", false);
                 boolean canBack = json.optBoolean("canBack", false);

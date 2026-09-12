@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 let mutation;
 let state;
 const input = { type: 'text', value: '', focus() {} };
-const stage = { style: {} };
+const stage = { style: {}, dataset: { tvBound: 'true' } };
 const elements = {
     'tv-x-styles': {},
     'tv-custom-login-stage': stage,
@@ -19,7 +19,7 @@ const context = {
     console: { log() {}, warn() {} },
     window: { location: { pathname: '/i/flow/login', href: 'https://x.com/i/flow/login' }, scrollY: 0, addEventListener() {} },
     document: {
-        body: { classList: { toggle() {}, contains() { return false; } } },
+        body: { classList: { add() {}, toggle() {}, contains() { return false; } } },
         getElementById: id => elements[id] || null,
         querySelectorAll: () => [],
         querySelector: selector => selector.includes('role="dialog"') ? dialog : null,

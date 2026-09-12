@@ -39,7 +39,7 @@ function connectToNative() {
 async function prepareApi(message) {
     const port = nativePort;
     if (!/^[a-f0-9-]{36}$/.test(message.id || '') ||
-        !['FavoriteTweet','UnfavoriteTweet','CreateTweet','Likes'].includes(message.operation)) return;
+        !['FavoriteTweet','UnfavoriteTweet','CreateTweet','Likes','TweetDetail'].includes(message.operation)) return;
     let result = {error:'not_ready'};
     try {
         const tabs = (await browser.tabs.query({})).filter(t => {

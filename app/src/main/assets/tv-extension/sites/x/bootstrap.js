@@ -4,6 +4,11 @@ window.TvXBoot = window.TvXBoot || (() => {
     let ready = false, pending = false;
     function cover() { if (supported && document.documentElement && !ready) document.documentElement.classList.add('tv-x-boot'); }
     cover();
+    const path = location.pathname;
+    if (supported && (path === '/i/flow/login' || path === '/login' ||
+        (path === '/i/jf/onboarding/web' && new URL(location.href).searchParams.get('mode') === 'login'))) {
+        window.TvXLoginStage?.mount(document.documentElement);
+    }
     if (!document.documentElement) {
         const observer = new MutationObserver(() => { cover(); if (document.documentElement) observer.disconnect(); });
         observer.observe(document,{childList:true});

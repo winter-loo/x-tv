@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>X TV · 辅助登录</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#090d14;color:#eef3fa}body{max-width:1100px;margin:auto;padding:24px}h1{font-size:26px;margin-bottom:8px}p{color:#aebccc;line-height:1.6}button,input{font:inherit;border-radius:10px;padding:12px;border:1px solid #45566b;background:#182334;color:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:3px solid #70bfff}button:disabled{opacity:.5}form,.controls{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}input{min-width:100px;flex:1}#screen{display:block;width:100%;height:auto;background:#121b29;border:1px solid #45566b;border-radius:10px;cursor:crosshair;touch-action:manipulation}#status{min-height:24px;color:#9dd2ff}.hint{font-size:14px} [hidden]{display:none!important}
+</style>
+<h1>X TV · 辅助登录</h1>
+<p>在这里操作投影仪上的登录页面。账号会登录到投影仪；本页不会读取你手机或电脑已有的 X 登录信息。</p>
+<form id="pair"><input id="code" aria-label="投影仪配对码" placeholder="投影仪上的 8 位配对码" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" autocomplete="off" required><button>连接投影仪</button></form>
+<p id="status" role="status">请先核对浏览器证书与投影仪显示的 SHA-256 指纹。</p>
+<main id="remote" hidden>
+<img id="screen" alt="投影仪当前的登录页面，点击即可操作" draggable="false">
+<p class="hint">先点画面里的输入框，再在下方输入文字并发送。密码与验证码同样在这里输入。</p>
+<form id="typing"><input id="text" type="password" aria-label="发送到选中输入框的文字" placeholder="输入文字、密码或验证码" autocomplete="off" maxlength="2048"><button>发送文字</button></form>
+<p id="action-status" role="status" aria-live="polite"></p>
+<div class="controls"><button data-key="Backspace">删除一字</button><button data-key="Tab">下个输入框</button><button data-key="Enter">确认 ↵</button><button data-key="PageUp">向上翻页</button><button data-key="PageDown">向下翻页</button><button id="stop">结束连接</button></div>
+<p class="hint">登录完成、投影仪退出应用或超过 10 分钟后，连接会关闭。请以投影仪上的登录结果为准。</p>
+</main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);let token='',running=false,frameUrl='',busy=false,failures=0;
+function end(message){running=false;token='';$('text').value='';$('code').value='';$('remote').hidden=true;$('pair').hidden=true;$('status').textContent=message;if(frameUrl)URL.revokeObjectURL(frameUrl);$('screen').removeAttribute('src');}
+async function request(path,data){const response=await fetch(path,{method:data===undefined?'GET':'POST',cache:'no-store',credentials:'omit',headers:{...(token?{Authorization:'Bearer '+token}:{}),...(data===undefined?{}:{'Content-Type':'application/json'})},body:data===undefined?undefined:JSON.stringify(data),signal:AbortSignal.timeout(8000)});if(!response.ok)throw Error(String(response.status));return response;}
+$('pair').onsubmit=async event=>{event.preventDefault();const button=event.submitter;button.disabled=true;try{token=(await(await request('/pair',{code:$('code').value})).json()).token;$('code').value='';running=true;$('pair').hidden=true;$('remote').hidden=false;$('status').textContent='已连接 · 正在获取投影仪画面';poll();}catch(e){$('status').textContent='连接失败：检查配对码；连续输错 5 次后需在投影仪重新开启。';}finally{button.disabled=false;}};
+async function poll(){while(running){try{const blob=await(await request('/frame')).blob();if(!running)return;const next=URL.createObjectURL(blob);$('screen').src=next;if(frameUrl)URL.revokeObjectURL(frameUrl);frameUrl=next;failures=0;$('status').textContent='已连接 · 点击画面操作';}catch(e){if(e.message==='503'&&++failures<4){await new Promise(resolve=>setTimeout(resolve,700));continue;}end('连接已结束或暂时中断。请查看投影仪；如尚未登录，请重新开启辅助登录。');return;}await new Promise(resolve=>setTimeout(resolve,700));}}
+async function input(data){if(!running||busy)return false;busy=true;$('action-status').textContent='正在发送…';try{await request('/input',data);$('action-status').textContent='已发送，请查看上方画面。';return true;}catch(e){if(e.message==='401'||e.message==='410')end('连接已结束，请在投影仪重新开启辅助登录。');else $('action-status').textContent='输入未确认：请先点画面里的输入框，再发送。已保留文字，不会自动重发。';return false;}finally{busy=false;}}
+$('screen').onclick=event=>{const bounds=event.currentTarget.getBoundingClientRect();input({kind:'tap',x:(event.clientX-bounds.left)/bounds.width,y:(event.clientY-bounds.top)/bounds.height});};
+$('typing').onsubmit=async event=>{event.preventDefault();if(busy)return;const text=$('text').value;if(!text)return;const button=event.submitter;button.disabled=true;try{if(await input({kind:'text',text}))if($('text').value===text)$('text').value='';}finally{button.disabled=false;}};
+document.querySelectorAll('[data-key]').forEach(button=>button.onclick=()=>input({kind:'key',key:button.dataset.key}));
+$('stop').onclick=async()=>{try{await request('/close',{});}finally{end('辅助登录已结束。');}};
+window.addEventListener('pagehide',()=>{end('连接已结束');});
+</script></html>

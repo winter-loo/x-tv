@@ -52,6 +52,7 @@ final class XReadClient {
     private String homeBody, homeError;
     private Callback homeListener;
     Runnable accountChanged;
+    Runnable sessionReady;
     /** Live page metadata, for the operations X never sends on its own. */
     XGraphQL.Metadata metadata;
 
@@ -102,7 +103,7 @@ final class XReadClient {
     }
 
     synchronized boolean available() {
-        return session.has("home") && session.has("detail");
+        return session.has("home");
     }
     // Trusted native snapshot only. Never expose these headers to the reading WebView.
     /** Everything an operation built from live page metadata needs to authenticate. */
@@ -276,6 +277,7 @@ final class XReadClient {
             session.put(slot, copy);
             if (first)
                 AppLog.w("TvXReaderPerf", slot + " session ready");
+            if (first && slot.equals("home") && sessionReady != null) ui.post(sessionReady);
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(Cipher.ENCRYPT_MODE, key());
             byte[] encrypted = cipher.doFinal(session.toString().getBytes(StandardCharsets.UTF_8));
@@ -298,6 +300,14 @@ final class XReadClient {
     void fetch(String id, String mode, String postId, String cursor, Callback callback) {
         if (closed)
             return;
+        if (mode.equals("detail")) {
+            synchronized (this) {
+                if (!session.has("detail")) {
+                    fetchLive(id, "TweetDetail", postId, cursor, callback);
+                    return;
+                }
+            }
+        }
         final JSONObject template;
         final int ticket;
         synchronized (this) {
@@ -379,8 +389,8 @@ final class XReadClient {
                     throw new IllegalArgumentException();
                 connection = (HttpURLConnection) url.openConnection();
                 connections.put(id, connection);
-                connection.setConnectTimeout(4000);
-                connection.setReadTimeout(5000);
+                connection.setConnectTimeout(10000);
+                connection.setReadTimeout(15000);
                 connection.setUseCaches(false);
                 connection.setInstanceFollowRedirects(false);
                 connection.setRequestMethod(method);
@@ -461,6 +471,9 @@ final class XReadClient {
      * there is no captured template to reuse: the operation is built from live page metadata.
      */
     void fetchLikes(String id, String cursor, Callback callback) {
+        fetchLive(id, "Likes", "", cursor, callback);
+    }
+    private void fetchLive(String id, String operation, String postId, String cursor, Callback callback) {
         if (closed) return;
         final JSONObject auth = credentials();
         final XGraphQL.Metadata source = metadata;
@@ -474,12 +487,12 @@ final class XReadClient {
         final FutureTask<Void> gate = new FutureTask<>(() -> null);
         tasks.put(id, gate);
         final long started = android.os.SystemClock.elapsedRealtime();
-        source.prepare("Likes", info -> {
+        source.prepare(operation, info -> {
             if (closed || ticket != generation || tasks.get(id) != gate) return;
             tasks.remove(id);
             if (info == null || info.has("error") || !matchesCredentials(auth)) {
                 AppLog.w("TvXReaderPerf",
-                    "likes metadata unavailable ms=" + (android.os.SystemClock.elapsedRealtime() - started));
+                    operation + " metadata unavailable ms=" + (android.os.SystemClock.elapsedRealtime() - started));
                 callback.complete(null, "not_ready");
                 return;
             }
@@ -489,20 +502,27 @@ final class XReadClient {
                     Map<String, String> headers = XGraphQL.headers(auth);
                     if (!info.getString("csrf").equals(headers.get("x-csrf-token")))
                         throw new java.io.IOException("session");
-                    String userId = XGraphQL.accountId(headers.get("cookie"));
-                    if (!userId.matches("[0-9]+")) throw new java.io.IOException("session");
-                    JSONObject variables = new JSONObject()
-                                               .put("userId", userId)
-                                               .put("count", LIKES_PAGE)
-                                               .put("includePromotedContent", false)
-                                               .put("withClientEventToken", false)
-                                               .put("withBirdwatchNotes", false)
-                                               .put("withVoice", true)
-                                               .put("withV2Timeline", true);
+                    JSONObject variables;
+                    if (operation.equals("TweetDetail")) {
+                        if (!postId.matches("[0-9]+")) throw new IllegalArgumentException();
+                        variables = new JSONObject().put("focalTweetId", postId)
+                            .put("with_rux_injections", false).put("rankingMode", "Relevance")
+                            .put("includePromotedContent", false).put("withCommunity", true)
+                            .put("withQuickPromoteEligibilityTweetFields", true)
+                            .put("withBirdwatchNotes", true).put("withVoice", true);
+                        info.getJSONObject("queries").getJSONObject(operation).getJSONObject("fieldToggles")
+                            .put("withArticleRichContentState", true).put("withArticlePlainText", true);
+                    } else {
+                        String userId = XGraphQL.accountId(headers.get("cookie"));
+                        if (!userId.matches("[0-9]+")) throw new java.io.IOException("session");
+                        variables = new JSONObject().put("userId", userId).put("count", LIKES_PAGE)
+                            .put("includePromotedContent", false).put("withClientEventToken", false)
+                            .put("withBirdwatchNotes", false).put("withVoice", true).put("withV2Timeline", true);
+                    }
                     if (cursor != null && !cursor.isEmpty()) variables.put("cursor", cursor);
                     XGraphQL.Response response;
                     try {
-                        response = XGraphQL.send("Likes", variables, info.getJSONObject("queries").getJSONObject("Likes"),
+                        response = XGraphQL.send(operation, variables, info.getJSONObject("queries").getJSONObject(operation),
                             headers, c -> connections.put(id, c));
                     } finally {
                         connections.remove(id);
@@ -518,7 +538,7 @@ final class XReadClient {
                     tasks.remove(id);
                 }
                 AppLog.w("TvXReaderPerf",
-                    "likes request ms=" + (android.os.SystemClock.elapsedRealtime() - started)
+                    operation + " request ms=" + (android.os.SystemClock.elapsedRealtime() - started)
                         + " result=" + (error == null ? "ok" : error));
                 final String data = payload, problem = error;
                 ui.post(() -> {

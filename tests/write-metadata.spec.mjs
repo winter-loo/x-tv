@@ -5,7 +5,7 @@ const source = await readFile(new URL('../app/src/main/assets/tv-extension/sites
 function fixture({rotate=false}={}) {
     let listener, cookie='ct0=session-csrf', transactions=[];
     const definitions={};
-    for(const name of ['FavoriteTweet','UnfavoriteTweet','CreateTweet','TweetResultByRestId','Likes']) {
+    for(const name of ['FavoriteTweet','UnfavoriteTweet','CreateTweet','TweetResultByRestId','Likes','TweetDetail']) {
         definitions[name]={queryId:'current_query_123',operationName:name,
             metadata:{featureSwitches:['flag'],fieldToggles:['field']}};
     }
@@ -55,4 +55,10 @@ test('a read operation is signed for GET and pulls in no companion query',async(
     expect(result.queries.Likes.queryId).toBe('current_query_123');
     expect(result.queries.Likes.features.flag).toBe(true);
     expect(f.transactions).toEqual([{host:'x.com',path:'/i/api/graphql/current_query_123/Likes',method:'GET'}]);
+});
+
+test('first-login detail metadata is available without visiting a post', async () => {
+    const f=fixture();const result=await f.send({command:'apiPrepare',operation:'TweetDetail'});
+    expect(Object.keys(result.queries)).toEqual(['TweetDetail']);
+    expect(f.transactions).toEqual([{host:'x.com',path:'/i/api/graphql/current_query_123/TweetDetail',method:'GET'}]);
 });

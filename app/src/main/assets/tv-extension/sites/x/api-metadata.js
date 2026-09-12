@@ -11,7 +11,8 @@
         FavoriteTweet: {method: 'POST', companion: 'TweetResultByRestId'},
         UnfavoriteTweet: {method: 'POST', companion: 'TweetResultByRestId'},
         CreateTweet: {method: 'POST', companion: 'TweetResultByRestId'},
-        Likes: {method: 'GET'}
+        Likes: {method: 'GET'},
+        TweetDetail: {method: 'GET'}
     };
     let requirePage;
     function requireModules() {

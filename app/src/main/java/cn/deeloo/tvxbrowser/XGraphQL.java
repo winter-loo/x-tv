@@ -43,6 +43,7 @@ final class XGraphQL {
         METHODS.put("CreateTweet", "POST");
         METHODS.put("TweetResultByRestId", "GET");
         METHODS.put("Likes", "GET");
+        METHODS.put("TweetDetail", "GET");
     }
     private static final int LIMIT = 8_000_000;
 
@@ -116,8 +117,8 @@ final class XGraphQL {
         track.opened(c);
         long started = SystemClock.elapsedRealtime();
         try {
-            c.setConnectTimeout(4000);
-            c.setReadTimeout(5000);
+            c.setConnectTimeout(read ? 10000 : 4000);
+            c.setReadTimeout(read ? 15000 : 5000);
             c.setInstanceFollowRedirects(false);
             c.setUseCaches(false);
             c.setRequestMethod(method);

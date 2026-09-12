@@ -37,6 +37,8 @@ adb -s <设备地址> install -r <已签名的APK路径>
 
 升级要求包名和签名一致。现有开发安装使用 debug 签名，不能直接被另一份正式签名覆盖；迁移安排见发布指南。
 
+开发版新增[局域网辅助登录原型](docs/login-assist.md)：电脑或手机可通过临时 HTTPS 配对，操作投影仪中的登录页面。
+
 ## 开发与验证
 
 需要 JDK 17 或更新版本（本机使用 JDK 21）、Android SDK 37.1 / Build Tools 36.0.0、Node.js 22 或更新版本。Gradle 通过仓库中的 wrapper 运行。在 `local.properties` 配置 `sdk.dir`，不要提交本机 SDK 路径。

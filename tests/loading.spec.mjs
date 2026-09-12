@@ -1,5 +1,8 @@
 import { test, expect } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
 import { mount, post } from './fixtures/timeline.mjs';
+
+const extension = new URL('../app/src/main/assets/tv-extension/', import.meta.url);
 
 test('slow detail hydration and unrelated replies never imply the target post was deleted', async ({ page }) => {
     await mount(page, []);
@@ -34,3 +37,19 @@ test('startup keeps X pending list measurable under the opaque cover', async ({ 
     expect(await page.locator('#pending-list').evaluate(node => node.getBoundingClientRect().height)).toBeGreaterThan(0);
 });
 
+test('explicit login route mounts the TV stage at document start', async ({ page }) => {
+    const stageSource = await readFile(new URL('sites/x/login-stage.js', extension), 'utf8');
+    const bootSource = await readFile(new URL('sites/x/bootstrap.js', extension), 'utf8');
+    await page.addInitScript({content: `
+        window.browser={runtime:{sendMessage:()=>Promise.resolve()}};
+        ${stageSource}
+        ${bootSource}
+    `});
+    await page.route('https://x.com/i/flow/login', route => route.fulfill({
+        contentType: 'text/html', body: '<!doctype html><html><head></head><body></body></html>'
+    }));
+
+    await page.goto('https://x.com/i/flow/login');
+    await expect(page.locator('#tv-custom-login-stage')).toBeAttached();
+    await expect(page.locator('#tv-custom-login-stage')).toHaveAttribute('data-mounted-ready-state', 'loading');
+});
