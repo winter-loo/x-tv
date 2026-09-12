@@ -185,3 +185,15 @@ test('high-frequency remote D-pad navigation reuses cached article bounds and pr
     const rectCalls = await page.evaluate(() => window.rectCallCount);
     expect(rectCalls).toBeLessThan(100);
 });
+
+
+test('current inline X username form is recognized without an old sign-in link', async ({ page }) => {
+    await mount(page, []);
+    await page.evaluate(() => {
+        history.replaceState({}, '', '/');
+        document.querySelector('header').remove();
+        document.querySelector('#react-root').innerHTML = '<form><input name="username_or_email" type="text"><input name="password" type="password" hidden><button type="submit">继续</button></form>';
+    });
+    await expect(page.locator('#tv-custom-login-stage')).toBeVisible();
+    await expect(page.locator('#tv-stage-google-btn')).toBeVisible();
+});

@@ -180,8 +180,9 @@ window.TvXAdapter = window.TvXAdapter || (function() {
         if (document.querySelector('[data-testid="SideNav_AccountSwitcher_Button"], [data-testid="AppTabBar_Home_Link"], [data-testid="tweetTextarea_0"]')) return false;
         // X's current signed-out landing page no longer has a #react-root wrapper.
         if (path === "/" && document.querySelector('a[href^="/i/jf/onboarding/web?mode=login"]')) return true;
+        // Current X landing renders an inline form without the legacy sign-in link.
         return !!document.querySelector(
-            '#react-root input[autocomplete="username"], #layers input[autocomplete="username"], ' +
+            '#react-root input[name="username_or_email"], #react-root input[autocomplete="username"], #layers input[autocomplete="username"], ' +
             '#react-root a[href="/i/flow/login"], #react-root a[href="/login"]'
         );
     }
