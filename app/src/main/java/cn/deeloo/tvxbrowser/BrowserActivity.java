@@ -6,7 +6,6 @@ import android.graphics.Matrix;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Base64;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.TextView;
@@ -69,7 +68,7 @@ public class BrowserActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         mLaunchStarted=SystemClock.elapsedRealtime();
         super.onCreate(savedInstanceState);
-        Log.e(TAG, "===> BrowserActivity.onCreate START <===");
+        AppLog.e(TAG, "===> BrowserActivity.onCreate START <===");
 
         setContentView(R.layout.activity_browser);
         mLoading = findViewById(R.id.loading_overlay);
@@ -89,7 +88,7 @@ public class BrowserActivity extends Activity {
             mMetadata.cancel();
             closeHandoff();initializeBrowser();loadXHome();
         };
-        if(mReadClient.available()&&!getIntent().hasExtra("url")&&!getIntent().hasExtra("action")) {
+        if(mReadClient.available() && (!BuildConfig.DEBUG || (!getIntent().hasExtra("url") && !getIntent().hasExtra("action")))) {
             mReader=new FastReader(this,mReadClient,mWriteClient,new FastReader.Listener(){
                 public void rendered(){if(!mPrewarmScheduled){mPrewarmScheduled=true;mUiHandler.postDelayed(BrowserActivity.this::initializeBrowser,1500);}}
                 public void openBrowser(String path,String action){
@@ -135,7 +134,7 @@ public class BrowserActivity extends Activity {
             mBridge.setReadingOverlapListener(overlap->{
                 if(overlap<=0)return;
                 mReadingOverlap=Math.min(MAX_READING_OVERLAP,overlap);
-                Log.w(TAG,"===> handoff reading overlap="+mReadingOverlap);});
+                AppLog.w(TAG,"===> handoff reading overlap="+mReadingOverlap);});
             // Only the handoff that actually took the screen, for the post it was opened for, may
             // be closed by the page. A stale return from an earlier document is ignored.
             mBridge.setReaderReturnListener(path->{if(mHandoff.closedBy(path))endHandoff();});
@@ -195,7 +194,7 @@ public class BrowserActivity extends Activity {
                     ((TextView) findViewById(R.id.loading_text)).setText("正在加载 X…");
                     mUiHandler.removeCallbacks(mLoadTimeout);
                     mUiHandler.postDelayed(mLoadTimeout, 25000);
-                    Log.i(TAG, "===> Page started: " + url);
+                    AppLog.i(TAG, "===> Page started: " + url);
                 }
 
                 @Override
@@ -211,19 +210,19 @@ public class BrowserActivity extends Activity {
                     if (mHandoff.kind() == Handoff.Kind.POST) driveHandoff();
                     if (!mUsingTvAdapter) showPresentation();
                     else if (!success) { mLoadRetryAvailable = true; ((TextView) findViewById(R.id.loading_text)).setText("连接未完成，按确认重试\n返回退出"); }
-                    Log.i(TAG, "===> Page stopped, success: " + success);
+                    AppLog.i(TAG, "===> Page stopped, success: " + success);
                 }
 
                 @Override
                 public void onProgressChange(GeckoSession session, int progress) {
-                    Log.d(TAG, "Page progress: " + progress + "%");
+                    AppLog.d(TAG, "Page progress: " + progress + "%");
                 }
             });
 
             mSession.setNavigationDelegate(new GeckoSession.NavigationDelegate() {
                 @Override
                 public void onCanGoBack(GeckoSession session, boolean canGoBack) {
-                    Log.i(TAG, "canGoBack: " + canGoBack);
+                    AppLog.i(TAG, "canGoBack: " + canGoBack);
                     if (session == activeSession()) mKeyRouter.setCanGoBack(canGoBack);
                 }
 
@@ -237,7 +236,7 @@ public class BrowserActivity extends Activity {
                     mCommitted = url;
                     mHandoff.commit(url);
                     if (mHandoff.settled()) clearHandoffTimeout();
-                    if (mHandoff.active()) Log.w(TAG, "===> handoff loading url=" + url);
+                    if (mHandoff.active()) AppLog.w(TAG, "===> handoff loading url=" + url);
                     // A navigation that started before this handoff has just won the session
                     // (X can take seconds to commit). Take it back rather than time out.
                     if (mHandoff.active() && !mHandoff.arrived()) driveHandoff();
@@ -245,7 +244,7 @@ public class BrowserActivity extends Activity {
 
                 @Override
                 public GeckoResult<GeckoSession> onNewSession(GeckoSession session, String uri) {
-                    Log.e(TAG, "===> onNewSession requested");
+                    AppLog.e(TAG, "===> onNewSession requested");
                     GeckoSession popupSession = new GeckoSession(mSession.getSettings());
                     mPopupSession = popupSession;
                     showPresentation();
@@ -253,13 +252,13 @@ public class BrowserActivity extends Activity {
                     popupSession.setProgressDelegate(new GeckoSession.ProgressDelegate() {
                         @Override
                         public void onPageStop(GeckoSession s, boolean success) {
-                            Log.e(TAG, "OAuth popup loaded: " + success);
+                            AppLog.e(TAG, "OAuth popup loaded: " + success);
                         }
                     });
                     popupSession.setContentDelegate(new GeckoSession.ContentDelegate() {
                         @Override
                         public void onCloseRequest(GeckoSession s) {
-                            Log.i(TAG, "===> Popup session onCloseRequest");
+                            AppLog.i(TAG, "===> Popup session onCloseRequest");
                             runOnUiThread(() -> {
                                 if (mPopupSession == s) {
                                     mPopupSession = null;
@@ -285,14 +284,14 @@ public class BrowserActivity extends Activity {
 
                 @Override
                 public GeckoResult<String> onLoadError(GeckoSession session, String uri, WebRequestError error) {
-                    Log.e(TAG, "===> Page load error for URI: " + uri + " (code=" + error.code + ", category=" + error.category + ")");
+                    AppLog.e(TAG, "===> Page load error for URI: " + uri + " (code=" + error.code + ", category=" + error.category + ")");
                     if (session == activeSession() && mHandoff.kind() == Handoff.Kind.EXTERNAL)
                         failHandoff(mHandoff.generation(), "error-" + error.code);
                     return null;
                 }
             });
 
-            Log.e(TAG, "Opening session with runtime...");
+            AppLog.e(TAG, "Opening session with runtime...");
             mSession.open(TvXApplication.getRuntime());
             mGeckoView.setSession(mSession);
             TvXApplication.getRuntime().getWebExtensionController().setTabActive(mSession, true);
@@ -301,9 +300,9 @@ public class BrowserActivity extends Activity {
                 if(mHandoff.active())driveHandoff();
                 else handleIntent(getIntent());
             });
-            Log.e(TAG, "===> BrowserActivity.onCreate FINISHED <===");
+            AppLog.e(TAG, "===> BrowserActivity.onCreate FINISHED <===");
         } catch (Throwable t) {
-            Log.e(TAG, "===> Exception in BrowserActivity.onCreate <===", t);
+            AppLog.e(TAG, "===> Exception in BrowserActivity.onCreate <===", t);
         }
     }
 
@@ -313,7 +312,7 @@ public class BrowserActivity extends Activity {
         mWritePageLoading = false;
         if (kind == Handoff.Kind.EXTERNAL) mReadingOverlap = DEFAULT_READING_OVERLAP;
         final int generation = mHandoff.begin(kind, target, action);
-        Log.w(TAG, "===> handoff open kind=" + kind + " gen=" + generation + " target=" + target);
+        AppLog.w(TAG, "===> handoff open kind=" + kind + " gen=" + generation + " target=" + target);
         if (kind != Handoff.Kind.EXTERNAL) mReader.browserWaiting();
         boolean starting = mSession == null;
         initializeBrowser();
@@ -339,7 +338,7 @@ public class BrowserActivity extends Activity {
                 // Only a live X document can route to the post; otherwise load it and wait for
                 // the content script to report in.
                 boolean routable = ExternalTarget.isX(mCommitted) && mBridge != null;
-                Log.w(TAG, "===> handoff drive kind=POST routable=" + routable + " at=" + mCommitted);
+                AppLog.w(TAG, "===> handoff drive kind=POST routable=" + routable + " at=" + mCommitted);
                 if (!routable)
                     loadInSession("https://x.com" + mHandoff.target(), "handoff-post");
                 else if (!mHandoff.routedFrom(mCommitted)) {
@@ -353,7 +352,7 @@ public class BrowserActivity extends Activity {
     /** Hands the screen over, once the handoff's own document is on it. */
     private void showHandoff() {
         if (!mHandoff.ready() || mReader == null) return;
-        Log.w(TAG, "===> handoff shown kind=" + mHandoff.kind() + " target=" + mHandoff.target()
+        AppLog.w(TAG, "===> handoff shown kind=" + mHandoff.kind() + " target=" + mHandoff.target()
                 + " at=" + mCommitted);
         mHandoff.show();
         if (mHandoff.settled()) clearHandoffTimeout();
@@ -374,7 +373,7 @@ public class BrowserActivity extends Activity {
         if (!mHandoff.accepts(generation)) return;
         String target = mHandoff.target();
         Handoff.Kind kind = closeHandoff();
-        Log.w(TAG, "===> handoff failed kind=" + kind + " reason=" + reason + " target=" + target);
+        AppLog.w(TAG, "===> handoff failed kind=" + kind + " reason=" + reason + " target=" + target);
         if (mReader == null) return;
         if (kind == Handoff.Kind.EXTERNAL) mReader.externalFailed(target);
         else mReader.browserReturned();
@@ -384,7 +383,7 @@ public class BrowserActivity extends Activity {
     private Handoff.Kind closeHandoff() {
         if (!mHandoff.active()) return Handoff.Kind.NONE;
         Handoff.Kind kind = mHandoff.kind();
-        Log.w(TAG, "===> handoff closed kind=" + kind + " gen=" + mHandoff.generation());
+        AppLog.w(TAG, "===> handoff closed kind=" + kind + " gen=" + mHandoff.generation());
         mHandoff.end();
         clearHandoffTimeout();
         // Stop the external document and restore the metadata source behind the reader.
@@ -404,7 +403,7 @@ public class BrowserActivity extends Activity {
     /** Every navigation of the shared session goes through here, so the log names who asked. */
     private void loadInSession(String url, String why) {
         if (mSession == null) return;
-        Log.w(TAG, "===> handoff load by=" + why + " active=" + mHandoff.active() + " url=" + url);
+        AppLog.w(TAG, "===> handoff load by=" + why + " active=" + mHandoff.active() + " url=" + url);
         mSession.loadUri(url);
     }
 
@@ -438,7 +437,7 @@ public class BrowserActivity extends Activity {
         // A page turn less the three lines the article itself reports, so the reader keeps
         // their place; an article that never reported falls back to a sensible slice.
         double page = 1 - mReadingOverlap;
-        Log.w(TAG, "===> handoff reading page=" + page);
+        AppLog.w(TAG, "===> handoff reading page=" + page);
         mSession.getPanZoomController().scrollBy(ScreenLength.zero(),
                 ScreenLength.fromVisualViewportHeight(down ? page : -page),
                 PanZoomController.SCROLL_BEHAVIOR_SMOOTH);
@@ -477,13 +476,13 @@ public class BrowserActivity extends Activity {
                 boolean ready = metadata != null && !metadata.has("error")
                     && metadata.has("csrf") && metadata.has("queries")
                     && mReadClient.matchesCredentials(auth);
-                Log.w("TvXWriteReady", "ready=" + ready + " ms=" + (SystemClock.elapsedRealtime() - started));
+                AppLog.w("TvXWriteReady", "ready=" + ready + " ms=" + (SystemClock.elapsedRealtime() - started));
             });
             return;
         }
         setIntent(intent);
         // A launcher resume must not reload /home and discard the current post.
-        if (intent.hasExtra("url") || intent.hasExtra("action")) {
+        if (BuildConfig.DEBUG && (intent.hasExtra("url") || intent.hasExtra("action"))) {
             closeHandoff();
             if(mReader!=null)mReader.setVisibility(View.GONE);
             initializeBrowser();
@@ -492,9 +491,10 @@ public class BrowserActivity extends Activity {
     }
 
     private void handleIntent(Intent intent) {
+        if (!BuildConfig.DEBUG) { loadXHome(); return; }
         if (intent != null && intent.hasExtra("action")) {
             String action = intent.getStringExtra("action");
-            Log.i(TAG, "Handling action from intent: " + action);
+            AppLog.i(TAG, "Handling action from intent: " + action);
             if ("google_auth".equalsIgnoreCase(action)) {
                 if (mBridge != null) {
                     mBridge.sendCommand("googleAuth", null);
@@ -509,7 +509,7 @@ public class BrowserActivity extends Activity {
             } else if ("probe".equalsIgnoreCase(url)) {
                 loadAssetPage("probe.html");
             } else {
-                Log.i(TAG, "Loading URL from intent: " + url);
+                AppLog.i(TAG, "Loading URL from intent: " + url);
                 mShowingMock = false;
                 loadInSession(url, "intent");
             }
@@ -544,40 +544,40 @@ public class BrowserActivity extends Activity {
             byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
             String base64 = Base64.encodeToString(bytes, Base64.NO_WRAP);
             String dataUri = "data:text/html;charset=utf-8;base64," + base64;
-            Log.i(TAG, "Loading asset [" + assetName + "] via Base64 data URI...");
+            AppLog.i(TAG, "Loading asset [" + assetName + "] via Base64 data URI...");
             loadInSession(dataUri, "asset");
         } catch (Exception e) {
-            Log.e(TAG, "Failed to read asset: " + assetName, e);
+            AppLog.e(TAG, "Failed to read asset: " + assetName, e);
         }
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        Log.d(TAG, "BrowserActivity.onStart");
+        AppLog.d(TAG, "BrowserActivity.onStart");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d(TAG, "BrowserActivity.onResume");
+        AppLog.d(TAG, "BrowserActivity.onResume");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        Log.d(TAG, "BrowserActivity.onPause");
+        AppLog.d(TAG, "BrowserActivity.onPause");
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        Log.d(TAG, "BrowserActivity.onStop");
+        AppLog.d(TAG, "BrowserActivity.onStop");
     }
 
     @Override
     protected void onDestroy() {
-        Log.e(TAG, "===> BrowserActivity.onDestroy START <===");
+        AppLog.e(TAG, "===> BrowserActivity.onDestroy START <===");
         if(mReader!=null){mReader.dispose();mReader=null;}
         if(mWriteClient!=null)mWriteClient.close();
         if(mMetadata!=null)mMetadata.cancel();
@@ -595,7 +595,7 @@ public class BrowserActivity extends Activity {
             mSession.close();
         }
         super.onDestroy();
-        Log.e(TAG, "===> BrowserActivity.onDestroy END <===");
+        AppLog.e(TAG, "===> BrowserActivity.onDestroy END <===");
     }
 
     @Override
@@ -642,11 +642,11 @@ public class BrowserActivity extends Activity {
         if (event.getAction() == KeyEvent.ACTION_UP && code == KeyEvent.KEYCODE_BACK && mPopupSession == null) return true;
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             int keyCode = event.getKeyCode();
-            Log.e(TAG, "===> dispatchKeyEvent: " + keyCode + " (" + KeyEvent.keyCodeToString(keyCode) + ") <===");
+            AppLog.e(TAG, "===> dispatchKeyEvent: " + keyCode + " (" + KeyEvent.keyCodeToString(keyCode) + ") <===");
 
             if (mPopupSession != null) {
                 if (keyCode == KeyEvent.KEYCODE_BACK) {
-                    Log.i(TAG, "Closing popup session on BACK key");
+                    AppLog.i(TAG, "Closing popup session on BACK key");
                     GeckoSession s = mPopupSession;
                     mPopupSession = null;
                     mGeckoView.setSession(activeSession());
@@ -659,7 +659,7 @@ public class BrowserActivity extends Activity {
             }
 
             // F1 remains the developer shortcut for the mock timeline.
-            if (keyCode == KeyEvent.KEYCODE_F1) {
+            if (BuildConfig.DEBUG && keyCode == KeyEvent.KEYCODE_F1) {
                 if (mShowingMock) {
                     loadXHome();
                 } else {

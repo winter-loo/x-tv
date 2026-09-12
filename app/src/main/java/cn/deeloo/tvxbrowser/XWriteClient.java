@@ -167,7 +167,7 @@ final class XWriteClient {
     }
     private void finish(Callback callback, JSONObject result, long start) {
         busy = false;
-        android.util.Log.w("TvXWritePerf", "result=" + result.optString("status") + " ms=" + (SystemClock.elapsedRealtime()-start));
+        AppLog.w("TvXWritePerf", "result=" + result.optString("status") + " ms=" + (SystemClock.elapsedRealtime()-start));
         if (!closed) callback.complete(result);
     }
     private static String digest(String text) {

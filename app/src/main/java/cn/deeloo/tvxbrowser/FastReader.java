@@ -115,7 +115,7 @@ final class FastReader extends FrameLayout {
             post(() -> {
                 if (disposed)
                     return;
-                android.util.Log.w(
+                AppLog.w(
                     "TvXReaderPerf", "view ready ms=" + (SystemClock.elapsedRealtime() - started));
                 ready = true;
                 if (queuedCache != null) {
@@ -171,7 +171,7 @@ final class FastReader extends FrameLayout {
                         : kind.endsWith("_reused")          ? "reused"
                                                             : "live";
                     setContentDescription("tvx-reader-" + mode + "-ready");
-                    android.util.Log.w("TvXReaderPerf",
+                    AppLog.w("TvXReaderPerf",
                         mode + " " + stage + " ms=" + (SystemClock.elapsedRealtime() - started));
                     if (stage.equals("live"))
                         listener.rendered();
@@ -193,7 +193,7 @@ final class FastReader extends FrameLayout {
                     if (disposed || !pending.equals(id))
                         return;
                     setContentDescription("tvx-reader-" + kind + "-ready");
-                    android.util.Log.w(
+                    AppLog.w(
                         "TvXReaderPerf", kind + " restored ms=" + (SystemClock.elapsedRealtime() - started));
                 }));
             });

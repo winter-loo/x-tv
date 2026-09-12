@@ -150,7 +150,7 @@ final class XGraphQL {
             } catch (JSONException e) {
                 data = new JSONObject();
             }
-            android.util.Log.w("TvXApiPerf",
+            AppLog.w("TvXApiPerf",
                 operation + " status=" + status + " ms=" + (SystemClock.elapsedRealtime() - started));
             return new Response(status, data);
         } finally {

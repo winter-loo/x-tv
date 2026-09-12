@@ -1,7 +1,6 @@
 package cn.deeloo.tvxbrowser;
 
 import android.app.Application;
-import android.util.Log;
 import org.mozilla.geckoview.GeckoRuntime;
 import org.mozilla.geckoview.GeckoRuntimeSettings;
 
@@ -16,12 +15,12 @@ public class TvXApplication extends Application {
         super.onCreate();
 
         String processName = getProcessName();
-        Log.e(TAG, "===> TvXApplication.onCreate in process: " + processName + " <===");
+        AppLog.e(TAG, "===> TvXApplication.onCreate in process: " + processName + " <===");
 
         // Crucial: Only initialize GeckoRuntime in the main app process.
         // GeckoView's child processes (:gpu, :tab, :crashhelper) also invoke Application.onCreate()!
         if (!getPackageName().equals(processName)) {
-            Log.e(TAG, "Child process [" + processName + "]: skipping GeckoRuntime initialization.");
+            AppLog.e(TAG, "Child process [" + processName + "]: skipping GeckoRuntime initialization.");
             return;
         }
 
@@ -40,12 +39,12 @@ public class TvXApplication extends Application {
         if (sRuntime == null) {
             GeckoRuntimeSettings settings = new GeckoRuntimeSettings.Builder()
                     .javaScriptEnabled(true)
-                    .consoleOutput(true)
+                    .consoleOutput(BuildConfig.DEBUG)
                     .debugLogging(false)
                     .remoteDebuggingEnabled(BuildConfig.DEBUG)
                     .build();
             sRuntime = GeckoRuntime.create(sApplication, settings);
-            Log.i(TAG, "GeckoRuntime created in main process");
+            AppLog.i(TAG, "GeckoRuntime created in main process");
         }
         return sRuntime;
     }

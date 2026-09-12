@@ -138,13 +138,13 @@ final class XReadClient {
                     return;
                 String body = saved.getJSONObject("data").toString();
                 long at = saved.getLong("at");
-                android.util.Log.w("TvXReaderPerf", "home cache decoded");
+                AppLog.w("TvXReaderPerf", "home cache decoded");
                 ui.post(() -> {
                     if (!closed && ticket == generation)
                         callback.complete(body, at);
                 });
             } catch (Exception e) {
-                android.util.Log.w(
+                AppLog.w(
                     "TvXReaderPerf", "home cache unavailable: " + e.getClass().getSimpleName());
             }
         });
@@ -275,7 +275,7 @@ final class XReadClient {
             boolean first = !session.has(slot);
             session.put(slot, copy);
             if (first)
-                android.util.Log.w("TvXReaderPerf", slot + " session ready");
+                AppLog.w("TvXReaderPerf", slot + " session ready");
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(Cipher.ENCRYPT_MODE, key());
             byte[] encrypted = cipher.doFinal(session.toString().getBytes(StandardCharsets.UTF_8));
@@ -403,7 +403,7 @@ final class XReadClient {
                     }
                 }
                 int status = connection.getResponseCode();
-                android.util.Log.w("TvXReaderPerf",
+                AppLog.w("TvXReaderPerf",
                     mode + " headers ms=" + (android.os.SystemClock.elapsedRealtime() - networkStarted)
                         + " status=" + status
                         + " encoding=" + connection.getHeaderField("Content-Encoding"));
@@ -440,7 +440,7 @@ final class XReadClient {
                 if (connection != null)
                     connection.disconnect();
             }
-            android.util.Log.w("TvXReaderPerf",
+            AppLog.w("TvXReaderPerf",
                 mode + " request ms=" + (android.os.SystemClock.elapsedRealtime() - networkStarted)
                     + " result=" + (error == null ? "ok" : error));
             final String data = payload, problem = error;
@@ -478,7 +478,7 @@ final class XReadClient {
             if (closed || ticket != generation || tasks.get(id) != gate) return;
             tasks.remove(id);
             if (info == null || info.has("error") || !matchesCredentials(auth)) {
-                android.util.Log.w("TvXReaderPerf",
+                AppLog.w("TvXReaderPerf",
                     "likes metadata unavailable ms=" + (android.os.SystemClock.elapsedRealtime() - started));
                 callback.complete(null, "not_ready");
                 return;
@@ -517,7 +517,7 @@ final class XReadClient {
                 } finally {
                     tasks.remove(id);
                 }
-                android.util.Log.w("TvXReaderPerf",
+                AppLog.w("TvXReaderPerf",
                     "likes request ms=" + (android.os.SystemClock.elapsedRealtime() - started)
                         + " result=" + (error == null ? "ok" : error));
                 final String data = payload, problem = error;

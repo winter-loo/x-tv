@@ -1,6 +1,5 @@
 package cn.deeloo.tvxbrowser;
 
-import android.util.Log;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mozilla.geckoview.GeckoRuntime;
@@ -105,33 +104,33 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
         if (mExtension != null && mSession != null) {
             try {
                 mSession.getWebExtensionController().setMessageDelegate(mExtension, this, PORT_NAME);
-                Log.e(TAG, "Attached MessageDelegate to GeckoSession");
+                AppLog.e(TAG, "Attached MessageDelegate to GeckoSession");
             } catch (Exception e) {
-                Log.e(TAG, "Failed to attach MessageDelegate to GeckoSession", e);
+                AppLog.e(TAG, "Failed to attach MessageDelegate to GeckoSession", e);
             }
         }
     }
 
     private void initExtension(GeckoRuntime runtime) {
-        Log.e(TAG, "Registering built-in WebExtension: " + EXTENSION_LOCATION);
+        AppLog.e(TAG, "Registering built-in WebExtension: " + EXTENSION_LOCATION);
         runtime.getWebExtensionController()
                 .ensureBuiltIn(EXTENSION_LOCATION, EXTENSION_ID)
                 .then(extension -> {
-                    Log.e(TAG, "WebExtension registered successfully: " + extension.id);
+                    AppLog.e(TAG, "WebExtension registered successfully: " + extension.id);
                     mExtension = extension;
                     mExtension.setMessageDelegate(this, PORT_NAME);
                     if (mSession != null) {
                         try {
                             mSession.getWebExtensionController().setMessageDelegate(mExtension, this, PORT_NAME);
-                            Log.e(TAG, "Attached MessageDelegate to GeckoSession successfully");
+                            AppLog.e(TAG, "Attached MessageDelegate to GeckoSession successfully");
                         } catch (Exception e) {
-                            Log.e(TAG, "Failed to attach MessageDelegate to GeckoSession", e);
+                            AppLog.e(TAG, "Failed to attach MessageDelegate to GeckoSession", e);
                         }
                     }
                     if (mReadyListener != null) { Runnable listener = mReadyListener; mReadyListener = null; listener.run(); }
                     return null;
                 }, throwable -> {
-                    Log.e(TAG, "Failed to ensure built-in WebExtension", throwable);
+                    AppLog.e(TAG, "Failed to ensure built-in WebExtension", throwable);
                     return null;
                 });
     }
@@ -139,7 +138,7 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
     // WebExtension.MessageDelegate
     @Override
     public void onConnect(WebExtension.Port port) {
-        Log.e(TAG, "WebExtension Port connected! Name=" + port.name);
+        AppLog.e(TAG, "WebExtension Port connected! Name=" + port.name);
         mPort = port;
         mPort.setDelegate(this);
 
@@ -165,7 +164,7 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
 
     @Override
     public void onDisconnect(WebExtension.Port port) {
-        Log.w(TAG, "WebExtension Port disconnected!");
+        AppLog.w(TAG, "WebExtension Port disconnected!");
         if (mPort == port) {
             mPort = null;
             finishMetadata(null);
@@ -197,13 +196,13 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
                 String pageType = json.optString("pageType", "unknown");
                 boolean hasOverlay = json.optBoolean("hasOverlay", false);
                 boolean canBack = json.optBoolean("canBack", false);
-                Log.i(TAG, "State update: pageType=" + pageType + ", hasOverlay=" + hasOverlay + ", canBack=" + canBack);
+                AppLog.i(TAG, "State update: pageType=" + pageType + ", hasOverlay=" + hasOverlay + ", canBack=" + canBack);
                 if (mStateListener != null) {
                     mStateListener.onPageStateChanged(pageType, hasOverlay, canBack);
                 }
             } else if ("backResult".equals(event)) {
                 boolean handled = json.optBoolean("handled", false);
-                Log.i(TAG, "Back result received: handled=" + handled);
+                AppLog.i(TAG, "Back result received: handled=" + handled);
                 if (mPendingBackCallback != null) {
                     BackResultCallback cb = mPendingBackCallback;
                     mPendingBackCallback = null;
@@ -212,15 +211,15 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
             } else if ("request_tap".equals(event)) {
                 int x = json.optInt("x", -1);
                 int y = json.optInt("y", -1);
-                Log.i(TAG, "===> request_tap received for coordinates: (" + x + ", " + y + ")");
+                AppLog.i(TAG, "===> request_tap received for coordinates: (" + x + ", " + y + ")");
                 if (mTapListener != null && x >= 0 && y >= 0) {
                     mTapListener.onTapRequested(x, y);
                 }
             } else {
-                Log.i(TAG, "Received extension event: " + event);
+                AppLog.i(TAG, "Received extension event: " + event);
             }
         } catch (Exception e) {
-            Log.e(TAG, "Error handling extension message", e);
+            AppLog.e(TAG, "Error handling extension message", e);
         }
     }
 
@@ -238,7 +237,7 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
 
     public void sendBack(BackResultCallback callback) {
         if (mPort == null) {
-            Log.w(TAG, "Port not connected when sending back command");
+            AppLog.w(TAG, "Port not connected when sending back command");
             callback.onResult(false);
             return;
         }
@@ -252,7 +251,7 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
 
     public void sendCommand(String command, String param) {
         if (mPort == null) {
-            Log.w(TAG, "Cannot send command '" + command + "', port is null.");
+            AppLog.w(TAG, "Cannot send command '" + command + "', port is null.");
             return;
         }
         try {
@@ -261,10 +260,10 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
             if (param != null) {
                 msg.put("direction", param);
             }
-            Log.e(TAG, "===> Sending command to extension: " + msg.toString() + " <===");
+            AppLog.e(TAG, "===> Sending command to extension: " + msg.toString() + " <===");
             mPort.postMessage(msg);
         } catch (JSONException e) {
-            Log.e(TAG, "Failed to create command JSON", e);
+            AppLog.e(TAG, "Failed to create command JSON", e);
         }
     }
 }
