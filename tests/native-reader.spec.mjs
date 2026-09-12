@@ -384,8 +384,7 @@ test('a complete API long note opens immediately while comments load separately'
     await receive(page, 'r0', payload([tweet(
                                   '101', 'Truncated legacy field', '',
                                   {note_tweet: {note_tweet_results: {result: {text: full}}}})]));
-    // The note is long, so the first confirm reads it full screen.
-    await key(page, 'ok');
+    // Even a long note opens detail on the first confirm.
     await key(page, 'ok');
     await expect(page.locator('.detail-post .text').first()).toHaveText(full.trim());
     await expect(page.locator('.comment-list')).toContainText('正在加载评论');

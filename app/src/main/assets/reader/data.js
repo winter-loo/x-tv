@@ -13,12 +13,33 @@ function https(value) {
         return '';
     }
 }
+function profileText(value) {
+    return typeof value === 'string' ? value : '';
+}
 function user(tweet) {
-    var u = at(tweet, 'core.user_results.result') || {};
+    if (!tweet) return {name: '', handle: '', avatar: ''};
+    var u = at(tweet, 'core.user_results.result') || tweet.user || tweet;
+    var legacy = u.legacy || (u.screen_name ? u : {});
+    var urlEntry = (at(u, 'profile_bio.entities.url.urls') || at(legacy, 'entities.url.urls') || [])[0];
+    var userUrl = urlEntry ? (urlEntry.expanded_url || urlEntry.url || '') : (at(u, 'website.url') || legacy.url || '');
+    var urlDisplay = urlEntry && urlEntry.display_url ? urlEntry.display_url : (userUrl ? linkText(userUrl) : '');
     return {
-        name: at(u, 'core.name') || at(u, 'legacy.name') || '',
-        handle: at(u, 'core.screen_name') || at(u, 'legacy.screen_name') || '',
-        avatar: https(at(u, 'avatar.image_url') || at(u, 'legacy.profile_image_url_https') || '')
+        id: u.rest_id || u.id || '',
+        name: at(u, 'core.name') || legacy.name || u.name || '',
+        handle: at(u, 'core.screen_name') || legacy.screen_name || u.handle || '',
+        avatar: https(at(u, 'avatar.image_url') || legacy.profile_image_url_https || u.avatar || ''),
+        banner: https(at(u, 'banner.image_url') || legacy.profile_banner_url || profileText(u.banner)),
+        bio: decode(profileText(at(u, 'profile_bio.description')) || profileText(legacy.description) || profileText(u.bio)),
+        verified: !!(u.is_blue_verified || legacy.verified || u.verified),
+        followersCount: count(legacy.followers_count != null ? legacy.followers_count : (at(u, 'relationship_counts.followers') != null ? at(u, 'relationship_counts.followers') : u.followersCount)),
+        followingCount: count(legacy.friends_count != null ? legacy.friends_count : (at(u, 'relationship_counts.following') != null ? at(u, 'relationship_counts.following') : u.followingCount)),
+        postsCount: count(legacy.statuses_count != null ? legacy.statuses_count : (at(u, 'tweet_counts.tweets') != null ? at(u, 'tweet_counts.tweets') : u.postsCount)),
+        location: profileText(legacy.location) || profileText(at(u, 'location.location')) || profileText(u.location),
+        url: userUrl,
+        urlDisplay: urlDisplay,
+        joined: profileText(at(u, 'core.created_at')) || profileText(legacy.created_at) || profileText(u.joined),
+        following: typeof at(u, 'relationship_perspectives.following') === 'boolean' ? u.relationship_perspectives.following : typeof legacy.following === 'boolean' ? legacy.following : (typeof u.following === 'boolean' ? u.following : false),
+        followedBy: typeof legacy.followed_by === 'boolean' ? legacy.followed_by : (typeof u.followedBy === 'boolean' ? u.followedBy : false)
     };
 }
 function host(value) {

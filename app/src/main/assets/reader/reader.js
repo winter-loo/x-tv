@@ -37,7 +37,9 @@ function otherList() {
     return state.mode === 'likes' ? 'home' : 'likes';
 }
 function current() {
-    return listMode() ? state.posts[state.index] : state.root;
+    if (listMode()) return state.posts[state.index];
+    if (state.mode === 'author') return state.posts[state.index] || null;
+    return state.root;
 }
 /** Recent posts read better as an age; older ones need a date, and another year needs the year. */
 function timeLabel(created) {
@@ -66,10 +68,22 @@ function timeHtml(post, detail) {
     var label = detail ? fullTime(post.created) : timeLabel(post.created);
     return label ? '<span class="time">' + esc(label) + '</span>' : '';
 }
+function verifiedBadge() {
+    return '<span class="verified-badge" aria-label="认证用户" title="认证用户">' +
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><g><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.15.46-1.39.2-2.97-.81-3.99s-2.6-1.27-3.99-.81C14.78 2.74 13.54 1.86 12.11 1.86s-2.67.88-3.15 2.19c-1.39-.46-2.97-.2-3.99.81s-1.27 2.6-.81 3.99C2.85 9.33 1.97 10.57 1.97 12s.88 2.67 2.19 3.15c-.46 1.39-.2 2.97.81 3.99s2.6 1.27 3.99.81c.48 1.31 1.72 2.19 3.15 2.19s2.67-.88 3.15-2.19c1.39.46 2.97.2 3.99-.81s1.27-2.6.81-3.99c1.31-.48 2.19-1.72 2.19-3.15z" fill="#1d9bf0"></path><path d="M10.09 15.59L6.5 12l1.41-1.41 2.18 2.18 5.6-5.6 1.41 1.41-7.01 7.01z" fill="#ffffff"></path></g></svg></span>';
+}
+function formatJoined(dateStr) {
+    var d = Date.parse(dateStr || '');
+    if (isNaN(d)) return dateStr || '';
+    var dt = new Date(d);
+    return dt.getFullYear() + ' 年 ' + (dt.getMonth() + 1) + ' 月加入';
+}
 function author(post, detail) {
-    return '<div class="author">' +
+    return '<div class="author" role="button" tabindex="-1">' +
         (post.author.avatar ? '<img class="avatar" src="' + esc(post.author.avatar) + '" alt="">' : '') +
-        '<div class="author-meta"><div class="name">' + esc(post.author.name) + '</div><div class="handle">@' +
+        '<div class="author-meta"><div class="name">' + esc(post.author.name) +
+        (post.author.verified ? verifiedBadge() : '') +
+        '</div><div class="handle">@' +
         esc(post.author.handle) + timeHtml(post, detail) + '</div></div></div>';
 }
 function mediaIndex(post) {
@@ -108,14 +122,16 @@ function stats(post) {
     return row ? '<div class="stats">' + row + '</div>' : '';
 }
 function statIcon(kind) {
-    var paths = {
-        comments: 'M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-7l-5 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z',
-        like: 'M12 21 3.5 12.5C-2 6.5 6 0 12 6c6-6 14 .5 8.5 6.5z',
-        views: 'M4 20V10m5 10V3m6 17v-7m5 7V7'
+    var icons = {
+        comments: '<path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-7l-5 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>',
+        like: '<path d="M12 21 3.5 12.5C-2 6.5 6 0 12 6c6-6 14 .5 8.5 6.5z"></path>',
+        views: '<path d="M4 20V10m5 10V3m6 17v-7m5 7V7"></path>',
+        follow: '<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line>',
+        author: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle>'
     };
     return '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor"' +
-        ' stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="' +
-        paths[kind] + '"></path></svg>';
+        ' stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
+        (icons[kind] || '') + '</svg>';
 }
 function linkIcon() {
     return '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor"' +
@@ -142,6 +158,7 @@ function activateAction() {
     if (item.action === 'external') { openExternal(item.link); return; }
     if (item.action === 'tweet_link') { open(item.post); return; }
     if (item.action === 'like') { toggleLike(post); return; }
+    if (item.action === 'author') { openAuthor(item.author || post.author); return; }
     if (pendingWrite) { notice('上一项操作正在完成…'); return; }
     var id = 'w' + (++writeSequence);
     pendingWrite = {id: id, postId: post.id};
@@ -361,6 +378,24 @@ function writeMessage(status) {
 function writeResult(id, postId, result) {
     var op = likeOps[postId];
     if (op && op.sending === id) { likeResult(postId, id, result); return; }
+    if (pendingFollow && pendingFollow.id === id) {
+        var pf = pendingFollow;
+        pendingFollow = null;
+        if (result && result.status === 'ok') {
+            var finalFollowing = typeof result.following === 'boolean' ? result.following : pf.desired;
+            applyFollow(pf.targetId || pf.handle, finalFollowing);
+            notice(finalFollowing ? '已关注 @' + pf.handle : '已取消关注 @' + pf.handle);
+        } else {
+            applyFollow(pf.targetId || pf.handle, !pf.desired);
+            notice(writeMessage(result ? result.status : 'failed'));
+        }
+        return;
+    }
+    if (result && typeof result.following === 'boolean') {
+        applyFollow(result.handle || result.targetId || postId, result.following);
+        notice(result.following ? '已关注' : '已取消关注');
+        return;
+    }
     if (!pendingWrite || pendingWrite.id !== id || pendingWrite.postId !== postId) return;
     pendingWrite = null;
     if (result.status === 'ok') {
@@ -390,6 +425,12 @@ function writeResult(id, postId, result) {
 function preserveWrites(data, requestedAt) {
     [data.root].concat(data.posts || []).forEach(function(post) {
         if (!post) return;
+        if (post.author) {
+            var idKey = String(post.author.id || '').toLowerCase();
+            var handleKey = String(post.author.handle || '').toLowerCase();
+            if (idKey && followedAuthors.hasOwnProperty(idKey)) post.author.following = followedAuthors[idKey];
+            else if (handleKey && followedAuthors.hasOwnProperty(handleKey)) post.author.following = followedAuthors[handleKey];
+        }
         var change = written[post.id];
         if (!change) return;
         // A like still being coordinated outranks any read, however fresh that read looks.
@@ -531,19 +572,46 @@ function embeddedPostActions(post) {
 }
 function openActions() {
     var post = current();
+    if (!post && state.mode === 'author') {
+        post = {
+            id: (state.author && state.author.id) || '0',
+            path: state.author ? '/' + state.author.handle : '',
+            author: state.author,
+            liked: false,
+            likes: 0,
+            replies: 0,
+            views: null,
+            media: [],
+            links: state.author && state.author.url ? [{url: state.author.url, title: state.author.name, domain: state.author.urlDisplay || host(state.author.url)}] : []
+        };
+    }
     if (!post || actionMenu) return;
     saveScroll();
     if (state.mode === 'home') state.interacted = true;
-    var items = [
-        {label: post.liked ? '取消喜欢' : '喜欢', icon: 'like', path: post.path, action: 'like'},
-        {label: '写评论', icon: 'comments', path: post.path, action: 'reply'}
-    ];
-    embeddedPostActions(post).forEach(function(item) {
-        items.push(item);
-    });
+    var items = [];
+    if (post.id && post.id !== '0') {
+        items.push({label: post.liked ? '取消喜欢' : '喜欢', icon: 'like', path: post.path, action: 'like'});
+        items.push({label: '写评论', icon: 'comments', path: post.path, action: 'reply'});
+    }
+    if (post.author) {
+        if (state.mode !== 'author') {
+            items.push({
+                label: '查看作者',
+                icon: 'author',
+                action: 'author',
+                author: post.author
+            });
+        }
+    }
+    if (post.id && post.id !== '0') {
+        embeddedPostActions(post).forEach(function(item) {
+            items.push(item);
+        });
+    }
     (post.links || []).forEach(function(link) {
         items.push({label: link.title, domain: link.domain, link: link, action: 'external'});
     });
+    if (!items.length) return;
     var node = document.createElement('div');
     node.className = 'action-overlay';
     node.innerHTML = '<section class="action-dialog" role="dialog" aria-modal="true" aria-labelledby="action-title">' +
@@ -605,6 +673,7 @@ function postHtml(post, detail) {
 }
 /** Reading mode is a property of the scene, so leaving and coming back finds it as it was. */
 function enterFull() {
+    if (state.mode !== 'detail') return;
     state.full = true;
     state.postY = 0;
     render();
@@ -615,7 +684,239 @@ function leaveFull() {
     clearGuide();
     render();
 }
+var pendingFollow = null, followedAuthors = {};
+function applyFollow(identifier, following) {
+    if (!identifier) return;
+    var idStr = String(identifier).toLowerCase();
+    followedAuthors[idStr] = following;
+    scenes().forEach(function(scene) {
+        if (scene.author) {
+            var aid = String(scene.author.id || '').toLowerCase();
+            var ahandle = String(scene.author.handle || '').toLowerCase();
+            if ((aid && aid === idStr) || (ahandle && ahandle === idStr)) {
+                scene.author.following = following;
+            }
+        }
+        (scene.posts || []).forEach(function(post) {
+            if (post.author) {
+                var pid = String(post.author.id || '').toLowerCase();
+                var phandle = String(post.author.handle || '').toLowerCase();
+                if ((pid && pid === idStr) || (phandle && phandle === idStr)) {
+                    post.author.following = following;
+                }
+            }
+        });
+        if (scene.root && scene.root.author) {
+            var rid = String(scene.root.author.id || '').toLowerCase();
+            var rhandle = String(scene.root.author.handle || '').toLowerCase();
+            if ((rid && rid === idStr) || (rhandle && rhandle === idStr)) {
+                scene.root.author.following = following;
+            }
+        }
+    });
+    render();
+}
+function toggleFollow(targetAuthor) {
+    if (!targetAuthor) return;
+    var desired = !targetAuthor.following;
+    var id = 'w' + (++writeSequence);
+    var targetId = targetAuthor.id || targetAuthor.handle || '0';
+    var handle = targetAuthor.handle || '';
+
+    applyFollow(targetAuthor.id || targetAuthor.handle, desired);
+    notice(desired ? '正在关注 @' + handle + '…' : '正在取消关注 @' + handle + '…');
+    pendingFollow = {id: id, targetId: targetId, desired: desired, handle: handle};
+
+    if (window.ReaderHost && typeof window.ReaderHost.write === 'function') {
+        ReaderHost.write(id, targetId, 'follow', desired, handle);
+    }
+}
+function findAuthorPosts(authorData) {
+    var posts = [], seen = new Set();
+    function matches(p) {
+        if (!p || !p.author) return false;
+        if (authorData.id && p.author.id && String(authorData.id) === String(p.author.id)) return true;
+        if (authorData.handle && p.author.handle && authorData.handle.toLowerCase() === p.author.handle.toLowerCase()) return true;
+        return false;
+    }
+    function add(p) {
+        if (!p || !p.id || seen.has(p.id)) return;
+        if (matches(p)) {
+            seen.add(p.id);
+            posts.push(p);
+        }
+    }
+    if (state.root) add(state.root);
+    (state.posts || []).forEach(add);
+    (homeScene.posts || []).forEach(add);
+    if (likesScene) (likesScene.posts || []).forEach(add);
+    stack.forEach(function(s) {
+        if (s.root) add(s.root);
+        (s.posts || []).forEach(add);
+    });
+    return posts;
+}
+function openAuthor(authorData) {
+    if (!authorData) return;
+    saveScroll();
+    stack.push(state);
+    var authorPosts = findAuthorPosts(authorData);
+    state = {
+        mode: 'author',
+        author: authorData,
+        posts: authorPosts,
+        index: 0,
+        region: 'bio'
+    };
+    render();
+}
+function authorPageHtml(authorData, posts) {
+    var isFollowing = !!authorData.following;
+    var followBtnClass = 'author-follow-btn' + (isFollowing ? ' following' : '') + (state.region === 'bio' ? ' focus' : '');
+    var followBtnText = isFollowing ? '已关注' : '关注';
+
+    var metaItems = [];
+    if (authorData.location) {
+        metaItems.push('<span class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg><span>' + esc(authorData.location) + '</span></span>');
+    }
+    if (authorData.url || authorData.urlDisplay) {
+        metaItems.push('<span class="meta-item author-link" role="button" tabindex="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"></path><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"></path></svg><span>' + esc(authorData.urlDisplay || authorData.url) + '</span></span>');
+    }
+    if (authorData.joined) {
+        metaItems.push('<span class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg><span>' + esc(formatJoined(authorData.joined)) + '</span></span>');
+    }
+
+function formatCount(value) {
+    if (typeof value === 'number') return value.toLocaleString('en-US');
+    if (typeof value === 'string' && /^\d+$/.test(value)) return Number(value).toLocaleString('en-US');
+    return value == null ? '' : String(value);
+}
+    var statsHtml = '';
+    if (authorData.followingCount != null || authorData.followersCount != null) {
+        statsHtml = '<div class="author-stats-row">' +
+            (authorData.followingCount != null ? '<span class="stat-group"><b>' + esc(formatCount(authorData.followingCount)) + '</b> <span class="label">正在关注</span></span>' : '') +
+            (authorData.followersCount != null ? '<span class="stat-group"><b>' + esc(formatCount(authorData.followersCount)) + '</b> <span class="label">关注者</span></span>' : '') +
+            '</div>';
+    }
+
+    var postsCountText = authorData.postsCount != null ? esc(formatCount(authorData.postsCount)) + ' 篇帖子' : '';
+
+    var profileHtml = '<div class="author-profile' + (state.region === 'bio' ? ' bio-selected' : '') + '">' +
+        '<div class="author-info">' +
+            '<div class="author-header-row">' +
+                '<div class="author-avatar-wrap">' +
+                    (authorData.avatar ? '<img class="author-avatar" src="' + esc(authorData.avatar) + '" alt="">' : '<div class="author-avatar placeholder"></div>') +
+                '</div>' +
+                '<button type="button" class="' + followBtnClass + '">' + esc(followBtnText) + '</button>' +
+            '</div>' +
+            '<div class="author-names">' +
+                '<div class="author-display-name">' + esc(authorData.name) + (authorData.verified ? verifiedBadge() : '') + '</div>' +
+                '<div class="author-handle">@' + esc(authorData.handle) + (postsCountText ? ' · ' + postsCountText : '') + '</div>' +
+            '</div>' +
+            '<div class="author-bio">' + (authorData.bio ? esc(authorData.bio) : '作者暂未提供简介') + '</div>' +
+            (metaItems.length ? '<div class="author-meta-row">' + metaItems.join('') + '</div>' : '') +
+            statsHtml +
+        '</div>' +
+    '</div>';
+
+    var postsHtml = '<section class="author-posts-panel"><div class="author-posts-heading">已加载的帖子 <span>' + posts.length + ' 条</span></div><div class="author-posts-list">';
+    if (posts.length) {
+        postsHtml += posts.map(function(p, i) {
+            var isSelected = state.region === 'posts' && state.index === i;
+            return '<div class="author-post-card' + (isSelected ? ' selected focus' : '') + '" data-index="' + i + '">' +
+                '<div class="author-post-inner">' +
+                    author(p, false) +
+                    '<div class="body">' + text(p) + '</div>' +
+                    (p.media && p.media.length ? '<div class="post-media-preview"><img src="' + esc(p.media[0].image) + '" alt="">' + (p.media.length > 1 ? '<span class="media-badge">+' + (p.media.length - 1) + '</span>' : '') + '</div>' : '') +
+                    stats(p) +
+                '</div>' +
+            '</div>';
+        }).join('');
+    } else {
+        postsHtml += '<div class="author-posts-empty">尚未加载该作者的帖子</div>';
+    }
+    postsHtml += '</div></section>';
+
+    return '<div class="author-page">' + profileHtml + postsHtml + '</div>';
+}
+function bindAuthorClicks() {
+    var authors = stage.querySelectorAll('.author[role="button"]');
+    for (var i = 0; i < authors.length; i++) (function(el) {
+        el.onclick = function(event) {
+            event.stopPropagation();
+            var card = el.closest('.author-post-card, .comment, .post');
+            var authorData = null;
+            if (card && card.classList.contains('author-post-card')) {
+                var idx = Number(card.getAttribute('data-index'));
+                if (state.posts[idx]) authorData = state.posts[idx].author;
+            } else if (card && card.classList.contains('comment')) {
+                var cIdx = Number(card.getAttribute('data-index'));
+                if (state.posts[cIdx]) authorData = state.posts[cIdx].author;
+            } else {
+                var post = current();
+                if (post) authorData = post.author;
+            }
+            if (authorData) openAuthor(authorData);
+        };
+    })(authors[i]);
+}
+function bindAuthorPageEvents() {
+    var followBtn = stage.querySelector('.author-follow-btn');
+    if (followBtn) {
+        followBtn.onclick = function(e) {
+            e.stopPropagation();
+            toggleFollow(state.author);
+        };
+    }
+    var linkBtn = stage.querySelector('.author-link');
+    if (linkBtn && state.author && state.author.url) {
+        linkBtn.onclick = function(e) {
+            e.stopPropagation();
+            openExternal({url: state.author.url, title: state.author.name, domain: state.author.urlDisplay || host(state.author.url)});
+        };
+    }
+    var postCards = stage.querySelectorAll('.author-post-card');
+    for (var i = 0; i < postCards.length; i++) (function(idx) {
+        postCards[idx].onclick = function() {
+            state.region = 'posts';
+            state.index = idx;
+            open(state.posts[idx]);
+        };
+        postCards[idx].oncontextmenu = function(e) {
+            e.preventDefault();
+            state.region = 'posts';
+            state.index = idx;
+            openActions();
+        };
+    })(i);
+}
 function render() {
+    if (state.mode === 'author') {
+        var authorData = state.author;
+        document.body.classList.remove('reading');
+        notice('');
+        var freshness = document.getElementById('freshness'), refresh = document.getElementById('refresh');
+        refresh.hidden = true;
+        freshness.textContent = '';
+        title.innerHTML = '← ' + esc(authorData.name) + (authorData.verified ? verifiedBadge() : '');
+        document.getElementById('position').textContent = state.posts.length ?
+            (state.region === 'bio' ? '作者简介' : (state.index + 1) + ' / ' + state.posts.length) : '作者简介';
+        stage.innerHTML = authorPageHtml(authorData, state.posts);
+        help.textContent = state.region === 'bio' ?
+            ('确认 ' + (authorData.following ? '取消关注' : '关注') + (state.posts.length ? '　 → 查看帖子　 ↑↓ 滚动简介' : '') + '　 返回 上一层') :
+            ('↑↓ 浏览帖子' + (state.index === 0 ? ' (← 作者资料)' : '') + '　 确认 查看详情　 菜单 更多操作　 返回 上一层');
+        bindAuthorPageEvents();
+        bindAuthorClicks();
+        var card = stage.querySelector('.author-post-card.selected');
+        if (card && state.region === 'posts') {
+            card.scrollIntoView({behavior: 'auto', block: 'nearest'});
+        } else if (state.region === 'bio') {
+            var pageNode = stage.querySelector('.author-page');
+            if (pageNode) pageNode.scrollTop = 0;
+        }
+        clearGuide();
+        return;
+    }
     var post = current();
     if (post && post.id) markSeen(post.id);
     document.body.classList.toggle('reading', !!state.full);
@@ -652,13 +953,12 @@ function render() {
         return;
     }
     if (listMode()) {
-        stage.innerHTML = postHtml(post, false) + (state.full ? '' : media(post));
+        stage.innerHTML = postHtml(post, false) + media(post);
         help.textContent = state.region === 'media' ?
             TvXMedia.prompt(post.media[mediaIndex(post)]) +
                 (post.media.length > 1 ? '　 ←→ 切换媒体' : '　 ← 返回正文') + '　 ↑↓ 切换帖子' :
-            state.full ? '↑↓ 滚动浏览　 确认 帖子详情' + (post.media.length ? '　 → 查看媒体' : '') + '　 菜单 更多操作　 返回 退出全屏' :
-                         '↑↓ 切换帖子　 ← ' + listLabel(otherList()) + '　 顶部 ↑ 刷新　 确认 ' +
-                (readsFull() ? '全屏阅读' : '帖子详情') + (post.media.length ? '　 → 查看媒体' : '') + '　 菜单 更多操作';
+            '↑↓ 切换帖子　 ← ' + listLabel(otherList()) + '　 顶部 ↑ 刷新　 确认 帖子详情' +
+                (post.media.length ? '　 → 查看媒体' : '') + '　 菜单 更多操作';
     } else {
         var comments = state.posts
                            .map(function(comment, i) {
@@ -682,13 +982,14 @@ function render() {
         help.textContent = state.full ?
             '↑↓ 滚动浏览　 确认 查看媒体　 菜单 更多操作　 返回 退出全屏' :
             ((state.region === 'post' ?
-                '↑↓ 阅读正文　 ← 返回　 → 评论　 确认 ' + (readsFull() ? '全屏阅读' : '查看媒体') + '　 菜单 更多操作' :
+                '↑↓ 阅读正文　 ← 返回　 → 评论　 确认 全屏阅读　 菜单 更多操作' :
                 '↑↓ 阅读评论　 确认 打开评论　 ← 正文　 菜单 更多操作') +
             '　 返回 上一层');
     }
     bindLinkCards(post);
     bindCommentMore();
     bindMediaPane(post);
+    bindAuthorClicks();
     stopScrolling();
     if (state.full) {
         var postNode = stage.querySelector('.post-content') || stage.querySelector('.post');
@@ -971,15 +1272,6 @@ function bindCommentMore() {
 function clipped(body) {
     return !!body && body.scrollHeight - body.clientHeight > 1;
 }
-/**
- * Confirm reads a long post full screen. A post that already fits needs no reading mode, and an
- * excerpt X has not sent in full has nothing more to show until the detail fetches it — both keep
- * confirm as it was.
- */
-function readsFull() {
-    var post = current();
-    return !state.full && !!post && post.complete && clipped(stage.querySelector('.body'));
-}
 function markTruncated(post, body) {
     var slot = stage.querySelector('.more-slot');
     if (!slot || !body) return;
@@ -997,6 +1289,7 @@ function saveScroll() {
     state.postY = pendingScroll(stage.querySelector('.post-content') || stage.querySelector('.post'));
     state.bodyY = pendingScroll(stage.querySelector('.body'));
     state.commentsY = pendingScroll(stage.querySelector('.comment-list'));
+    state.authorY = pendingScroll(stage.querySelector('.author-page'));
 }
 /**
  * Claims the scene's single request slot. A refresh the reader has walked away from is forgotten
@@ -1421,7 +1714,59 @@ function key(key) {
     }
     if (key === 'menu') {
         if (post) openActions();
+        else if (state.mode === 'author') openActions();
         else ReaderHost.browser(state.path || '/home', 'menu');
+        return;
+    }
+    if (state.mode === 'author') {
+        if (key === 'left' && state.region === 'posts') {
+            state.region = 'bio'; render(); return;
+        }
+        if (key === 'right' && state.region === 'bio' && state.posts.length) {
+            state.region = 'posts'; render(); return;
+        }
+        if ((key === 'up' || key === 'down') && state.region === 'bio') {
+            var info = stage.querySelector('.author-info');
+            if (info && (key === 'up' ? info.scrollTop > 0 : info.scrollTop + info.clientHeight < info.scrollHeight - 2)) {
+                info.scrollTop += (key === 'up' ? -1 : 1) * info.clientHeight * .65;
+                return;
+            }
+        }
+        if (key === 'up') {
+            if (state.region === 'posts') {
+                if (state.index > 0) {
+                    state.index--;
+                    render();
+                } else {
+                    state.region = 'bio';
+                    render();
+                }
+            }
+            return;
+        }
+        if (key === 'down') {
+            if (state.region === 'bio') {
+                if (state.posts.length > 0) {
+                    state.region = 'posts';
+                    state.index = 0;
+                    render();
+                }
+            } else if (state.region === 'posts') {
+                if (state.index < state.posts.length - 1) {
+                    state.index++;
+                    render();
+                }
+            }
+            return;
+        }
+        if (key === 'ok') {
+            if (state.region === 'bio') {
+                toggleFollow(state.author);
+            } else if (state.region === 'posts' && state.posts[state.index]) {
+                open(state.posts[state.index]);
+            }
+            return;
+        }
         return;
     }
     if (state.error && key === 'ok') {
@@ -1447,23 +1792,6 @@ function key(key) {
     saveScroll();
     if (listMode()) {
         state.interacted = true;
-        if (state.full) {
-            if (key === 'up' || key === 'down') {
-                var delta = key === 'down' ? 1 : -1;
-                pageScroll(activeScrollNode(), delta);
-                return;
-            }
-            if (key === 'right' && post.media.length) {
-                showMedia();
-                return;
-            }
-            if (key === 'ok') {
-                open(post);
-                return;
-            }
-            return;
-        }
-
         if (key === 'up' && state.index === 0 && state.region === 'post') {
             refreshList();
             return;
@@ -1511,8 +1839,6 @@ function key(key) {
         if (key === 'ok') {
             if (state.region === 'media')
                 showMedia();
-            else if (readsFull())
-                enterFull();
             else
                 open(post);
         }
@@ -1544,10 +1870,8 @@ function key(key) {
         }
         if (state.region === 'comments')
             open(state.posts[state.comment]);
-        else if (readsFull())
-            enterFull();
         else
-            showMedia();
+            enterFull();
         return;
     }
     if (key === 'up' || key === 'down') {
@@ -1581,6 +1905,10 @@ document.getElementById('refresh').onclick = function() {
 document.getElementById('title').onclick = function() {
     if (!listMode() && !actionMenu && !TvXMedia.isOpen() && !external) back();
 };
+window.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    openActions();
+});
 window.TvXReader = {
     receive: receive,
     key: key,
@@ -1594,7 +1922,9 @@ window.TvXReader = {
     writeResult: writeResult,
     drawGuideComet: drawGuideComet,
     drawIdleGuide: drawIdleGuide,
-    clearGuide: clearGuide
+    clearGuide: clearGuide,
+    openAuthor: openAuthor,
+    toggleFollow: toggleFollow
 };
 render();
 ReaderHost.ready();

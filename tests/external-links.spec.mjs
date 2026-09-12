@@ -229,7 +229,7 @@ test('a post with no links shows only the write actions', async ({page}) => {
     await mount(page);
     await page.evaluate(data => TvXReader.receive('r0', data, ''), payload([post('101', 'No links')]));
     await key(page, 'menu');
-    await expect(page.locator('.action-options button')).toHaveCount(2);
+    await expect(page.locator('.action-options button')).toHaveCount(3);
     await expect(page.locator('.action-options button.external')).toHaveCount(0);
 });
 
@@ -283,6 +283,7 @@ async function openFirstLink(page) {
     await key(page, 'menu');
     await key(page, 'down');
     await key(page, 'down');
+    await key(page, 'down');
     await key(page, 'ok');
 }
 
@@ -333,6 +334,7 @@ test('returning to the timeline restores the selected post and its reading posit
     await key(page, 'menu');
     await key(page, 'down');
     await key(page, 'down');
+    await key(page, 'down');
     await key(page, 'ok');
     expect(await calls(page, 'openExternal')).toEqual([['openExternal', 'https://github.com/a/b']]);
     await page.evaluate(() => TvXReader.externalClosed());
@@ -357,6 +359,7 @@ test('returning to a detail restores the post, the comment focus and both scroll
     await key(page, 'down');
     await expect(page.locator('.comment.selected')).toContainText('Second reply');
     await key(page, 'menu');
+    await key(page, 'down');
     await key(page, 'down');
     await key(page, 'down');
     await key(page, 'ok');

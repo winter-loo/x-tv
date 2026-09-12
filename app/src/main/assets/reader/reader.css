@@ -80,3 +80,47 @@ body.reading .post-content .media{flex:none;width:100%;min-height:25vh;max-heigh
 body.reading .post-content .media img{max-width:100%;max-height:52vh;object-fit:contain}
 body.reading .post .stats{flex:none;min-height:6vh;padding:1.2vh 2.2vw 1.2vh;display:flex;align-items:center;border-top:1px solid rgba(87,158,210,.16);background:rgba(9,13,20,.98);z-index:5}
 body.reading .comments{display:none}
+
+.verified-badge{display:inline-flex;align-items:center;margin-left:.4vw;vertical-align:middle}
+.verified-badge svg{width:1.5vw;height:1.5vw}
+/* TV profile: stable identity at left, independently scrolling posts at right. */
+.author-page{width:100%;height:100%;min-height:0;display:grid;grid-template-columns:36% minmax(0,1fr);gap:3vw;padding:.6vh .7vw;overflow:hidden}
+.author-profile{min-height:0;min-width:0;border-right:1px solid #344153;padding:1.5vh 2.6vw 1.5vh .8vw}
+.author-info{height:100%;overflow-y:auto;scrollbar-width:none;padding:.6vh .5vw}
+.author-header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:2.5vh;gap:1vw}
+.author-avatar-wrap{width:6vw;height:6vw;border-radius:50%;background:#233144;overflow:hidden;flex:none}
+.author-avatar{width:100%;height:100%;object-fit:cover}
+.author-follow-btn{min-width:8vw;min-height:5.6vh;padding:.8vh 1.4vw;border-radius:.5vw;font:inherit;font-size:1.55vw;font-weight:700;border:1px solid #b8c8da;background:#eff3f4;color:#0f1419;cursor:pointer}
+.author-follow-btn.following{background:transparent;color:#eff3f4}
+.author-follow-btn.focus,.author-follow-btn:focus{outline:3px solid #8bc8f5;outline-offset:4px}
+.author-names{margin-bottom:2.5vh;overflow-wrap:break-word;word-break:break-word}
+.author-display-name{font-size:2.1vw;font-weight:700;color:#f7f9f9}
+.author-handle{font-size:1.4vw;color:#adbbcc;margin-top:.7vh}
+.author-bio{font-size:1.5vw;line-height:1.5;color:#e8ebed;white-space:pre-wrap;overflow-wrap:break-word;word-break:break-word;margin-bottom:2.5vh}
+.author-meta-row{display:flex;flex-direction:column;align-items:flex-start;gap:1.3vh;font-size:1.4vw;color:#adbbcc;margin-bottom:2.5vh;overflow-wrap:break-word;word-break:break-word}
+.meta-item{display:inline-flex;align-items:center;gap:.6vw;max-width:100%}
+.meta-item svg{width:1.5vw;height:1.5vw;flex:none}
+.author-link{color:#8bc8f5;cursor:pointer}
+.author-stats-row{display:flex;flex-wrap:wrap;gap:1.5vw;font-size:1.45vw;color:#adbbcc;padding-top:1.8vh;border-top:1px solid #344153}
+.author-stats-row b{color:#f7f9f9}
+.author-posts-panel{min-width:0;min-height:0;display:flex;flex-direction:column}
+.author-posts-heading{font-size:1.65vw;font-weight:700;padding:1.6vh .5vw 2vh}
+.author-posts-heading span{font-size:1.35vw;color:#adbbcc;font-weight:400;margin-left:1vw}
+.author-posts-list{min-height:0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:2vh;padding:.8vh .5vw 1.2vh}
+.author-post-card{flex:none;background:#0d121c;border:1px solid #344153;border-radius:.6vw;padding:2vh 1.5vw;cursor:pointer}
+.author-post-card.selected{border-color:#8bc8f5;background:#152032;outline:3px solid #8bc8f5;outline-offset:2px}
+.author-post-inner{display:flex;flex-direction:column}
+.author-post-inner .author{margin-bottom:1.2vh;min-height:auto}
+.author-post-inner .body .text{font-size:1.65vw;line-height:1.55;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.post-media-preview{max-height:18vh;overflow:hidden;margin:1.4vh 0;position:relative}
+.post-media-preview img{max-height:18vh;max-width:100%;object-fit:contain}
+.media-badge{position:absolute;right:1vw;bottom:1vh;background:#152032;color:#e8ebed;padding:.4vh .8vw}
+.author-posts-empty{padding:6vh 1vw;color:#adbbcc;font-size:1.5vw}
+.author[role="button"]{cursor:pointer}
+.author[role="button"]:hover .name{color:#69c9fa}
+
+/* Older projector WebViews do not support flex gap. */
+.author-meta-row .meta-item + .meta-item{margin-top:1vh}
+.meta-item svg{margin-right:.6vw}
+.author-stats-row .stat-group + .stat-group{margin-left:1.5vw}
+.author-post-card + .author-post-card{margin-top:2vh}

@@ -227,13 +227,15 @@ final class FastReader extends FrameLayout {
             });
         }
         @JavascriptInterface
-        public void write(String id, String postId, String action, boolean desired, String author) {
-            if (!id.matches("w[0-9]+") || !postId.matches("[0-9]{1,25}") || author.length() > 200
-                || (!action.equals("like") && !action.equals("reply"))) return;
+        public void write(String id, String targetId, String action, boolean desired, String author) {
+            if (!id.matches("w[0-9]+") || (!targetId.matches("[0-9]{1,25}") && !targetId.matches("[A-Za-z0-9_]{1,50}"))
+                || author.length() > 200
+                || (!action.equals("like") && !action.equals("reply") && !action.equals("follow"))) return;
             post(() -> {
                 if (disposed) return;
-                if (action.equals("reply")) showComposer(id, postId, author);
-                else writer.submit(postId, true, desired, "", result -> writeResult(id, postId, result));
+                if (action.equals("reply")) showComposer(id, targetId, author);
+                else if (action.equals("follow")) writer.submitFollow(targetId, author, desired, result -> writeResult(id, targetId, result));
+                else writer.submit(targetId, true, desired, "", result -> writeResult(id, targetId, result));
             });
         }
         /** A read-only re-check of one post, kept off the scene's request slot. */

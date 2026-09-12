@@ -32,6 +32,61 @@ final class XWriteClient {
     static JSONObject result(String status) {
         try { return new JSONObject().put("status", status); } catch (JSONException e) { throw new IllegalStateException(e); }
     }
+    void submitFollow(String targetId, String handle, boolean desired, Callback callback) {
+        if (closed || busy) { callback.complete(result("busy")); return; }
+        if ((targetId == null || !targetId.matches("[0-9]{1,25}")) && (handle == null || handle.isEmpty())) {
+            callback.complete(result("invalid")); return;
+        }
+        final JSONObject auth = session.credentials();
+        if (auth == null) { callback.complete(result("session")); return; }
+        busy = true;
+        final long start = SystemClock.elapsedRealtime();
+        executor.execute(() -> {
+            JSONObject outcome = result("failed");
+            HttpURLConnection conn = null;
+            try {
+                Map<String, String> headers = XGraphQL.headers(auth);
+                String endpoint = desired ? "https://x.com/1.1/friendships/create.json" : "https://x.com/1.1/friendships/destroy.json";
+                URL url = new URL(endpoint);
+                conn = (HttpURLConnection) url.openConnection();
+                connection = conn;
+                conn.setRequestMethod("POST");
+                conn.setConnectTimeout(10000);
+                conn.setReadTimeout(10000);
+                conn.setDoOutput(true);
+                for (Map.Entry<String, String> entry : headers.entrySet()) {
+                    conn.setRequestProperty(entry.getKey(), entry.getValue());
+                }
+                conn.setRequestProperty("content-type", "application/x-www-form-urlencoded");
+
+                String body = (targetId != null && targetId.matches("[0-9]+"))
+                    ? "user_id=" + URLEncoder.encode(targetId, "UTF-8")
+                    : "screen_name=" + URLEncoder.encode(handle, "UTF-8");
+                byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
+                conn.setFixedLengthStreamingMode(bytes.length);
+                try (OutputStream os = conn.getOutputStream()) {
+                    os.write(bytes);
+                }
+                int code = conn.getResponseCode();
+                if (code >= 200 && code < 300) {
+                    outcome = result("ok").put("following", desired).put("targetId", targetId).put("handle", handle);
+                } else if (code == 429) {
+                    outcome = result("rate_limit");
+                } else if (code == 401 || code == 403) {
+                    outcome = result("session");
+                } else {
+                    outcome = result("failed");
+                }
+            } catch (Exception e) {
+                outcome = result("unknown");
+            } finally {
+                connection = null;
+                if (conn != null) conn.disconnect();
+            }
+            final JSONObject completed = outcome;
+            ui.post(() -> finish(callback, completed, start));
+        });
+    }
     void submit(String postId, boolean like, boolean desired, String text, Callback callback) {
         if (closed || busy) { callback.complete(result("busy")); return; }
         if (!postId.matches("[0-9]{1,25}") || (!like && (text.trim().isEmpty() || text.length() > 10000))) {

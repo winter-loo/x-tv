@@ -218,18 +218,15 @@ test('a preview that is cut off says so, and a short one does not', async ({page
     await expect(page.locator('.post .show-more')).toHaveCount(0);
 });
 
-test('a cut-off post opens its full reading by remote and by mouse', async ({page}) => {
+test('a cut-off post opens detail first by remote and by mouse', async ({page}) => {
     await mount(page);
     await receive(page, 'r0', payload([post('101', {text: LONG})]));
-    // By remote the text it already has is read full screen first, without asking for anything.
     await key(page, 'ok');
-    await expect(page.locator('body.reading')).toHaveCount(1);
-    expect(await page.evaluate(() => calls.filter(c => c[0] === 'request').length)).toBe(0);
-    await key(page, 'ok');
+    await expect(page.locator('.detail-post')).toHaveCount(1);
+    await expect(page.locator('body.reading')).toHaveCount(0);
     expect(await page.evaluate(() => calls.filter(c => c[0] === 'request').length)).toBe(1);
     await key(page, 'back');
-    await key(page, 'back');
-    // By mouse the marker still goes straight to the detail.
+    await expect(page.locator('.detail-post')).toHaveCount(0);
     await expect(page.locator('body.reading')).toHaveCount(0);
     await page.locator('.post .show-more').click();
     expect(await page.evaluate(() => calls.filter(c => c[0] === 'request').length)).toBe(2);
