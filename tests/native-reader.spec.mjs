@@ -282,7 +282,7 @@ test(
                     postMessage: m => sent.push(m)
                 })
             },
-            tabs: {onActivated: event('activated'), onUpdated: event('updated')},
+            tabs: {onActivated: event('activated'), onUpdated: event('updated'), onRemoved: event('removed')},
             webRequest: {
                 onBeforeRequest: event('before'),
                 onBeforeSendHeaders: event('headers'),
@@ -313,6 +313,7 @@ test(
         function query(id, url, method = 'GET', statusCode = 200) {
             events.before[0]({
                 requestId: id,
+                tabId: 7,
                 url,
                 method,
                 requestBody: method === 'POST' ? {raw: [{bytes: new TextEncoder().encode(body).buffer}]} :
@@ -332,6 +333,14 @@ test(
         expect(templates[0].body).toBe(body);
         expect(templates[1].method).toBe('GET');
         expect(logs.join('\n')).not.toContain('fixture-secret');
+        const attempt='11111111-1111-4111-8111-111111111111';
+        events.message[0]({event:'auth_state',attempt,authenticated:true},
+            {tab:{id:7,active:true},frameId:0,url:'https://x.com/home'});
+        query('6','https://x.com/i/api/graphql/query/HomeTimeline');
+        expect(sent.at(-1).authAttempt).toBe(attempt);
+        events.removed[0](7);
+        query('7','https://x.com/i/api/graphql/query/HomeTimeline');
+        expect(sent.at(-1).authAttempt).toBe('');
         events.before[1]();
         expect(sent.at(-1).event).toBe('read_session_clear');
     });

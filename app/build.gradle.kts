@@ -73,5 +73,6 @@ dependencies {
     testImplementation("org.json:json:20240303")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.core:core:1.13.1")
+    implementation("com.google.zxing:core:3.5.4")
     implementation("org.mozilla.geckoview:geckoview-omni-armeabi-v7a:155.0.20260903215306")
 }

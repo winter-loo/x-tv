@@ -26,7 +26,7 @@ public class TvXApplication extends Application {
 
         sApplication = this;
         sInitialReadClient = new XReadClient(this);
-        if(sInitialReadClient.available())sInitialReadClient.primeHome();
+        if(sInitialReadClient.verified())sInitialReadClient.primeHome();
     }
 
     static XReadClient takeReadClient() {

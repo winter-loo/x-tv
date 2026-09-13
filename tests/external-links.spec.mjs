@@ -225,12 +225,22 @@ test('the action menu names each external target by title and domain', async ({p
     await expect(links.nth(1).locator('.domain')).toHaveText('github.com');
 });
 
-test('a post with no links shows only the write actions', async ({page}) => {
+test('a post with no links offers post actions and the account logout entry', async ({page}) => {
     await mount(page);
     await page.evaluate(data => TvXReader.receive('r0', data, ''), payload([post('101', 'No links')]));
     await key(page, 'menu');
-    await expect(page.locator('.action-options button')).toHaveCount(3);
+    await expect(page.locator('.action-options button')).toHaveCount(4);
     await expect(page.locator('.action-options button.external')).toHaveCount(0);
+});
+
+test('logout delegates to native confirmation without writing to a post',async({page})=>{
+    await mount(page);
+    await page.evaluate(data=>TvXReader.receive('r0',data,''),payload([post('101')]));
+    await key(page,'menu');
+    await page.getByRole('button',{name:'退出 X 登录'}).click();
+    await expect.poll(()=>calls(page,'logout')).toHaveLength(1);
+    expect(await calls(page,'write')).toHaveLength(0);
+    await expect(page.getByRole('dialog')).toHaveCount(0);
 });
 
 test('the post itself shows a card naming each external target', async ({page}) => {

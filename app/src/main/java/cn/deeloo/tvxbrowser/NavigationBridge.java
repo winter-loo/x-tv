@@ -8,6 +8,7 @@ import org.mozilla.geckoview.WebExtension;
 
 public class NavigationBridge implements WebExtension.MessageDelegate, WebExtension.PortDelegate {
     private static final String TAG = "NavigationBridge";
+    private boolean mClosed;
     public static final String EXTENSION_LOCATION = "resource://android/assets/tv-extension/";
     public static final String EXTENSION_ID = "tv-extension@deeloo.cn";
     public static final String PORT_NAME = "browser_nav_bridge";
@@ -64,10 +65,21 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
         if (callback != null) callback.accept(result);
     }
     private Runnable mReadyListener;
+    private Runnable mConnectedListener;
+    public void whenConnected(Runnable listener) {
+        mConnectedListener=listener;
+        if(mPort!=null){mConnectedListener=null;listener.run();}
+    }
     private Runnable mPresentationListener;
     private Runnable mExitListener;
     private Runnable mLoginAssistListener;
     private Runnable mAuthenticatedListener;
+    private java.util.function.Consumer<JSONObject> mAuthListener;
+    public void setAuthListener(java.util.function.Consumer<JSONObject> listener) { mAuthListener=listener; }
+    public void sendAuth(String command,String attempt) {
+        if(mPort==null)return;
+        try {mPort.postMessage(new JSONObject().put("command",command).put("attempt",attempt));}catch(JSONException ignored){}
+    }
     public void setLoginAssistListener(Runnable listener) { mLoginAssistListener=listener; }
     public void setAuthenticatedListener(Runnable listener) { mAuthenticatedListener=listener; }
     public void setExitListener(Runnable listener) { mExitListener = listener; }
@@ -77,12 +89,16 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
     }
     public void setPresentationListener(Runnable listener) { mPresentationListener = listener; }
     public void close() {
+        if(mClosed)return;
+        mClosed=true;
         finishMetadata(null);
         if (mPort != null) { mPort.disconnect(); mPort = null; }
         mReadyListener = null; mPresentationListener = null; mExitListener = null;
+        mConnectedListener=null;
         mReadTemplateListener=null;mReadClearListener=null;mReaderReturnListener=null;mReaderReadyListener=null;
         mContentReadyListener=null;mReadingOverlapListener=null;
         mLoginAssistListener=null;mAuthenticatedListener=null;
+        mAuthListener=null;
     }
     private WebExtension mExtension;
     private WebExtension.Port mPort;
@@ -121,6 +137,7 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
         runtime.getWebExtensionController()
                 .ensureBuiltIn(EXTENSION_LOCATION, EXTENSION_ID)
                 .then(extension -> {
+                    if(mClosed)return null;
                     AppLog.e(TAG, "WebExtension registered successfully: " + extension.id);
                     mExtension = extension;
                     mExtension.setMessageDelegate(this, PORT_NAME);
@@ -143,9 +160,11 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
     // WebExtension.MessageDelegate
     @Override
     public void onConnect(WebExtension.Port port) {
+        if(mClosed){port.disconnect();return;}
         AppLog.e(TAG, "WebExtension Port connected! Name=" + port.name);
         mPort = port;
         mPort.setDelegate(this);
+        if(mConnectedListener!=null){Runnable ready=mConnectedListener;mConnectedListener=null;ready.run();}
 
         // Request initial state from extension
         sendCommand("getState", null);
@@ -179,7 +198,11 @@ public class NavigationBridge implements WebExtension.MessageDelegate, WebExtens
     private void handleJsonMessage(JSONObject json) {
         try {
             String event = json.optString("event");
-            if ("login_assist".equals(event)) {
+            if (event.startsWith("auth_")) {
+                if(mAuthListener!=null)mAuthListener.accept(json);
+            } else if ("login_required".equals(event)) {
+                if(mLoginAssistListener!=null)mLoginAssistListener.run();
+            } else if ("login_assist".equals(event)) {
                 if(mLoginAssistListener!=null)mLoginAssistListener.run();
             } else if ("read_api_template".equals(event)) {
                 if(mReadTemplateListener!=null)mReadTemplateListener.accept(json);

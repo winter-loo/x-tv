@@ -1,13 +1,10 @@
-// X (Twitter) Site Adapter for Android TV with 100% Custom Headless TV Login UI
-window.TvXAdapter = window.TvXAdapter || (function() {
+// Reading adapter. Authentication belongs to LoginActivity and its dedicated tab.
+if (!window.TvXAuthPage) window.TvXAdapter = window.TvXAdapter || (function() {
     let activeArticleIndex = 0;
-    let customLoginFocusIndex = 0;
     let lastAnchorId = null;
     let observer = null;
-    let currentLoginStep = "username"; // "username" | "password"
-    let authHandoffActive = false;
     let authenticatedReported = false;
-    let usernameSubmissionPending = false;
+    let loginRequested = false;
     let refreshTimer = null;
     let pendingMove = null;
     let pendingTimer = null;
@@ -30,7 +27,6 @@ window.TvXAdapter = window.TvXAdapter || (function() {
     let topRequested = false;
     let refreshPage = null;
     let initialTimer = null;
-    let loginProgressTimer = null;
     let handledLocation = "";
     let recoveryNavigation = false;
     const recoveryHomeKey = "tv-x-recovery-home";
@@ -54,7 +50,6 @@ window.TvXAdapter = window.TvXAdapter || (function() {
         injectTvStyles();
         setupObserver();
 
-        window.addEventListener("keydown", handleLoginKeyDown, true);
         window.addEventListener("keydown", handleActionKeyDown, true);
         window.addEventListener("keydown", handleRemoteKeyDown, true);
         initialTimer = setTimeout(() => {
@@ -112,15 +107,14 @@ window.TvXAdapter = window.TvXAdapter || (function() {
                 else if(request.action==='reply')window.TvXDetail.openComposer();
                 browser.runtime.sendMessage({event:'reader_browser_ready',path:request.path}).catch(()=>{});
             }
-            unmountCustomTvLogin();
             cancelPendingMove();
             previousMode = "detail";
             return;
         }
         if (mode === "login") {
-            mountCustomTvLogin();
+            requestNativeLogin();
         } else {
-            unmountCustomTvLogin();
+            loginRequested = false;
             const selectedTab = document.querySelector('[data-testid="primaryColumn"] [role="tab"][aria-selected="true"]');
             const tab = selectedTab ? selectedTab.textContent.trim() : "";
             if (mode === "home" && tab && timelineTab && tab !== timelineTab) {
@@ -263,37 +257,10 @@ window.TvXAdapter = window.TvXAdapter || (function() {
             if (refreshTimer !== null) return;
             refreshTimer = setTimeout(() => {
                 refreshTimer = null;
-                if (document.getElementById("tv-custom-login-stage") &&
-                    window.location.href === handledLocation &&
-                    (isExplicitLoginRoute() || !hasAuthenticatedNavigation())) {
-                    checkNativeLoginProgression();
-                    return;
-                }
                 handlePageMode();
-                if (isLoginMode()) checkNativeLoginProgression();
-            }, 50);
-        };
-        const refreshLoginProgress = () => {
-            if (loginProgressTimer !== null) return;
-            loginProgressTimer = setTimeout(() => {
-                loginProgressTimer = null;
-                if (window.location.href !== handledLocation ||
-                    (!isExplicitLoginRoute() && hasAuthenticatedNavigation())) refreshPage();
-                else checkNativeLoginProgression();
             }, 50);
         };
         observer = new MutationObserver(records => {
-            const loginStage = document.getElementById("tv-custom-login-stage");
-            if (loginStage && window.location.href === handledLocation) {
-                // X's login flow churns continuously while it loads widgets in the
-                // hidden native page. It only needs the small form synchronizer;
-                // rerunning timeline, media, actions and detail presentation here
-                // starves D-pad events on lower-powered TV hardware.
-                const nativeMutation = !records || records.some(record =>
-                    record.target !== loginStage && !loginStage.contains(record.target));
-                if (nativeMutation) refreshLoginProgress();
-                return;
-            }
             if (records && records.some(record => record.type === "childList")) {
                 invalidateArticlesCache();
             }
@@ -313,284 +280,11 @@ window.TvXAdapter = window.TvXAdapter || (function() {
         window.addEventListener("scroll", handleHomeScroll, true);
     }
 
-    /* =========================================================================
-       100% Custom Headless TV Login UI Implementation
-       ========================================================================= */
-
-    function mountCustomTvLogin() {
-        document.body.classList.add("tv-custom-login-active");
-        const stage = window.TvXLoginStage?.mount(document.body);
-        if (!stage || stage.dataset.tvBound === "true") return;
-        stage.dataset.tvBound = "true";
-
-        // Bind Custom Buttons Click Handlers
-        document.getElementById("tv-stage-next-btn").onclick = handleCustomNextSubmit;
-        document.getElementById("tv-stage-google-btn").onclick = handleCustomGoogleAuth;
-        document.getElementById("tv-stage-apple-btn").onclick = handleCustomAppleAuth;
-
-        document.getElementById("tv-stage-assist-btn").onclick = () => {
-            try { browser.runtime.sendMessage({event: "login_assist"}).catch(() => {}); } catch (_) {}
-        };
-
-        // Auto Focus First Interactive Element
-        customLoginFocusIndex = 0;
-        updateCustomFocus();
-
-        console.log("[TvXAdapter] Mounted 100% custom TV login stage.");
-    }
-
-    function unmountCustomTvLogin() {
-        if (document.body.classList.contains("tv-custom-login-active")) document.body.classList.remove("tv-custom-login-active");
-        const stage = document.getElementById("tv-custom-login-stage");
-        if (stage) stage.remove();
-    }
-
-    function getCustomInteractiveElements() {
-        const stage = document.getElementById("tv-custom-login-stage");
-        if (!stage) return [];
-
-        const elements = [
-            document.getElementById("tv-stage-input"),
-            document.getElementById("tv-stage-next-btn"),
-            document.getElementById("tv-stage-assist-btn")
-        ];
-
-        if (currentLoginStep === "username") {
-            elements.push(document.getElementById("tv-stage-google-btn"));
-            elements.push(document.getElementById("tv-stage-apple-btn"));
-        }
-
-        return elements.filter(el => el && !el.classList.contains("tv-hidden") && el.style.display !== "none");
-    }
-
-    // Direct window-level KeyDown Listener for D-pad (Up/Down/Left/Right/OK)
-    function handleLoginKeyDown(e) {
-        const stage = document.getElementById("tv-custom-login-stage");
-        if (stage && stage.style.display !== "none") {
-            if (e.key === "ArrowDown" || e.keyCode === 40 || e.key === "ArrowRight" || e.keyCode === 39) {
-                e.preventDefault();
-                move("down");
-            } else if (e.key === "ArrowUp" || e.keyCode === 38 || e.key === "ArrowLeft" || e.keyCode === 37) {
-                e.preventDefault();
-                move("up");
-            } else if (e.key === "Enter" || e.keyCode === 13) {
-                const currentEl = getCustomInteractiveElements()[customLoginFocusIndex];
-                // Only preventDefault if not actively typing in input, or trigger activate
-                if (currentEl && currentEl.tagName.toLowerCase() !== "input") {
-                    e.preventDefault();
-                    activate();
-                } else if (currentEl && currentEl.tagName.toLowerCase() === "input" && e.target !== currentEl) {
-                    e.preventDefault();
-                    activate();
-                }
-            }
-        }
-    }
-
-    function updateCustomFocus() {
-        const elements = getCustomInteractiveElements();
-        if (elements.length === 0) return;
-
-        if (customLoginFocusIndex < 0) customLoginFocusIndex = 0;
-        if (customLoginFocusIndex >= elements.length) customLoginFocusIndex = elements.length - 1;
-
-        const target = elements[customLoginFocusIndex];
-        const previous = document.querySelector("#tv-custom-login-stage .tv-custom-focused");
-        if (previous && previous !== target) previous.classList.remove("tv-custom-focused");
-        target.classList.add("tv-custom-focused");
-        // Keep Gecko's real focus on the same control as the TV selection. If
-        // the input retains DOM focus, its native focus ring remains painted
-        // after the selection moves and the remote appears unresponsive.
-        if (document.activeElement !== target) {
-            try { target.focus({preventScroll: true}); }
-            catch (_) { target.focus(); }
-        }
-        const card = target.closest(".tv-login-card");
-        if (card) {
-            const targetRect = target.getBoundingClientRect();
-            const cardRect = card.getBoundingClientRect();
-            if (targetRect.top < cardRect.top || targetRect.bottom > cardRect.bottom) {
-                target.scrollIntoView({block: "nearest", behavior: "instant"});
-            }
-        }
-    }
-
-    /* Headless Synchronizers with Native React DOM */
-
-    function setNativeInputValue(nativeInput, val) {
-        if (!nativeInput) return;
-        const proto = Object.getPrototypeOf(nativeInput);
-        const setter = Object.getOwnPropertyDescriptor(proto, "value").set;
-        setter.call(nativeInput, val);
-        nativeInput.dispatchEvent(new Event("input", { bubbles: true }));
-        nativeInput.dispatchEvent(new Event("change", { bubbles: true }));
-    }
-
-    function handleCustomNextSubmit() {
-        const customInput = document.getElementById("tv-stage-input");
-        const val = customInput ? customInput.value.trim() : "";
-        if (!val) {
-            showError("请输入有效的用户名、邮箱或密码");
-            return;
-        }
-
-        console.log("[TvXAdapter] handleCustomNextSubmit step=" + currentLoginStep);
-
-        if (currentLoginStep === "username") {
-            const nativeInput = document.querySelector('input[autocomplete="username"], input[name="text"]');
-            if (nativeInput) {
-                setNativeInputValue(nativeInput, val);
-            }
-
-            // Click native Next button in background
-            const buttons = Array.from(document.querySelectorAll('#react-root [role="button"], #react-root button, div[role="dialog"] [role="button"]'));
-            const nextBtn = buttons.find(b => {
-                const text = b.textContent.trim();
-                return text.includes("下一步") || text.includes("Next") || text.includes("继续");
-            });
-
-            if (nextBtn) {
-                usernameSubmissionPending = true;
-                console.log("[TvXAdapter] Clicking native Next button:", nextBtn.textContent.trim());
-                nextBtn.click();
-            } else {
-                console.warn("[TvXAdapter] Could not find native Next button.");
-            }
-        } else if (currentLoginStep === "password") {
-            const nativePasswordInput = document.querySelector('input[type="password"], input[name="password"]');
-            if (nativePasswordInput) {
-                setNativeInputValue(nativePasswordInput, val);
-            }
-
-            // Click native Log in button
-            const buttons = Array.from(document.querySelectorAll('#react-root [role="button"], #react-root button, div[role="dialog"] [role="button"]'));
-            const loginBtn = buttons.find(b => {
-                const text = b.textContent.trim();
-                return text.includes("登录") || text.includes("Log in");
-            });
-
-            if (loginBtn) {
-                console.log("[TvXAdapter] Clicking native Log in button:", loginBtn.textContent.trim());
-                loginBtn.click();
-            }
-        }
-    }
-
-    function handleCustomGoogleAuth() {
-        authHandoffActive = true;
-        const stage = document.getElementById("tv-custom-login-stage");
-        // Hand off to the real sign-in control so Google's own account chooser is visible.
-        if (document.body.classList.contains("tv-custom-login-active")) document.body.classList.remove("tv-custom-login-active");
-        if (stage) stage.style.setProperty("display", "none", "important");
-        const scope = document.querySelector('div[role="dialog"]') || document;
-        const target = scope.querySelector('iframe[src*="accounts.google.com/gsi/button"]');
-        if (!target) {
-            restoreCustomLogin();
-            showError("Google 登录入口尚未就绪，请稍后重试");
-            return false;
-        }
-        target.scrollIntoView({ block: "center" });
-        requestAnimationFrame(() => {
-            const r = target.getBoundingClientRect();
-            if (!r.width || !r.height) {
-                restoreCustomLogin();
-                showError("Google 登录入口尚未就绪，请稍后重试");
-                return;
-            }
-            browser.runtime.sendMessage({
-                event: "request_tap",
-                x: Math.round(r.left + r.width / 2),
-                y: Math.round(r.top + r.height / 2)
-            }).catch(() => {
-                restoreCustomLogin();
-                showError("无法打开 Google 登录，请重试");
-            });
-        });
-        return true;
-    }
-
-    function restoreCustomLogin() {
-        authHandoffActive = false;
-        const stage = document.getElementById("tv-custom-login-stage");
-        if (!stage) return;
-        document.body.classList.add("tv-custom-login-active");
-        stage.style.removeProperty("display");
-        customLoginFocusIndex = currentLoginStep === "username" ? 2 : 0;
-        updateCustomFocus();
-    }
-
-    function handleCustomAppleAuth() {
-        console.log("[TvXAdapter] Triggering native Apple Auth...");
-        const buttons = Array.from(document.querySelectorAll('#react-root [role="button"], div[role="dialog"] [role="button"]'));
-        const appleBtn = buttons.find(b => b.textContent && b.textContent.includes("Apple"));
-        if (appleBtn) {
-            appleBtn.click();
-        } else {
-            showError("未能定位 Apple 登录入口，请重试");
-        }
-    }
-
-    function isElementVisible(el) {
-        if (!el) return false;
-        return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
-    }
-
-    function checkNativeLoginProgression() {
-        if (authHandoffActive) return;
-        const dialog = document.querySelector('div[role="dialog"]');
-        if (!dialog) return;
-
-        const nativePassword = dialog.querySelector('input[type="password"], input[name="password"]');
-        const nativeUsername = dialog.querySelector('input[autocomplete="username"], input[name="text"]');
-
-        if (usernameSubmissionPending && nativePassword && isElementVisible(nativePassword) && (!nativeUsername || !isElementVisible(nativeUsername)) && currentLoginStep === "username") {
-            console.log("[TvXAdapter] Native DOM entered Password step! Transitioning custom TV UI...");
-            currentLoginStep = "password";
-            usernameSubmissionPending = false;
-
-            const title = document.getElementById("tv-stage-title");
-            const subtitle = document.getElementById("tv-stage-subtitle");
-            const input = document.getElementById("tv-stage-input");
-            const btnText = document.getElementById("tv-stage-btn-text");
-            const divider = document.getElementById("tv-oauth-divider");
-            const oauth = document.getElementById("tv-oauth-container");
-
-            if (title) title.textContent = "输入你的密码";
-            if (subtitle) subtitle.textContent = "验证你的 X 账号密码以继续";
-            if (btnText) btnText.textContent = "登录";
-            if (divider) divider.classList.add("tv-hidden");
-            if (oauth) oauth.classList.add("tv-hidden");
-
-            if (input) {
-                input.value = "";
-                input.type = "password";
-                input.placeholder = "输入密码";
-                input.focus();
-            }
-
-            customLoginFocusIndex = 0;
-            updateCustomFocus();
-        } else if (nativeUsername && isElementVisible(nativeUsername) && currentLoginStep === "password") {
-            console.log("[TvXAdapter] Native DOM returned to Username step! Resetting custom TV UI...");
-            currentLoginStep = "username";
-            const stage = document.getElementById("tv-custom-login-stage");
-            if (stage) stage.remove();
-            mountCustomTvLogin();
-        }
-
-        // Detect if background native page returned an error
-        const nativeAlert = document.querySelector('[role="alert"], [data-testid="toast"]');
-        if (nativeAlert && nativeAlert.textContent.trim()) {
-            showError(nativeAlert.textContent.trim());
-        }
-    }
-
-    function showError(msg) {
-        const errorBox = document.getElementById("tv-stage-error");
-        if (errorBox) {
-            errorBox.textContent = msg;
-            errorBox.style.display = "block";
-        }
+    function requestNativeLogin() {
+        if (loginRequested) return;
+        loginRequested = true;
+        try { browser.runtime.sendMessage({event:'login_required'}).catch(() => {loginRequested=false;}); }
+        catch (_) {loginRequested=false;}
     }
 
     /* =========================================================================
@@ -873,22 +567,7 @@ window.TvXAdapter = window.TvXAdapter || (function() {
     }
 
     function move(direction) {
-        // Login is a self-contained stage. Avoid touching timeline, media and
-        // action adapters on every D-pad press while X is still booting behind it.
-        if (isLoginMode()) {
-            const elements = getCustomInteractiveElements();
-            if (elements.length === 0) return;
-
-            if (direction === "down") {
-                customLoginFocusIndex++;
-                if (customLoginFocusIndex >= elements.length) customLoginFocusIndex = 0;
-            } else if (direction === "up") {
-                customLoginFocusIndex--;
-                if (customLoginFocusIndex < 0) customLoginFocusIndex = elements.length - 1;
-            }
-            updateCustomFocus();
-            return;
-        }
+        if (isLoginMode()) { requestNativeLogin(); return; }
         if (window.TvXActions?.move(direction)) return;
         if (window.TvXMedia?.move(direction)) return;
         if (window.TvXCard?.move(direction)) return;
@@ -905,21 +584,7 @@ window.TvXAdapter = window.TvXAdapter || (function() {
     function activate() {
         if (window.TvXActions?.activate()) return;
         if (window.TvXMedia?.activate()) return;
-        if (isLoginMode()) {
-            const elements = getCustomInteractiveElements();
-            if (elements.length === 0 || customLoginFocusIndex >= elements.length) return;
-
-            const target = elements[customLoginFocusIndex];
-            console.log("[TvXAdapter] Activating custom login target:", target.id);
-
-            if (target.tagName.toLowerCase() === "input") {
-                target.focus();
-                target.click();
-            } else {
-                target.click();
-            }
-            return;
-        }
+        if (isLoginMode()) { requestNativeLogin(); return; }
 
         if (window.TvXDetail && isPostDetail()) { window.TvXDetail.activate(); return; }
         const current = focusedArticle();
@@ -943,27 +608,7 @@ window.TvXAdapter = window.TvXAdapter || (function() {
         if (window.TvXActions?.close()) return { event: "backResult", handled: true };
         restoringHome = false;
         cancelPendingMove();
-        const stage = document.getElementById("tv-custom-login-stage");
-        if (stage && stage.style.display === "none") {
-            restoreCustomLogin();
-            return { event: "backResult", handled: true };
-        }
-        if (isLoginMode()) {
-            if (currentLoginStep === "password") {
-                const nativeBack = document.querySelector('div[role="dialog"] [aria-label="Back"], div[role="dialog"] [aria-label="返回"], div[role="dialog"] [data-testid="app-bar-back"]');
-                if (nativeBack) {
-                    console.log("[TvXAdapter] Clicking native Back button...");
-                    nativeBack.click();
-                }
-
-                currentLoginStep = "username";
-                const stage = document.getElementById("tv-custom-login-stage");
-                if (stage) stage.remove();
-                mountCustomTvLogin();
-                return { event: "backResult", handled: true };
-            }
-            return { event: "backResult", handled: false };
-        }
+        if (isLoginMode()) return {event:"backResult",handled:false};
 
         const closeBtn = document.querySelector(
             '#tv-modal.active .close-btn, ' +
@@ -1021,8 +666,8 @@ window.TvXAdapter = window.TvXAdapter || (function() {
             authenticated: !isLogin && hasAuthenticatedNavigation(),
             pageType: isLogin ? "login" : (isDetail ? "detail" : "timeline"),
             hasOverlay: isLogin || !!window.TvXActions?.isOpen(),
-            canBack: isDetail || pageScrollY() > 100 || (isLogin && currentLoginStep === "password"),
-            focusedIndex: isLogin ? customLoginFocusIndex : activeArticleIndex
+            canBack: isDetail || pageScrollY() > 100,
+            focusedIndex: isLogin ? -1 : activeArticleIndex
         };
         console.log("[TvXAdapter] reportState:", JSON.stringify(state));
         try {
@@ -1037,15 +682,12 @@ window.TvXAdapter = window.TvXAdapter || (function() {
         observer = null;
         clearTimeout(initialTimer);
         clearTimeout(refreshTimer);
-        clearTimeout(loginProgressTimer);
         initialTimer = null;
         refreshTimer = null;
-        loginProgressTimer = null;
         cancelPendingMove();
         window.removeEventListener("popstate", refreshPage);
         window.removeEventListener("resize", refreshPage);
         window.removeEventListener("scroll", handleHomeScroll, true);
-        window.removeEventListener("keydown", handleLoginKeyDown, true);
         window.removeEventListener("keydown", handleActionKeyDown, true);
         window.removeEventListener("keydown", handleRemoteKeyDown, true);
         window.TvXMedia?.reset();
@@ -1062,8 +704,6 @@ window.TvXAdapter = window.TvXAdapter || (function() {
         activate,
         handleBack,
         menu,
-        reportState,
-        restoreLogin: restoreCustomLogin,
-        googleAuth: handleCustomGoogleAuth
+        reportState
     };
 })();

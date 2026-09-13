@@ -1,5 +1,6 @@
 // TV WebExtension Content Script Dispatcher
 (function() {
+    if (window.TvXAuthPage) return;
     // Only run in top-level window, not in iframes
     if (window !== window.top) {
         return;
@@ -121,14 +122,6 @@
         } else if (cmd === "back" || cmd === "dismissOverlay") {
             const backResult = adapter.handleBack();
             return Promise.resolve(backResult || { event: "backResult", handled: false });
-        } else if (cmd === "restoreLogin") {
-            adapter.restoreLogin();
-            return Promise.resolve({ event: "ack", command: cmd });
-        } else if (cmd === "googleAuth") {
-            if (adapter.googleAuth) {
-                adapter.googleAuth();
-            }
-            return Promise.resolve({ event: "ack", command: "googleAuth" });
         } else if (cmd === "getState") {
             adapter.reportState();
             return Promise.resolve({ event: "ack", command: "getState" });

@@ -105,6 +105,20 @@ final class XReadClient {
     synchronized boolean available() {
         return session.has("home");
     }
+    synchronized boolean verified() { return verifiedSession(session); }
+    static boolean verifiedSession(JSONObject saved) {
+        String account=saved.optString("account");
+        return saved.optJSONObject("home")!=null && !account.isEmpty()
+            && account.equals(saved.optString("verifiedAccount"));
+    }
+    synchronized boolean markVerified(JSONObject credentials) {
+        if (!available() || !matchesCredentials(credentials)) return false;
+        try {
+            session.put("verifiedAccount",session.getString("account"));
+            persistSession();
+            return true;
+        } catch (Exception ignored) {session.remove("verifiedAccount");return false;}
+    }
     // Trusted native snapshot only. Never expose these headers to the reading WebView.
     /** Everything an operation built from live page metadata needs to authenticate. */
     synchronized JSONObject credentials() {
@@ -278,17 +292,17 @@ final class XReadClient {
             if (first)
                 AppLog.w("TvXReaderPerf", slot + " session ready");
             if (first && slot.equals("home") && sessionReady != null) ui.post(sessionReady);
-            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-            cipher.init(Cipher.ENCRYPT_MODE, key());
-            byte[] encrypted = cipher.doFinal(session.toString().getBytes(StandardCharsets.UTF_8));
-            ByteArrayOutputStream packed = new ByteArrayOutputStream();
-            packed.write(cipher.getIV());
-            packed.write(encrypted);
-            preferences.edit()
-                .putString("encrypted", Base64.encodeToString(packed.toByteArray(), Base64.NO_WRAP))
-                .apply();
+            persistSession();
         } catch (Exception ignored) { /* An unusable template never replaces browser login. */
         }
+    }
+    private void persistSession() throws Exception {
+        Cipher cipher=Cipher.getInstance("AES/GCM/NoPadding");
+        cipher.init(Cipher.ENCRYPT_MODE,key());
+        byte[] encrypted=cipher.doFinal(session.toString().getBytes(StandardCharsets.UTF_8));
+        ByteArrayOutputStream packed=new ByteArrayOutputStream();
+        packed.write(cipher.getIV());packed.write(encrypted);
+        preferences.edit().putString("encrypted",Base64.encodeToString(packed.toByteArray(),Base64.NO_WRAP)).apply();
     }
     private static String operation(URL url) {
         if (!"https".equals(url.getProtocol()) || !"x.com".equals(url.getHost()) || url.getPort() != -1)

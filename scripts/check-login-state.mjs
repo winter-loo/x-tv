@@ -2,16 +2,10 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
-// X can keep password fields mounted even before the user submits a username.
-// Drive the real adapter's mutation observer and assert it does not advance.
-let mutation;
+// Reading classifies authentication; it no longer owns a parallel login form.
 let state;
-const input = { type: 'text', value: '', focus() {} };
-const stage = { style: {}, dataset: { tvBound: 'true' } };
 const elements = {
     'tv-x-styles': {},
-    'tv-custom-login-stage': stage,
-    'tv-stage-input': input,
 };
 const nativePassword = { offsetWidth: 100 };
 const dialog = { querySelector: selector => selector.includes('password') ? nativePassword : null };
@@ -24,18 +18,17 @@ const context = {
         querySelectorAll: () => [],
         querySelector: selector => selector.includes('role="dialog"') ? dialog : null,
     },
-    MutationObserver: class { constructor(callback) { mutation = callback; } observe() {} },
     setTimeout: callback => callback(),
     browser: { runtime: { sendMessage: message => { state = message; return Promise.resolve(); } } },
 };
 vm.createContext(context);
 vm.runInContext(readFileSync(new URL('../app/src/main/assets/tv-extension/sites/x/adapter.js', import.meta.url), 'utf8'), context);
-context.window.TvXAdapter.init();
-mutation();
 context.window.TvXAdapter.reportState();
-assert.equal(input.type, 'text', 'A background password field must not change the TV input type');
-assert.equal(state.canBack, false, 'No username was submitted, so the adapter must remain on the initial login step');
-console.log('PASS: background password fields do not advance the TV login step.');
+assert.equal(state.pageType, 'login');
+assert.equal(state.focusedIndex, -1, 'Reading must not maintain a fake login selection');
+context.window.TvXAdapter.move('down');
+assert.equal(state.event, 'login_required', 'Android owns login navigation');
+console.log('PASS: reading delegates login to the native owner.');
 
 context.window.location.pathname = '/home';
 context.window.TvXAdapter.reportState();

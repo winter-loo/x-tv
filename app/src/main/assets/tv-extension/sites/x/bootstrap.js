@@ -1,14 +1,10 @@
 // This is injected at document_start, before X can paint its native composer.
 window.TvXBoot = window.TvXBoot || (() => {
+    if (window.TvXAuthPage) return {reveal() {},report() {}};
     const supported = /(^|\.)(x\.com|twitter\.com)$/.test(location.hostname);
     let ready = false, pending = false;
     function cover() { if (supported && document.documentElement && !ready) document.documentElement.classList.add('tv-x-boot'); }
     cover();
-    const path = location.pathname;
-    if (supported && (path === '/i/flow/login' || path === '/login' ||
-        (path === '/i/jf/onboarding/web' && new URL(location.href).searchParams.get('mode') === 'login'))) {
-        window.TvXLoginStage?.mount(document.documentElement);
-    }
     if (!document.documentElement) {
         const observer = new MutationObserver(() => { cover(); if (document.documentElement) observer.disconnect(); });
         observer.observe(document,{childList:true});
@@ -16,12 +12,11 @@ window.TvXBoot = window.TvXBoot || (() => {
     function reveal() {
         if (!supported || ready || pending) return;
         const home = location.pathname === '/home';
-        const login = !!document.getElementById('tv-custom-login-stage');
         const detail = !!document.getElementById('tv-detail-chrome');
         const styleIds = ['tv-x-styles', home ? 'tv-x-reading-styles' : detail ? 'tv-x-detail-styles' : 'tv-x-styles'];
         if (styleIds.some(id => !document.getElementById(id)?.sheet)) return;
         if (home && !document.querySelector('.tv-reading-card.tv-focused')) return;
-        if (!home && !login && !detail) return;
+        if (!home && !detail) return;
         pending = true;
         requestAnimationFrame(() => requestAnimationFrame(() => {
             pending = false;

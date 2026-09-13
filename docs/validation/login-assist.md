@@ -44,6 +44,24 @@ Browser regression: a 503 response previously erased the draft and the next fram
 
 The browser automation tool encountered Chrome `ERR_BLOCKED_BY_CLIENT` when navigating to the helper's new port. One reload remained blocked. No browser protection was changed. The real-device regression therefore used the same authenticated HTTPS API with its TLS certificate fingerprint matched against the projector, rather than claiming that the updated browser flow was fully accepted.
 
+## QR pairing and live phone keyboard (2026-09-13)
+
+- The projector dialog now renders a 440×440 px QR code inside the 1920×1080 viewport. The code, fallback HTTPS address, 8-digit pairing code, certificate fingerprint and both dialog actions are visible without clipping.
+- ZXing decoded the QR from the full projector screenshot as an HTTPS URL for the projector with an 8-digit pairing code in the URL fragment. The browser helper removes that fragment before pairing and does not store the resulting token.
+- A temporary debug-only fixture opened an autofocus text field without touching the saved X account. Two authenticated live edit commands inserted `input-check`, deleted its final five characters and inserted `verified`; Android UI inspection then read the exact projector value `input-verified`. The fixture trigger was removed before the final build.
+- Browser coverage exercises QR auto-pair, fragment removal, manual fallback, scaled tap and phone focus, direct insertion, backspace, Enter, IME composition, ordered commands, failure draft retention and storage absence. The full 267-test Playwright suite passed.
+- `testDebugUnitTest`, `lintRelease` and `assembleDebug` passed. The remaining user acceptance step is scanning with the intended phone/browser and completing a real login; automated checks do not claim that browser certificate interstitial behavior is identical across phones.
+
+### QR scanner 403 regression
+
+The intended Android phone reproduced an HTTP 403 when its QR scanner handed the helper URL to Chrome. A Chrome DevTools Protocol capture showed an exact Host header, no Origin header, and `Sec-Fetch-Site: cross-site`; the server had rejected every cross-site request before routing. The source gate now permits only a cross-site `GET /`, which serves the read-only landing document. Cross-site pairing, frame capture and control requests remain rejected. A regression test failed before the change and passed afterward. Repeating the external Android intent against the updated projector returned 200, removed the pairing fragment and reached `已连接 · 手机键盘直连电视焦点` on the phone.
+
+### Google popup return loop
+
+The user completed Google authentication three times but the projector immediately returned to the custom login stage. The retained runtime log showed each popup ending followed immediately by a native `restoreLogin` command, with no authenticated callback in between. A read-only inspection of the Gecko cookie database confirmed that X had not yet created `auth_token`, `ct0` or `twid`; only guest cookies existed.
+
+The popup close callback had treated a page-initiated `window.close()` like user cancellation. X may still need to continue OAuth or account confirmation in its opener after that close, so restoring the custom overlay hid the page that owned the remaining work. A self-closing OAuth popup now returns to the visible native X opener and requests a fresh state report. The explicit Android Back path still restores the custom stage, preserving cancellation behavior. Android unit tests, release lint, debug assembly and eight login-focused browser tests passed. Completing a real login after this change remains the device acceptance step because the repository has no automated seam that can authenticate a live Google/X account.
+
 
 ## 登录后进入 TV 阅读器（2026-09-13）
 

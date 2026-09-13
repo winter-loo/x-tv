@@ -25,6 +25,7 @@ final class FastReader extends FrameLayout {
         void openExternal(String url);
         void cancelExternal();
         void exit();
+        void logout();
     }
     private final WebView web;
     private final XReadClient client;
@@ -207,6 +208,8 @@ final class FastReader extends FrameLayout {
                     listener.openBrowser(path, action);
             });
         }
+        @JavascriptInterface
+        public void logout() { post(() -> {if(!disposed)listener.logout();}); }
         @JavascriptInterface
         public void openExternal(String url) {
             String target = ExternalTarget.normalize(url);

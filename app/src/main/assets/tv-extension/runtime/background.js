@@ -5,6 +5,8 @@ let nativePort = null;
 let reconnectTimer = null;
 let activeTabId = null;
 let lastPong = 0;
+const authAttempts = new Map();
+browser.tabs.onRemoved.addListener(tabId => authAttempts.delete(tabId));
 
 function connectToNative() {
     try {
@@ -87,7 +89,8 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 });
 
 function injectContentScripts(tabId) {
-    return browser.tabs.executeScript(tabId, { file: "sites/x/api-metadata.js" })
+    return browser.tabs.executeScript(tabId, { file: "sites/x/auth-page.js" })
+        .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/api-metadata.js" }))
         .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/bootstrap.js" }))
         .then(() => browser.tabs.executeScript(tabId, { file: "runtime/navigation-runtime.js" }))
         .then(() => browser.tabs.executeScript(tabId, { file: "sites/x/post-identity.js" }))
@@ -114,7 +117,9 @@ function forwardToActiveTab(cmd) {
             return;
         }
 
-        const targetTab = tabs.find(t => t.active) || tabs[0];
+        const targetTab = cmd.attempt ? tabs.find(t => authAttempts.get(t.id) === cmd.attempt) :
+            (tabs.find(t => t.active) || tabs[0]);
+        if (!targetTab) return;
         activeTabId = targetTab.id;
         console.log("[TV-Extension] Forwarding command [" + cmd.command + "] to tab id: " + targetTab.id);
 
@@ -140,6 +145,16 @@ function forwardToActiveTab(cmd) {
 
 // Listen for direct events from content scripts
 browser.runtime.onMessage.addListener((message, sender) => {
+    if (message.event === 'auth_state' && sender?.tab && sender.frameId === 0 &&
+        /^https:\/\/(x\.com|twitter\.com)\//.test(sender.url || '') && /^[a-f0-9-]{36}$/.test(message.attempt || '')) {
+        authAttempts.set(sender.tab.id, message.attempt);
+        sendToNative(message);
+        return;
+    }
+    if (message.event === 'auth_tap') {
+        if (sender?.tab?.active && authAttempts.get(sender.tab.id) === message.attempt) sendToNative(message);
+        return;
+    }
     if (["tv_like_arm", "tv_like_disarm"].includes(message.event)) return;
     if (sender?.tab?.active === false) return;
     if (message.event === 'content_ready' && nativePort && sender?.tab) {
@@ -171,7 +186,7 @@ if (browser.webRequest?.onBeforeSendHeaders) {
         const decoder=new TextDecoder();
         const body=raw.map(x=>decoder.decode(x.bytes,{stream:true})).join('')+decoder.decode();
         while(requests.size>=20)requests.delete(requests.keys().next().value);
-        requests.set(details.requestId,{url:details.url,method:details.method,body});
+        requests.set(details.requestId,{url:details.url,method:details.method,body,tabId:details.tabId});
     },filter,['requestBody']);
     browser.webRequest.onBeforeSendHeaders.addListener(details => {
         const request=requests.get(details.requestId);
@@ -179,7 +194,11 @@ if (browser.webRequest?.onBeforeSendHeaders) {
     },filter,['requestHeaders']);
     browser.webRequest.onCompleted.addListener(details => {
         const request=requests.get(details.requestId);requests.delete(details.requestId);
-        if(details.statusCode===200 && request?.headers)sendToNative({event:'read_api_template',...request});
+        if(details.statusCode===200 && request?.headers) {
+            const authAttempt=authAttempts.get(request.tabId) || '';
+            delete request.tabId;
+            sendToNative({event:'read_api_template',authAttempt,...request});
+        }
     },filter);
     browser.webRequest.onErrorOccurred.addListener(details=>requests.delete(details.requestId),filter);
     browser.webRequest.onBeforeRequest.addListener(()=>sendToNative({event:'read_session_clear'}),

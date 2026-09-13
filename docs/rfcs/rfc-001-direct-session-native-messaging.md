@@ -1,5 +1,9 @@
 # RFC-001: Gecko 辅助会话通信与阅读器交接
 
+> 2026-09-13 登录实现更新：登录已迁入独立 `LoginActivity`/`LoginFlow`，
+> `restoreLogin/googleAuth` 及自定义 DOM 登录入口已移除，当前行为见
+> [原生登录架构验收](../validation/native-authentication.md)。本文其余通信协议仍为提案，未整体实施。
+
 | 元数据 | 内容 |
 | :--- | :--- |
 | RFC 编号 | RFC-001 |

@@ -155,6 +155,7 @@ function focusAction() {
 function activateAction() {
     var item = actionMenu.items[actionMenu.index], post = actionMenu.post;
     closeActions();
+    if (item.action === 'logout') { ReaderHost.logout(); return; }
     if (item.action === 'external') { openExternal(item.link); return; }
     if (item.action === 'tweet_link') { open(item.post); return; }
     if (item.action === 'like') { toggleLike(post); return; }
@@ -611,6 +612,7 @@ function openActions() {
     (post.links || []).forEach(function(link) {
         items.push({label: link.title, domain: link.domain, link: link, action: 'external'});
     });
+    items.push({label: '退出 X 登录', action: 'logout'});
     if (!items.length) return;
     var node = document.createElement('div');
     node.className = 'action-overlay';

@@ -3,6 +3,8 @@ package cn.deeloo.tvxbrowser;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.net.ConnectivityManager;
 import android.net.LinkAddress;
 import android.net.LinkProperties;
@@ -12,10 +14,18 @@ import android.os.SystemClock;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.view.KeyEvent;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.EncodeHintType;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
 import java.net.Inet4Address;
@@ -23,6 +33,8 @@ import java.net.InetAddress;
 import java.security.*;
 import java.security.cert.X509Certificate;
 import java.util.Date;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.concurrent.*;
 import javax.net.ssl.*;
 import javax.security.auth.x500.X500Principal;
@@ -39,6 +51,7 @@ final class LoginAssist implements AutoCloseable {
     private volatile LoginAssistServer server;
     private volatile boolean closed;
     private AlertDialog dialog;
+    private Bitmap qrBitmap;
     private final Runnable onClosed;
     private final Runnable expiry = new Runnable() {
         public void run() { if(pairing.expired())close();else ui.postDelayed(this,1000); }
@@ -88,14 +101,28 @@ final class LoginAssist implements AutoCloseable {
                 });
                 StringBuilder fingerprint = new StringBuilder();
                 for(byte b:MessageDigest.getInstance("SHA-256").digest(cert.getEncoded()))fingerprint.append(String.format(java.util.Locale.ROOT,"%02X",b&255));
+                Bitmap qr = qrCode(qrPayload(ready.url(),pairing.code()),640);
                 ui.post(() -> {
-                    if(closed){ready.close();return;}
+                    if(closed){ready.close();qr.recycle();return;}
                     server=ready;ready.start();
+                    qrBitmap=qr;
+                    LinearLayout content=new LinearLayout(activity);content.setOrientation(LinearLayout.VERTICAL);
+                    int inset=dp(24);content.setPadding(inset,dp(8),inset,0);
+                    TextView lead=new TextView(activity);lead.setText("手机扫码后自动配对");lead.setTextSize(20);lead.setGravity(Gravity.CENTER_HORIZONTAL);
+                    content.addView(lead,new LinearLayout.LayoutParams(-1,-2));
+                    ImageView image=new ImageView(activity);image.setImageBitmap(qr);image.setContentDescription("扫码打开辅助登录");
+                    image.setBackgroundColor(Color.WHITE);image.setPadding(dp(10),dp(10),dp(10),dp(10));
+                    LinearLayout.LayoutParams imageLayout=new LinearLayout.LayoutParams(dp(220),dp(220));
+                    imageLayout.gravity=Gravity.CENTER_HORIZONTAL;imageLayout.topMargin=dp(12);imageLayout.bottomMargin=dp(12);
+                    content.addView(image,imageLayout);
+                    TextView help=new TextView(activity);
+                    help.setText("扫码失败：浏览器打开\n"+ready.url()+"\n配对码："+pairing.code()+
+                        "\n首次访问需继续打开本地证书页面。\nSHA-256："+fingerprint);
+                    help.setTextSize(12);help.setTypeface(Typeface.MONOSPACE);
+                    content.addView(help,new LinearLayout.LayoutParams(-1,-2));
                     dialog=new AlertDialog.Builder(activity).setTitle("手机 / 电脑辅助登录")
-                        .setMessage("在同一局域网的浏览器打开：\n"+ready.url()+"\n\n配对码："+pairing.code()+
-                            "\n\n首次访问：查看浏览器证书，核对 SHA-256 指纹后继续。\n"+fingerprint+
-                            "\n\n连接有效期 10 分钟。点击远端画面选中输入框，再发送文字。登录信息保存在投影仪。")
-                        .setPositiveButton("隐藏说明，继续登录",(d,w)->view.requestFocus())
+                        .setView(content)
+                        .setPositiveButton("隐藏二维码，继续登录",(d,w)->view.requestFocus())
                         .setNegativeButton("停止辅助登录",(d,w)->close()).create();
                     dialog.setOnCancelListener(d->close());dialog.show();ui.post(expiry);
                 });
@@ -104,6 +131,16 @@ final class LoginAssist implements AutoCloseable {
             }
         });
     }
+    static String qrPayload(String url,String code) { return url+"/#code="+code; }
+    private static Bitmap qrCode(String value,int size) throws Exception {
+        Map<EncodeHintType,Object> hints=new EnumMap<>(EncodeHintType.class);
+        hints.put(EncodeHintType.MARGIN,1);hints.put(EncodeHintType.CHARACTER_SET,"UTF-8");
+        BitMatrix matrix=new QRCodeWriter().encode(value,BarcodeFormat.QR_CODE,size,size,hints);
+        int[] pixels=new int[size*size];
+        for(int y=0;y<size;y++)for(int x=0;x<size;x++)pixels[y*size+x]=matrix.get(x,y)?Color.BLACK:Color.WHITE;
+        return Bitmap.createBitmap(pixels,size,size,Bitmap.Config.ARGB_8888);
+    }
+    private int dp(int value) { return Math.round(value*activity.getResources().getDisplayMetrics().density); }
     private InetAddress address() throws Exception {
         ConnectivityManager manager=(ConnectivityManager)activity.getSystemService(Activity.CONNECTIVITY_SERVICE);
         LinkProperties links=manager.getLinkProperties(manager.getActiveNetwork());
@@ -127,7 +164,7 @@ final class LoginAssist implements AutoCloseable {
     }
     private void remoteInput(JSONObject command) throws Exception {
         String kind=command.optString("kind");
-        if(!kind.equals("tap")&&!kind.equals("text")&&!kind.equals("key"))throw new IllegalArgumentException();
+        if(!kind.equals("tap")&&!kind.equals("text")&&!kind.equals("edit")&&!kind.equals("key"))throw new IllegalArgumentException();
         CompletableFuture<Void> done=new CompletableFuture<>();
         ui.post(()->{
             if(done.isCancelled())return;
@@ -142,8 +179,10 @@ final class LoginAssist implements AutoCloseable {
                     MotionEvent down=MotionEvent.obtain(now,now,MotionEvent.ACTION_DOWN,(float)x*view.getWidth(),(float)y*view.getHeight(),0);
                     MotionEvent up=MotionEvent.obtain(now,now+40,MotionEvent.ACTION_UP,(float)x*view.getWidth(),(float)y*view.getHeight(),0);
                     view.dispatchTouchEvent(down);view.dispatchTouchEvent(up);down.recycle();up.recycle();
-                } else if(kind.equals("text")) {
-                    String text=command.getString("text");if(text.length()>2048)throw new IllegalArgumentException();
+                } else if(kind.equals("text")||kind.equals("edit")) {
+                    String text=command.getString("text");
+                    int delete=kind.equals("edit")?command.optInt("delete",-1):0;
+                    if(text.length()>2048||delete<0||delete>2048)throw new IllegalArgumentException();
                     EditorInfo info=new EditorInfo();
                     // Capture and input must target the same displayed session, including OAuth popups.
                     InputConnection input=view.onCreateInputConnection(info);
@@ -153,7 +192,14 @@ final class LoginAssist implements AutoCloseable {
                     (inputHandler==null?ui:inputHandler).post(() -> {
                         if(done.isCancelled())return;
                         try {
-                            if(closed||pairing.expired()||!input.commitText(text,1))throw new IllegalStateException();
+                            if(closed||pairing.expired())throw new IllegalStateException();
+                            boolean applied;
+                            input.beginBatchEdit();
+                            try {
+                                applied=(delete==0||input.deleteSurroundingText(delete,0))&&
+                                    (text.isEmpty()||input.commitText(text,1));
+                            } finally { input.endBatchEdit(); }
+                            if(!applied)throw new IllegalStateException();
                             done.complete(null);
                         } catch(Exception e){done.completeExceptionally(e);}
                     });
@@ -179,6 +225,8 @@ final class LoginAssist implements AutoCloseable {
     public void close() {
         if(closed)return;closed=true;pairing.close();ui.removeCallbacks(expiry);
         if(server!=null)server.close();setup.shutdownNow();
-        if(dialog!=null)dialog.dismiss();onClosed.run();
+        if(dialog!=null)dialog.dismiss();
+        Bitmap bitmap=qrBitmap;qrBitmap=null;if(bitmap!=null&&!bitmap.isRecycled())bitmap.recycle();
+        onClosed.run();
     }
 }

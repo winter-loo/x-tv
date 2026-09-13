@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "TV X Extension",
-  "version": "1.6.4",
+  "version": "1.7.2",
   "description": "Remote-first TV navigation and CSS adapter for X",
   "browser_specific_settings": {
     "gecko": {
@@ -31,9 +31,9 @@
       "match_about_blank": true,
       "all_frames": false,
       "js": [
+        "sites/x/auth-page.js",
         "sites/x/api-metadata.js",
         "sites/x/loading-metrics.js",
-        "sites/x/login-stage.js",
         "sites/x/bootstrap.js",
         "runtime/navigation-runtime.js",
         "sites/x/post-identity.js",

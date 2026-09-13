@@ -7,65 +7,6 @@
     <FrameLayout android:id="@+id/loading_overlay"
         android:layout_width="match_parent" android:layout_height="match_parent"
         android:background="#090d14" android:clickable="true">
-        <LinearLayout android:id="@+id/startup_login_preview"
-            android:layout_width="520dp" android:layout_height="wrap_content"
-            android:layout_gravity="center" android:orientation="vertical"
-            android:gravity="center_horizontal" android:paddingLeft="48dp"
-            android:paddingTop="32dp" android:paddingRight="48dp"
-            android:paddingBottom="32dp" android:background="@drawable/login_preview_card"
-            android:visibility="gone">
-
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="X" android:textColor="#FFFFFF" android:textSize="48sp"
-                android:textStyle="bold" android:includeFontPadding="false" />
-
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:layout_marginTop="12dp" android:text="登录 X (Twitter)"
-                android:textColor="#FFFFFF" android:textSize="26sp" android:textStyle="bold" />
-
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:layout_marginTop="4dp" android:layout_marginBottom="22dp"
-                android:text="Android TV 大屏专享控制台" android:textColor="#8B98A5"
-                android:textSize="14sp" />
-
-            <TextView android:id="@+id/startup_login_input" android:layout_width="match_parent"
-                android:layout_height="56dp" android:gravity="center_vertical"
-                android:paddingLeft="20dp" android:paddingRight="20dp"
-                android:background="@drawable/login_preview_field" android:focusable="true"
-                android:nextFocusDown="@id/startup_login_next"
-                android:text="输入用户名、邮箱或手机号" android:textColor="#536471"
-                android:textSize="18sp" />
-
-            <TextView android:id="@+id/startup_login_next" android:layout_width="match_parent"
-                android:layout_height="52dp" android:layout_marginTop="14dp" android:gravity="center"
-                android:background="@drawable/login_preview_primary" android:focusable="true"
-                android:nextFocusUp="@id/startup_login_input"
-                android:nextFocusDown="@id/startup_login_assist"
-                android:text="下一步" android:textColor="#FFFFFF" android:textSize="17sp"
-                android:textStyle="bold" />
-
-            <TextView android:id="@+id/startup_login_assist" android:layout_width="match_parent"
-                android:layout_height="52dp" android:layout_marginTop="14dp" android:gravity="center"
-                android:background="@drawable/login_preview_secondary" android:focusable="true"
-                android:nextFocusUp="@id/startup_login_next"
-                android:nextFocusDown="@id/startup_login_google"
-                android:text="手机 / 电脑辅助登录" android:textColor="#E7E9EA"
-                android:textSize="17sp" android:textStyle="bold" />
-
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="16dp" android:layout_marginBottom="10dp"
-                android:gravity="center" android:text="或通过快捷方式继续"
-                android:textColor="#536471" android:textSize="13sp" />
-
-            <TextView android:id="@+id/startup_login_google" android:layout_width="match_parent"
-                android:layout_height="52dp" android:gravity="center"
-                android:background="@drawable/login_preview_secondary" android:focusable="true"
-                android:nextFocusUp="@id/startup_login_assist"
-                android:nextFocusDown="@id/startup_login_input"
-                android:text="G  使用 Google 账号继续" android:textColor="#E7E9EA"
-                android:textSize="17sp" android:textStyle="bold" />
-        </LinearLayout>
-
         <TextView android:id="@+id/loading_text"
             android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:layout_gravity="center" android:gravity="center"

@@ -66,7 +66,7 @@ test('quoted post appears in the action menu and displays author and status link
     await key(page, 'menu');
 
     const options = page.locator('.action-options button');
-    await expect(options).toHaveCount(4); // like, author, reply, and quoted post link
+    await expect(options).toHaveCount(5); // like, author, reply, quoted post link, and logout
     const tweetLink = page.locator('.action-options button.tweet-link');
     await expect(tweetLink).toHaveCount(1);
     await expect(tweetLink.locator('.label')).toContainText('SpaceX');

@@ -55,8 +55,8 @@ final class LoginAssistServer implements AutoCloseable {
                 if (headers.put(name,header.substring(colon+1).trim()) != null) throw new IOException();
             }
             String origin = headers.get("origin");
-            if (!host.equals(headers.get("host")) || (origin != null && !url().equals(origin)) ||
-                headers.containsKey("transfer-encoding") || "cross-site".equals(headers.get("sec-fetch-site"))) {
+            if (!acceptsSource(host,headers.get("host"),url(),origin,headers.containsKey("transfer-encoding"),
+                headers.get("sec-fetch-site"),request[0],request[1])) {
                 respond(client,403,"text/plain",new byte[0]); return;
             }
             if (pairing.expired()) { respond(client,410,"text/plain",new byte[0]); return; }
@@ -101,6 +101,14 @@ final class LoginAssistServer implements AutoCloseable {
     }
     private boolean authorized(String header) {
         return header != null && header.startsWith("Bearer ") && pairing.permits(header.substring(7));
+    }
+    static boolean acceptsSource(String expectedHost,String requestHost,String expectedOrigin,String origin,
+        boolean transferEncoding,String fetchSite,String method,String path) {
+        // A QR scanner hands the URL to Chrome as a cross-site top-level navigation. The landing
+        // document is read-only; pairing and every authenticated endpoint stay same-origin only.
+        boolean qrLanding="cross-site".equals(fetchSite)&&"GET".equals(method)&&"/".equals(path);
+        return expectedHost.equals(requestHost)&&(origin==null||expectedOrigin.equals(origin))&&!transferEncoding&&
+            (!"cross-site".equals(fetchSite)||qrLanding);
     }
     private static String line(InputStream in) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream(); int previous = -1;

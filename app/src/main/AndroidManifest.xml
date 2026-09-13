@@ -17,6 +17,12 @@
         android:usesCleartextTraffic="true">
 
         <activity
+            android:name=".LoginActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
             android:name=".BrowserActivity"
             android:exported="true"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"

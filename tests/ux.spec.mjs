@@ -88,7 +88,7 @@ test('background replaces a half-open native port and keeps a responsive one', a
    const port={messages:[],disconnected:false,onMessage:{addListener(fn){port.receive=fn;}},onDisconnect:listener(),postMessage(msg){port.messages.push(msg);},disconnect(){port.disconnected=true;}};
    ports.push(port); return port;
   }},
-  tabs:{onActivated:listener(),onUpdated:listener(),query:async()=>[]}
+  tabs:{onActivated:listener(),onUpdated:listener(),onRemoved:listener(),query:async()=>[]}
  };
  runInNewContext(source,{browser,console:{log(){},warn(){},error(){}},Date:{now:()=>now},setInterval(fn){heartbeat=fn;},setTimeout(){}});
  expect(ports).toHaveLength(1);

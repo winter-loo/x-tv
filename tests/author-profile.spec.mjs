@@ -93,8 +93,9 @@ test('right-click menu contains view author but no follow action', async ({page}
     const options = page.locator('.action-options button');
     await expect(options.nth(0)).toContainText('喜欢');
     await expect(options.nth(1)).toContainText('写评论');
-    await expect(options).toHaveCount(3);
+    await expect(options).toHaveCount(4);
     await expect(options.nth(2)).toContainText('查看作者');
+    await expect(options.nth(3)).toContainText('退出 X 登录');
     await expect(options.filter({hasText: '关注'})).toHaveCount(0);
 });
 
