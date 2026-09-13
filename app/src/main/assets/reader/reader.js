@@ -763,14 +763,21 @@ function openAuthor(authorData) {
     saveScroll();
     stack.push(state);
     var authorPosts = findAuthorPosts(authorData);
+    var numericId = authorData.id && String(authorData.id).match(/^[0-9]+$/) ? String(authorData.id) : '';
     state = {
         mode: 'author',
+        id: numericId,
         author: authorData,
         posts: authorPosts,
+        cursor: '',
         index: 0,
-        region: 'bio'
+        region: 'bio',
+        loading: !!numericId
     };
     render();
+    if (state.loading && window.ReaderHost && typeof window.ReaderHost.request === 'function') {
+        request('');
+    }
 }
 function authorPageHtml(authorData, posts) {
     var isFollowing = !!authorData.following;
@@ -821,7 +828,7 @@ function formatCount(value) {
         '</div>' +
     '</div>';
 
-    var postsHtml = '<section class="author-posts-panel"><div class="author-posts-heading">已加载的帖子 <span>' + posts.length + ' 条</span></div><div class="author-posts-list">';
+    var postsHtml = '<section class="author-posts-panel"><div class="author-posts-heading">已加载的帖子 <span>' + posts.length + ' 条' + (paging ? ' · 正在加载…' : '') + '</span></div><div class="author-posts-list">';
     if (posts.length) {
         postsHtml += posts.map(function(p, i) {
             var isSelected = state.region === 'posts' && state.index === i;
@@ -834,8 +841,11 @@ function formatCount(value) {
                 '</div>' +
             '</div>';
         }).join('');
+        if (paging) {
+            postsHtml += '<div class="author-posts-loading" style="padding:2vh;text-align:center;color:#8899a6;font-size:1.3vw">正在加载更多帖子…</div>';
+        }
     } else {
-        postsHtml += '<div class="author-posts-empty">尚未加载该作者的帖子</div>';
+        postsHtml += '<div class="author-posts-empty">' + (state.loading ? '正在获取作者主页推文…' : '尚未加载该作者的帖子') + '</div>';
     }
     postsHtml += '</div></section>';
 
@@ -1532,6 +1542,15 @@ function receive(id, payload, error) {
         return;
     }
     if (error || !payload) {
+        if (state.mode === 'author') {
+            state.loading = false;
+            paging = false;
+            if (state.posts.length) {
+                render();
+                notice('未能获取更多作者推文');
+                return;
+            }
+        }
         state.error = error || 'network';
         state.commentsLoading = false;
         if (current()) saveScroll();
@@ -1541,6 +1560,16 @@ function receive(id, payload, error) {
         return;
     }
     var data = preserveWrites(TvXReadData.parse(payload, state.mode, state.id), readRevision);
+    if (state.mode === 'author') {
+        state.loading = false;
+        if (data.author && data.author.name) {
+            Object.keys(data.author).forEach(function(k) {
+                if (data.author[k] !== '' && data.author[k] != null) {
+                    state.author[k] = data.author[k];
+                }
+            });
+        }
+    }
     if (state.mode === 'detail' && !paging && (!data.root || !data.root.complete)) {
         state.error = true;
         state.commentsLoading = false;
@@ -1600,7 +1629,16 @@ function receive(id, payload, error) {
             notice('已无更多新帖子');
         }
     } else {
-        state.posts = data.posts;
+        if (state.mode === 'author') {
+            var ids = new Set(data.posts.map(function(p) { return p.id; }));
+            var localOnly = state.posts.filter(function(p) { return !ids.has(p.id); });
+            state.posts = data.posts.concat(localOnly);
+            if (state.index >= state.posts.length) {
+                state.index = Math.max(0, state.posts.length - 1);
+            }
+        } else {
+            state.posts = data.posts;
+        }
         if (state.mode === 'likes') {
             state.empty = false;
             state.index = 0;
@@ -1757,6 +1795,11 @@ function key(key) {
                 if (state.index < state.posts.length - 1) {
                     state.index++;
                     render();
+                    if (state.index >= state.posts.length - 2) {
+                        more();
+                    }
+                } else {
+                    more();
                 }
             }
             return;

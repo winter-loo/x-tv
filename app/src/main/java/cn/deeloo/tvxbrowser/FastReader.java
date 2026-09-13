@@ -137,7 +137,7 @@ final class FastReader extends FrameLayout {
         @JavascriptInterface
         public void request(String id, String mode, String postId, String cursor) {
             if (!id.matches("r[0-9]+")
-                || (!mode.equals("home") && !mode.equals("detail") && !mode.equals("likes"))
+                || (!mode.equals("home") && !mode.equals("detail") && !mode.equals("likes") && !mode.equals("author"))
                 || cursor.length() > 10000)
                 return;
             post(() -> {
@@ -150,6 +150,8 @@ final class FastReader extends FrameLayout {
                 setContentDescription("tvx-reader-loading");
                 if (mode.equals("likes"))
                     client.fetchLikes(id, cursor, (data, error) -> receive(id, data, error));
+                else if (mode.equals("author"))
+                    client.fetchAuthor(id, postId, cursor, (data, error) -> receive(id, data, error));
                 else
                     client.fetch(id, mode, postId, cursor, (data, error) -> receive(id, data, error));
             });

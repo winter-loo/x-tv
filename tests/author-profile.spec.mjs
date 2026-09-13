@@ -269,3 +269,136 @@ test('empty structured location and invalid biography never stringify objects', 
     await expect(page.locator('.author-page')).not.toContainText('[object Object]');
     await expect(page.locator('.author-bio')).toHaveText('作者暂未提供简介');
 });
+
+function authorTimelinePayload(tweets, cursor = 'cursor_bottom_1', authorUser = null) {
+    const entries = tweets.map(t => ({
+        content: {itemContent: {tweet_results: {result: t}}}
+    }));
+    if (cursor) {
+        entries.push({
+            content: {
+                cursorType: 'Bottom',
+                value: cursor
+            }
+        });
+    }
+    const data = {
+        user: {
+            result: authorUser || {
+                __typename: 'User',
+                rest_id: '44196397',
+                legacy: {
+                    name: '智见AI-大鹏',
+                    screen_name: 'zjp1997720',
+                    followers_count: 8888,
+                    friends_count: 500,
+                    statuses_count: 2500,
+                    description: '更新后的作者简介',
+                    following: true
+                }
+            }
+        },
+        timeline: {
+            instructions: [{
+                entries
+            }]
+        }
+    };
+    return {data};
+}
+
+test('opening author profile triggers dynamic request and merges remote posts with fresh author profile', async ({page}) => {
+    await mount(page);
+    const tweet = authorPost('101', 'Initial post from home timeline');
+    await page.evaluate(data => TvXReader.receive('r0', data, ''), payload([tweet]));
+
+    // Click author block
+    await page.locator('.author').click();
+
+    // Verify dynamic request was issued to ReaderHost
+    const reqCalls = await calls(page, 'request');
+    expect(reqCalls.length).toBeGreaterThan(0);
+    const authorReq = reqCalls.find(c => c[2] === 'author');
+    expect(authorReq).toBeDefined();
+    expect(authorReq[1]).toBe('r1');
+    expect(authorReq[3]).toBe('44196397');
+    expect(authorReq[4]).toBe('');
+
+    // Remote response arrives with 2 new posts and updated author stats
+    const remotePosts = [
+        authorPost('101', 'Initial post from home timeline'),
+        authorPost('102', 'Second post from remote'),
+        authorPost('103', 'Third post from remote')
+    ];
+    await page.evaluate(data => TvXReader.receive('r1', data, ''), authorTimelinePayload(remotePosts, 'cursor_next_page'));
+
+    // Cards should now be 3
+    const postCards = page.locator('.author-post-card');
+    await expect(postCards).toHaveCount(3);
+    await expect(postCards.nth(1)).toContainText('Second post from remote');
+    await expect(postCards.nth(2)).toContainText('Third post from remote');
+
+    // Author profile updated with live data
+    await expect(page.locator('.author-bio')).toHaveText('更新后的作者简介');
+    await expect(page.locator('.author-stats-row')).toContainText('8,888 关注者');
+    await expect(page.locator('.author-follow-btn')).toContainText('已关注');
+});
+
+test('navigating down in author post list triggers pagination more() with cursor and appends new posts', async ({page}) => {
+    await mount(page);
+    const tweet = authorPost('101', 'Initial post');
+    await page.evaluate(data => TvXReader.receive('r0', data, ''), payload([tweet]));
+    await page.locator('.author').click();
+
+    // Receive first batch of 3 posts with bottom cursor
+    const batch1 = [
+        authorPost('101', 'Post 1'),
+        authorPost('102', 'Post 2'),
+        authorPost('103', 'Post 3')
+    ];
+    await page.evaluate(data => TvXReader.receive('r1', data, ''), authorTimelinePayload(batch1, 'cursor_batch_2'));
+    await expect(page.locator('.author-post-card')).toHaveCount(3);
+
+    // Switch focus to posts and scroll down
+    await key(page, 'right');
+    await expect(page.locator('.author-post-card').nth(0)).toHaveClass(/selected/);
+    await key(page, 'down');
+    await expect(page.locator('.author-post-card').nth(1)).toHaveClass(/selected/);
+    await key(page, 'down');
+    await expect(page.locator('.author-post-card').nth(2)).toHaveClass(/selected/);
+
+    // Press down again at the end: triggers more()
+    await key(page, 'down');
+
+    // Verify ReaderHost received pagination request with cursor_batch_2
+    const reqCalls = await calls(page, 'request');
+    const pagingReq = reqCalls.find(c => c[2] === 'author' && c[4] === 'cursor_batch_2');
+    expect(pagingReq).toBeDefined();
+    const pagingId = pagingReq[1];
+
+    // Deliver page 2
+    const batch2 = [authorPost('104', 'Post 4 from page 2')];
+    await page.evaluate(({id, data}) => TvXReader.receive(id, data, ''), {id: pagingId, data: authorTimelinePayload(batch2, 'cursor_batch_3')});
+
+    // Should now have 4 post cards
+    await expect(page.locator('.author-post-card')).toHaveCount(4);
+    await expect(page.locator('.author-post-card').nth(3)).toContainText('Post 4 from page 2');
+});
+
+test('network error on author timeline retains existing local posts without breaking UI', async ({page}) => {
+    await mount(page);
+    const tweet = authorPost('101', 'Local fallback post');
+    await page.evaluate(data => TvXReader.receive('r0', data, ''), payload([tweet]));
+    await page.locator('.author').click();
+
+    await expect(page.locator('.author-post-card')).toHaveCount(1);
+    await expect(page.locator('.author-post-card').nth(0)).toContainText('Local fallback post');
+
+    // Simulate network error on r1
+    await page.evaluate(() => TvXReader.receive('r1', null, 'network'));
+
+    // Post card is still present
+    await expect(page.locator('.author-post-card')).toHaveCount(1);
+    await expect(page.locator('.author-post-card').nth(0)).toContainText('Local fallback post');
+    await expect(page.locator('#notice')).toContainText('未能获取更多作者推文');
+});

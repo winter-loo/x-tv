@@ -233,8 +233,13 @@ function parse(payload, mode, targetId) {
         });
     }
     walk(payload.data);
-    // Every list — the timeline and the signed-in reader's likes — is the same shape.
-    if (mode !== 'detail') return {posts: posts, cursor: cursor};
+    var authorInfo = null;
+    var userResult = at(payload, 'data.user.result');
+    if (userResult) {
+        authorInfo = user(userResult);
+    }
+    // Every list — the timeline, the reader's likes, or an author's tweets — is the same shape.
+    if (mode !== 'detail') return {posts: posts, cursor: cursor, author: authorInfo};
     var root = posts.find(function(post) {
         return post.id === targetId;
     });
@@ -254,6 +259,7 @@ function parse(payload, mode, targetId) {
     return {root: root || null, posts: comments, cursor: cursor};
 }
 scope.TvXReadData = {
-    parse: parse
+    parse: parse,
+    user: user
 };
 })(typeof window === 'undefined' ? globalThis : window);

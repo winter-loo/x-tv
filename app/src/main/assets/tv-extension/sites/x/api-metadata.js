@@ -12,7 +12,8 @@
         UnfavoriteTweet: {method: 'POST', companion: 'TweetResultByRestId'},
         CreateTweet: {method: 'POST', companion: 'TweetResultByRestId'},
         Likes: {method: 'GET'},
-        TweetDetail: {method: 'GET'}
+        TweetDetail: {method: 'GET'},
+        UserTweets: {method: 'GET'}
     };
     let requirePage;
     function requireModules() {

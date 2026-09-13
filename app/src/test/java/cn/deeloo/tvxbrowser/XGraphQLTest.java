@@ -59,4 +59,7 @@ public class XGraphQLTest {
         try { XGraphQL.validate(query(Boolean.TRUE).put("transaction","not a transaction")); fail("expected a metadata failure"); }
         catch (org.json.JSONException expected) {}
     }
+    @Test public void userTweetsIsConfiguredAsGet() {
+        assertEquals("GET", XGraphQL.METHODS.get("UserTweets"));
+    }
 }

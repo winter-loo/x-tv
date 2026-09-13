@@ -487,6 +487,9 @@ final class XReadClient {
     void fetchLikes(String id, String cursor, Callback callback) {
         fetchLive(id, "Likes", "", cursor, callback);
     }
+    void fetchAuthor(String id, String authorId, String cursor, Callback callback) {
+        fetchLive(id, "UserTweets", authorId, cursor, callback);
+    }
     private void fetchLive(String id, String operation, String postId, String cursor, Callback callback) {
         if (closed) return;
         final JSONObject auth = credentials();
@@ -526,6 +529,11 @@ final class XReadClient {
                             .put("withBirdwatchNotes", true).put("withVoice", true);
                         info.getJSONObject("queries").getJSONObject(operation).getJSONObject("fieldToggles")
                             .put("withArticleRichContentState", true).put("withArticlePlainText", true);
+                    } else if (operation.equals("UserTweets")) {
+                        if (!postId.matches("[0-9]+")) throw new IllegalArgumentException();
+                        variables = new JSONObject().put("userId", postId).put("count", 20)
+                            .put("includePromotedContent", false).put("withQuickPromoteEligibilityTweetFields", true)
+                            .put("withVoice", true).put("withV2Timeline", true);
                     } else {
                         String userId = XGraphQL.accountId(headers.get("cookie"));
                         if (!userId.matches("[0-9]+")) throw new java.io.IOException("session");

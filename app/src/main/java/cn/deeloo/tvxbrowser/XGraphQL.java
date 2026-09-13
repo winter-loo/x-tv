@@ -36,7 +36,7 @@ final class XGraphQL {
      * The only operations that may be built, each with the method its transaction identifier is
      * signed for. This mirrors the extension's own table: the two must agree or X rejects the call.
      */
-    private static final Map<String, String> METHODS = new HashMap<>();
+    static final Map<String, String> METHODS = new HashMap<>();
     static {
         METHODS.put("FavoriteTweet", "POST");
         METHODS.put("UnfavoriteTweet", "POST");
@@ -44,6 +44,7 @@ final class XGraphQL {
         METHODS.put("TweetResultByRestId", "GET");
         METHODS.put("Likes", "GET");
         METHODS.put("TweetDetail", "GET");
+        METHODS.put("UserTweets", "GET");
     }
     private static final int LIMIT = 8_000_000;
 
