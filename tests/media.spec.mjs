@@ -247,6 +247,13 @@ test('a video opens straight into the player with a readable control bar', async
     await expect(page.locator('.viewer .controls')).toHaveCount(1);
     await expect(page.locator('.viewer .total')).toHaveText('1:23');
     await expect(page.locator('.viewer .elapsed')).toHaveText('0:00');
+    // A low-resolution source must fill the viewport too, without shrinking after metadata.
+    const player = page.locator('.viewer video');
+    const viewport = page.viewportSize();
+    const bounds = await player.boundingBox();
+    expect(bounds).toEqual({x: 0, y: 0, width: viewport.width, height: viewport.height});
+    await player.evaluate(v => { v.width = 504; v.height = 360; });
+    expect(await player.boundingBox()).toEqual(bounds);
     // Filling the screen must not distort the picture.
     expect(await page.locator('.viewer video').evaluate(n => getComputedStyle(n).objectFit))
         .toBe('contain');
@@ -370,8 +377,10 @@ test('the control bar hides when left alone and comes back on use', async ({page
     await key(page, 'ok');
     await expect(page.locator('.viewer')).not.toHaveClass(/idle/);
     await expect(page.locator('.viewer')).toHaveClass(/idle/, {timeout: 6000});
+    await expect(page.locator('.viewer .hint')).toHaveCSS('opacity', '0');
     await key(page, 'ok');
     await expect(page.locator('.viewer')).not.toHaveClass(/idle/);
+    await expect(page.locator('.viewer .hint')).toHaveCSS('opacity', '1');
 });
 
 test('the bar shows how much has been buffered', async ({page}) => {
