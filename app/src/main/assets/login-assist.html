@@ -1,23 +1,41 @@
 <!doctype html>
 <html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>X TV · 手机键盘</title>
+<title>X TV · 辅助登录</title>
 <style>
-:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#090d14;color:#eef3fa}*{box-sizing:border-box}body{max-width:900px;margin:auto;padding:20px}h1{font-size:25px;margin:0 0 6px}p{color:#aebccc;line-height:1.55}button,input{font:inherit;border-radius:12px;padding:13px;border:1px solid #45566b;background:#182334;color:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:3px solid #70bfff;outline-offset:2px}button:disabled{opacity:.5}form,.controls{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}input{min-width:100px;flex:1}#keyboard{position:sticky;top:8px;z-index:2;padding:14px;margin:10px 0 16px;border:1px solid #34465b;border-radius:16px;background:rgba(18,27,41,.96);box-shadow:0 10px 30px rgba(0,0,0,.32)}#keyboard label{display:block;font-weight:700;margin-bottom:8px}#typing{margin:0}#text{width:100%;font-size:18px;background:#0e1723}#screen{display:block;width:100%;height:auto;background:#121b29;border:1px solid #45566b;border-radius:12px;cursor:crosshair;touch-action:manipulation}#status,#action-status{min-height:24px;margin:8px 0;color:#9dd2ff}.hint{font-size:14px;margin:8px 0}.controls button{flex:1 0 auto}[hidden]{display:none!important}
+:root{color-scheme:dark;font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:#101216;color:#edf0f4}
+*{box-sizing:border-box}
+body{max-width:900px;margin:auto;padding:24px 20px;padding-bottom:max(24px,env(safe-area-inset-bottom))}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:20px}
+h1{font-size:18px;font-weight:600;letter-spacing:.02em;margin:0;white-space:nowrap}
+p{color:#9da5b1;line-height:1.5}
+button,input{font:inherit;border-radius:10px;padding:14px;border:1px solid #3d424c;background:#1b1e24;color:inherit}
+button{cursor:pointer;white-space:nowrap}
+button:focus-visible,input:focus-visible{outline:2px solid #a9c8f4;outline-offset:3px}
+button:disabled{opacity:.5}
+form{display:flex;gap:10px;margin:16px 0}
+input{min-width:0;flex:1}
+#keyboard{margin-top:24px}
+#keyboard label{display:block;font-size:14px;font-weight:600;margin-bottom:10px}
+#typing{margin:0}
+#text{width:100%;font-size:17px;background:#1b1e24}
+input::placeholder{color:#959daa}
+#screen{display:block;width:100%;height:auto;min-height:120px;background:#191c22;border:1px solid #343944;border-radius:12px;cursor:crosshair;touch-action:manipulation}
+#status{font-size:12px;margin:0;text-align:right}
+#action-status{font-size:13px;min-height:20px;margin:8px 0 0;color:#abbdd5}
+.hint{font-size:13px;margin:8px 0 0}
+[hidden]{display:none!important}
+@media(max-width:480px){body{padding:18px 16px;padding-bottom:max(18px,env(safe-area-inset-bottom))}header{margin-bottom:16px}#keyboard{margin-top:20px}#pair{flex-wrap:wrap}#code{flex-basis:180px}}
 </style>
-<h1>X TV · 手机键盘</h1>
-<p>手机输入会直接写入投影仪当前焦点，账号仍只登录在投影仪上。</p>
+<header><h1>X TV · 辅助登录</h1><p id="status" role="status">等待连接</p></header>
 <form id="pair"><input id="code" aria-label="投影仪配对码" placeholder="投影仪上的 8 位配对码" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" autocomplete="off" required><button>连接投影仪</button></form>
-<p id="status" role="status">扫码后会自动配对。</p>
 <main id="remote" hidden>
+<img id="screen" alt="电视当前画面，点击输入框即可操作" draggable="false">
 <section id="keyboard">
-<label for="text">直接输入到电视</label>
-<form id="typing"><input id="text" type="text" aria-label="直接输入到电视当前焦点" placeholder="点这里唤起手机键盘" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="2048" enterkeyhint="next"></form>
-<p id="action-status" role="status" aria-live="polite">已连接，可以直接输入。</p>
+<label for="text">手机输入</label>
+<form id="typing"><input id="text" type="text" aria-label="直接输入到电视当前焦点" aria-describedby="typing-hint action-status" placeholder="输入文字，同步到电视" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="2048" enterkeyhint="go"></form>
+<p id="typing-hint" class="hint">点画面中的输入框，再输入；按回车确认。</p>
+<p id="action-status" role="status" aria-live="polite"></p>
 </section>
-<p class="hint">电视焦点不在输入框时，先点下方画面里的输入框；手机键盘会自动弹出。键盘的“下一步 / 完成”会在电视上确认。</p>
-<img id="screen" alt="投影仪当前的登录页面，点击输入框即可操作" draggable="false">
-<div class="controls"><button data-key="Tab">下个输入框</button><button data-key="Enter">确认 ↵</button><button data-key="PageUp">向上翻页</button><button data-key="PageDown">向下翻页</button><button id="stop">结束连接</button></div>
-<p class="hint">连接有效期 10 分钟。输入只保留在当前页面内，不会写入浏览器存储。</p>
 </main>
 <script>
 'use strict';
@@ -32,20 +50,20 @@ function connectionError(error){if(error.message==='401'||error.message==='410')
 function enqueue(data,needsSync=false){
   commands=commands.then(async()=>{
     if(!running||(needsSync&&syncBlocked))return false;
-    try{await request('/input',data);if(needsSync)$('action-status').textContent='已同步到电视。';return true;}
-    catch(error){if(connectionError(error))return false;if(needsSync){syncBlocked=true;$('action-status').textContent='同步中断，内容仍保留在手机。请重新点一次下方电视输入框后再输入。';}else $('action-status').textContent='操作没有送达，请查看电视画面后重试。';return false;}
+    try{await request('/input',data);if(needsSync)$('action-status').textContent='已同步';return true;}
+    catch(error){if(connectionError(error))return false;if(needsSync){syncBlocked=true;$('action-status').textContent='同步中断，文字已保留。请重新点选上方输入框。';}else $('action-status').textContent='操作没有送达，请查看电视画面后重试。';return false;}
   });
   return commands;
 }
 async function pair(code,button){
   if(button)button.disabled=true;
   $('status').textContent='正在连接投影仪…';
-  try{token=(await(await request('/pair',{code})).json()).token;$('code').value='';running=true;$('pair').hidden=true;$('remote').hidden=false;$('status').textContent='已连接 · 正在获取投影仪画面';poll();}
+  try{token=(await(await request('/pair',{code})).json()).token;$('code').value='';running=true;$('pair').hidden=true;$('remote').hidden=false;$('status').textContent='正在获取画面…';poll();}
   catch(error){$('pair').hidden=false;$('code').value=code;$('status').textContent='连接失败：请检查配对码；连续输错 5 次后需在投影仪重新开启。';}
   finally{if(button)button.disabled=false;}
 }
 $('pair').onsubmit=event=>{event.preventDefault();pair($('code').value,event.submitter);};
-async function poll(){while(running){try{const blob=await(await request('/frame')).blob();if(!running)return;const next=URL.createObjectURL(blob);$('screen').src=next;if(frameUrl)URL.revokeObjectURL(frameUrl);frameUrl=next;failures=0;$('status').textContent='已连接 · 手机键盘直连电视焦点';}catch(error){if(error.message==='503'&&++failures<4){await new Promise(resolve=>setTimeout(resolve,700));continue;}end('连接已结束或暂时中断。请查看投影仪；如尚未登录，请重新开启辅助登录。');return;}await new Promise(resolve=>setTimeout(resolve,700));}}
+async function poll(){while(running){try{const blob=await(await request('/frame')).blob();if(!running)return;const next=URL.createObjectURL(blob);$('screen').src=next;if(frameUrl)URL.revokeObjectURL(frameUrl);frameUrl=next;failures=0;$('status').textContent='已连接';}catch(error){if(error.message==='503'&&++failures<4){await new Promise(resolve=>setTimeout(resolve,700));continue;}end('连接已结束或暂时中断。请查看投影仪；如尚未登录，请重新开启辅助登录。');return;}await new Promise(resolve=>setTimeout(resolve,700));}}
 
 function sync(){
   if(composing||!running)return;
@@ -60,17 +78,12 @@ $('text').addEventListener('compositionstart',()=>{composing=true;});
 $('text').addEventListener('compositionend',()=>{composing=false;sync();});
 $('text').addEventListener('input',sync);
 $('text').addEventListener('focus',()=>{const length=$('text').value.length;try{$('text').setSelectionRange(length,length);}catch(ignored){}});
-$('typing').onsubmit=event=>{event.preventDefault();commands=commands.then(async()=>{if(!running||syncBlocked)return false;try{await request('/input',{kind:'key',key:'Enter'});clearProxy();$('text').focus();$('action-status').textContent='已在电视确认，可以继续输入。';return true;}catch(error){if(!connectionError(error))$('action-status').textContent='确认没有送达，文字仍保留在手机。';return false;}});};
+$('typing').onsubmit=event=>{event.preventDefault();commands=commands.then(async()=>{if(!running||syncBlocked)return false;try{await request('/input',{kind:'key',key:'Enter'});clearProxy();$('text').focus();$('action-status').textContent='已确认';return true;}catch(error){if(!connectionError(error))$('action-status').textContent='确认没有送达，文字仍保留在手机。';return false;}});};
 $('screen').onclick=event=>{
   const bounds=event.currentTarget.getBoundingClientRect(),tap={kind:'tap',x:(event.clientX-bounds.left)/bounds.width,y:(event.clientY-bounds.top)/bounds.height};
   clearProxy();$('text').focus({preventScroll:true});
-  commands=commands.then(async()=>{if(!running)return false;try{await request('/input',tap);syncBlocked=false;$('action-status').textContent='电视输入框已选中，直接输入即可。';return true;}catch(error){if(!connectionError(error))$('action-status').textContent='没有选中电视输入框，请再点一次画面。';return false;}});
+  commands=commands.then(async()=>{if(!running)return false;try{await request('/input',tap);syncBlocked=false;$('action-status').textContent='可以输入';return true;}catch(error){if(!connectionError(error))$('action-status').textContent='没有选中电视输入框，请再点一次画面。';return false;}});
 };
-document.querySelectorAll('[data-key]').forEach(button=>button.onclick=()=>{
-  const key=button.dataset.key,value=$('text').value,changesFocus=key==='Tab'||key==='Enter';
-  enqueue({kind:'key',key},changesFocus).then(sent=>{if(sent&&changesFocus&&$('text').value===value){clearProxy();$('text').focus();}});
-});
-$('stop').onclick=async()=>{try{await request('/close',{});}finally{end('辅助登录已结束。');}};
 window.addEventListener('pagehide',()=>end('连接已结束'));
 
 const invitation=new URLSearchParams(location.hash.slice(1)).get('code');

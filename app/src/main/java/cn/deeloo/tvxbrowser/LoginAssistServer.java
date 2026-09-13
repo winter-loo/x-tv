@@ -5,16 +5,15 @@ import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
-import javax.net.ssl.*;
 import org.json.JSONObject;
 
-/** Deliberately small, bounded HTTP/1.1 surface on a temporary TLS listener. */
+/** Deliberately small, bounded HTTP/1.1 surface on a temporary LAN listener. */
 final class LoginAssistServer implements AutoCloseable {
     interface Page {
         byte[] frame() throws Exception;
         void input(JSONObject command) throws Exception;
     }
-    private final SSLServerSocket socket;
+    private final ServerSocket socket;
     private final LoginPairing pairing;
     private final Page page;
     private final byte[] html;
@@ -23,13 +22,12 @@ final class LoginAssistServer implements AutoCloseable {
         new ArrayBlockingQueue<>(4), new ThreadPoolExecutor.AbortPolicy());
     private final Set<Socket> clients = ConcurrentHashMap.newKeySet();
     private volatile boolean closed;
-    LoginAssistServer(SSLContext tls, InetAddress address, LoginPairing pairing, byte[] html, Page page) throws IOException {
+    LoginAssistServer(InetAddress address, LoginPairing pairing, byte[] html, Page page) throws IOException {
         this.pairing = pairing; this.html = html; this.page = page;
-        socket = (SSLServerSocket) tls.getServerSocketFactory().createServerSocket(0, 4, address);
-        socket.setEnabledProtocols(new String[]{"TLSv1.2"});
+        socket = new ServerSocket(0, 4, address);
         host = address.getHostAddress() + ":" + socket.getLocalPort();
     }
-    String url() { return "https://" + host; }
+    String url() { return "http://" + host; }
     void start() {
         new Thread(() -> {
             while (!closed) try {

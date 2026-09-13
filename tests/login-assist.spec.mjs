@@ -5,7 +5,7 @@ const pixel=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR
 
 test('QR invitation pairs automatically and the phone keyboard edits the TV focus in order',async({page})=>{
     const inputs=[],pairs=[];let revoked=false;
-    await page.route('https://assist.test/**',async route=>{
+    await page.route('http://assist.test/**',async route=>{
         const req=route.request(),path=new URL(req.url()).pathname;
         if(path==='/')return route.fulfill({contentType:'text/html',body:html});
         if(path==='/pair'){pairs.push(req.postDataJSON());return route.fulfill({contentType:'application/json',body:'{"token":"test-session"}'});}
@@ -16,7 +16,7 @@ test('QR invitation pairs automatically and the phone keyboard edits the TV focu
         return route.fulfill({contentType:'application/json',body:'{}'});
     });
 
-    await page.goto('https://assist.test/#code=12345678');
+    await page.goto('http://assist.test/#code=12345678');
     await expect(page.locator('#remote')).toBeVisible();
     expect(pairs).toEqual([{code:'12345678'}]);
     expect(new URL(page.url()).hash).toBe('');
@@ -51,7 +51,7 @@ test('QR invitation pairs automatically and the phone keyboard edits the TV focu
 
 test('IME composition sends only the chosen text instead of intermediate candidates',async({page})=>{
     const inputs=[];
-    await page.route('https://assist.test/**',async route=>{
+    await page.route('http://assist.test/**',async route=>{
         const req=route.request(),path=new URL(req.url()).pathname;
         if(path==='/')return route.fulfill({contentType:'text/html',body:html});
         if(path==='/pair')return route.fulfill({contentType:'application/json',body:'{"token":"test-session"}'});
@@ -59,7 +59,7 @@ test('IME composition sends only the chosen text instead of intermediate candida
         if(path==='/input')inputs.push(req.postDataJSON());
         return route.fulfill({contentType:'application/json',body:'{}'});
     });
-    await page.goto('https://assist.test/#code=12345678');
+    await page.goto('http://assist.test/#code=12345678');
     await expect(page.locator('#remote')).toBeVisible();
     await page.locator('#text').evaluate(input=>{
         input.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));
@@ -75,14 +75,14 @@ test('IME composition sends only the chosen text instead of intermediate candida
 
 test('failed live sync keeps the draft and error visible across frame refreshes',async({page})=>{
     let frames=0;
-    await page.route('https://assist.test/**',async route=>{
+    await page.route('http://assist.test/**',async route=>{
         const path=new URL(route.request().url()).pathname;
         if(path==='/')return route.fulfill({contentType:'text/html',body:html});
         if(path==='/pair')return route.fulfill({contentType:'application/json',body:'{"token":"test-session"}'});
         if(path==='/frame'){frames++;return route.fulfill({contentType:'image/png',body:pixel});}
         return route.fulfill({status:503,body:''});
     });
-    await page.goto('https://assist.test/#code=12345678');
+    await page.goto('http://assist.test/#code=12345678');
     await expect(page.locator('#remote')).toBeVisible();
     await page.locator('#text').fill('tvx.input.check@example.com');
     await expect(page.locator('#text')).toHaveValue('tvx.input.check@example.com');
@@ -94,14 +94,14 @@ test('failed live sync keeps the draft and error visible across frame refreshes'
 
 test('manual code entry remains available when there is no QR invitation',async({page})=>{
     let paired;
-    await page.route('https://assist.test/**',async route=>{
+    await page.route('http://assist.test/**',async route=>{
         const req=route.request(),path=new URL(req.url()).pathname;
         if(path==='/')return route.fulfill({contentType:'text/html',body:html});
         if(path==='/pair'){paired=req.postDataJSON();return route.fulfill({contentType:'application/json',body:'{"token":"test-session"}'});}
         if(path==='/frame')return route.fulfill({contentType:'image/png',body:pixel});
         return route.fulfill({contentType:'application/json',body:'{}'});
     });
-    await page.goto('https://assist.test/');
+    await page.goto('http://assist.test/');
     await expect(page.locator('#pair')).toBeVisible();
     await page.locator('#code').fill('87654321');
     await page.getByRole('button',{name:'连接投影仪'}).click();

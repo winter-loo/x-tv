@@ -11,8 +11,6 @@ import android.net.LinkProperties;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
-import android.security.keystore.KeyGenParameterSpec;
-import android.security.keystore.KeyProperties;
 import android.view.KeyEvent;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -27,17 +25,11 @@ import com.google.zxing.EncodeHintType;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import java.io.ByteArrayOutputStream;
-import java.math.BigInteger;
 import java.net.Inet4Address;
 import java.net.InetAddress;
-import java.security.*;
-import java.security.cert.X509Certificate;
-import java.util.Date;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.concurrent.*;
-import javax.net.ssl.*;
-import javax.security.auth.x500.X500Principal;
 import org.json.JSONObject;
 import org.mozilla.geckoview.GeckoView;
 
@@ -64,43 +56,15 @@ final class LoginAssist implements AutoCloseable {
         setup.execute(() -> {
             try {
                 InetAddress address = address();
-                KeyStore keys = KeyStore.getInstance("AndroidKeyStore"); keys.load(null);
-                // Dedicated local HTTPS identity, unrelated to the APK distribution signing key.
-                String alias = "tvx-login-assist-tls-v1";
-                if (!keys.containsAlias(alias)) {
-                    KeyPairGenerator generator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_RSA,"AndroidKeyStore");
-                    generator.initialize(new KeyGenParameterSpec.Builder(alias,KeyProperties.PURPOSE_SIGN|KeyProperties.PURPOSE_VERIFY)
-                        // Android TLS signs an already-hashed handshake via NONEwithRSA.
-                        .setKeySize(2048).setDigests(KeyProperties.DIGEST_NONE,KeyProperties.DIGEST_SHA256,KeyProperties.DIGEST_SHA512)
-                        .setSignaturePaddings(KeyProperties.SIGNATURE_PADDING_RSA_PKCS1)
-                        .setCertificateSubject(new X500Principal("CN=X TV Local Login"))
-                        .setCertificateSerialNumber(BigInteger.ONE)
-                        .setCertificateNotBefore(new Date(0))
-                        .setCertificateNotAfter(new Date(4102444800000L)).build());
-                    generator.generateKeyPair();
-                }
-                PrivateKey key = (PrivateKey)keys.getKey(alias,null);
-                X509Certificate cert = (X509Certificate)keys.getCertificate(alias);
-                X509KeyManager manager = new X509KeyManager() {
-                    public String[] getClientAliases(String k,Principal[] p){return null;}
-                    public String chooseClientAlias(String[] k,Principal[] p,java.net.Socket s){return null;}
-                    public String[] getServerAliases(String k,Principal[] p){return "RSA".equals(k)?new String[]{alias}:null;}
-                    public String chooseServerAlias(String k,Principal[] p,java.net.Socket s){return "RSA".equals(k)?alias:null;}
-                    public X509Certificate[] getCertificateChain(String a){return alias.equals(a)?new X509Certificate[]{cert}:null;}
-                    public PrivateKey getPrivateKey(String a){return alias.equals(a)?key:null;}
-                };
-                SSLContext tls = SSLContext.getInstance("TLSv1.2"); tls.init(new KeyManager[]{manager},null,new SecureRandom());
                 byte[] html;
                 try (java.io.InputStream input = activity.getAssets().open("login-assist.html")) {
                     ByteArrayOutputStream out = new ByteArrayOutputStream(); byte[] buffer=new byte[4096];int n;
                     while((n=input.read(buffer))!=-1)out.write(buffer,0,n);html=out.toByteArray();
                 }
-                LoginAssistServer ready = new LoginAssistServer(tls,address,pairing,html,new LoginAssistServer.Page(){
+                LoginAssistServer ready = new LoginAssistServer(address,pairing,html,new LoginAssistServer.Page(){
                     public byte[] frame() throws Exception { return capture(); }
                     public void input(JSONObject command) throws Exception { remoteInput(command); }
                 });
-                StringBuilder fingerprint = new StringBuilder();
-                for(byte b:MessageDigest.getInstance("SHA-256").digest(cert.getEncoded()))fingerprint.append(String.format(java.util.Locale.ROOT,"%02X",b&255));
                 Bitmap qr = qrCode(qrPayload(ready.url(),pairing.code()),640);
                 ui.post(() -> {
                     if(closed){ready.close();qr.recycle();return;}
@@ -116,8 +80,7 @@ final class LoginAssist implements AutoCloseable {
                     imageLayout.gravity=Gravity.CENTER_HORIZONTAL;imageLayout.topMargin=dp(12);imageLayout.bottomMargin=dp(12);
                     content.addView(image,imageLayout);
                     TextView help=new TextView(activity);
-                    help.setText("扫码失败：浏览器打开\n"+ready.url()+"\n配对码："+pairing.code()+
-                        "\n首次访问需继续打开本地证书页面。\nSHA-256："+fingerprint);
+                    help.setText("扫码失败：浏览器打开\n"+ready.url()+"\n配对码："+pairing.code());
                     help.setTextSize(12);help.setTypeface(Typeface.MONOSPACE);
                     content.addView(help,new LinearLayout.LayoutParams(-1,-2));
                     dialog=new AlertDialog.Builder(activity).setTitle("手机 / 电脑辅助登录")
