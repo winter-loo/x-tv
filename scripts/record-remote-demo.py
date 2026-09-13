@@ -80,7 +80,7 @@ class SessionRecorder:
     def clean_remote(self):
         try:
             run_adb('shell', 'rm -f /sdcard/tvx_rec_*.mp4', check=False)
-            run_adb('shell', 'killall -9 screenrecord getevent', check=False)
+            run_adb('shell', 'pkill -9 -f /system/bin/screenrecord || killall -9 screenrecord getevent', check=False)
         except Exception:
             pass
 
@@ -181,7 +181,7 @@ class SessionRecorder:
             while proc.poll() is None:
                 if self.stop_event.is_set() or STOP_FLAG_FILE.exists():
                     print('[*] Stop requested, stopping screenrecord...', flush=True)
-                    run_adb('shell', 'killall -2 screenrecord || pkill -2 screenrecord', check=False)
+                    run_adb('shell', 'pkill -2 -f /system/bin/screenrecord || killall -2 screenrecord || pkill -2 screenrecord', check=False)
                     break
                 time.sleep(0.2)
             try: proc.wait(timeout=5)
@@ -197,7 +197,8 @@ class SessionRecorder:
         self.active = False
         self.stop_event.set()
         print('[*] Finalizing recording and pulling files...', flush=True)
-        time.sleep(1.0)
+        time.sleep(2.5)
+        run_adb('shell', 'sync', check=False)
         self.end_uptime = get_device_uptime()
 
         pulled_segments = []
