@@ -35,7 +35,7 @@
 
 ## 安装与发布
 
-**[安装方法、支持设备和已知问题](docs/install.md)**（0.2.0 小范围试用）。
+**[安装方法、支持设备和已知问题](docs/install.md)**（0.2.1 小范围试用）。
 
 维护者的签名、构建、升级规则见 [发布指南](docs/release.md)。当前版本由 [version.properties](version.properties) 管理；发布候选变更见 [CHANGELOG.md](CHANGELOG.md)。
 

@@ -1,12 +1,12 @@
 # 发布指南与当前状态
 
-当前阶段：0.2.0 小范围试用准备，长期签名已配置；未上传。已确认通过 GitHub Release / APK 直接分发；本轮不上传。
+当前阶段：0.2.1 试用版已发布，通过 GitHub Release（Pre-release）分发已签名 APK 与 SHA256SUMS。
 
 本轮验证结果见 [发布准备验收](validation/release-preparation.md)。
 
 ## 发布范围
 
-当前只声明 Android 9+、支持 32 位 ARM 应用的设备，实测当贝 DBD5X Pro（1080p）。已确定首个 GitHub 公开版本为 `0.2.0 / versionCode 2`。仓库当前没有已发布 Release 或 tag。
+当前只声明 Android 9+、支持 32 位 ARM 应用的设备，实测当贝 DBD5X Pro（1080p）。公开试用版本为 `0.2.1 / versionCode 3`（GitHub Release 包含 `v0.2.0` 与 `v0.2.1`）。
 
 ## 已整理
 
