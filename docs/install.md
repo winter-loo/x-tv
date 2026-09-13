@@ -1,6 +1,6 @@
-# X TV 0.2.0 试用安装说明
+# X TV 0.2.1 试用安装说明
 
-X TV 是面向遥控器的非官方 X 阅读客户端。试用包：`X-TV-0.2.0-armeabi-v7a.apk`。
+X TV 是面向遥控器的非官方 X 阅读客户端。试用包：`X-TV-0.2.1-armeabi-v7a.apk`。
 
 ## 支持设备
 
@@ -26,7 +26,7 @@ X TV 是面向遥控器的非官方 X 阅读客户端。试用包：`X-TV-0.2.0-
 ```sh
 adb connect <设备IP:调试端口>
 adb devices
-adb -s <设备序列号或IP:端口> install -r X-TV-0.2.0-armeabi-v7a.apk
+adb -s <设备序列号或IP:端口> install -r X-TV-0.2.1-armeabi-v7a.apk
 ```
 
 USB 连接可跳过 `adb connect`。若系统提示 ABI 不匹配，说明设备不能运行当前 32 位 ARM 包。
