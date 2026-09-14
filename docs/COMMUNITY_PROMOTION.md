@@ -73,9 +73,12 @@
 5. **作者主页与历史推文流**
    - 左右双栏大屏布局，清晰展示博主认证资料与历史推文列表，触底自动平滑翻页加载。
 
-### 技术实现细节：
-- 采用 **本地自研 TV 阅读器 + 隔离式认证引擎** 架构，针对电视端极度严苛的内存和 Chromium 66 老旧 WebView 内核做了大量 ES5 兼容与性能剪裁。
-- 全套内置 271 项 Playwright 端到端自动化交互测试，保障各个按键状态栈的绝对稳定。
+### 技术实现亮点：
+- 采用 **「GeckoView 认证隔离 + 本地自研轻量阅读器」双引擎架构**：
+  - **复杂登录与风控**：底层集成独立的 GeckoView（Firefox 现代内核），完美攻克 X 官方复杂的 Web 登录风控、现代 CSP 与 Google 授权弹窗，彻底解决电视登录难；
+  - **日常浏览与极速响应**：主界面采用本地纯静态轻量阅读器（基于系统 WebView），直接解析 GraphQL 本地极速渲染，内存开销极低、秒级冷启动；
+  - **老旧电视内核兼容**：基准设备（如当贝投影 Android 9）系统 WebView 停留在老旧的 Chromium 66，项目对阅读器做了严格纯 ES5 语法规范约束与性能剪裁，确保低配老电视不卡顿、不白屏。
+- 全套内置 271 项 Playwright 端到端自动化交互测试，覆盖遥控焦点树与媒体播放状态机。
 
 - **GitHub 源码**：https://github.com/winter-loo/x-tv
 - **APK 下载与体验**：https://github.com/winter-loo/x-tv/releases
@@ -174,9 +177,9 @@
    - **少即是多**：过滤嘈杂信息，专注时间线、长文与多媒体。
    - **遥控器心流交互**：不引入复杂光标，所有卡片严格遵循遥控器线性焦点树。
    - **手机与电视的协同**：输入交给手机，呈现留给大屏。
-3. **技术挑战与工程攻坚**：
-   - **老旧电视内核的挑战**：部分电视系统 WebView 仅有 Chromium 66，如何兼顾现代 ES 特性与极致轻量？
-   - **认证隔离与会话保活**：安全持久化登录状态，避免频繁重登。
+3. **技术挑战与双引擎架构攻坚**：
+   - **登录难题与 GeckoView 破局**：电视系统老内核根本跑不动 X 官方现代登录页。我们引入 GeckoView 现代独立内核处理安全登录与 Cookie 提取，安全隔离风控与 Google 授权。
+   - **低内存与老旧系统 WebView 的两难解法**：电视端仅有 1~2GB 内存，日常刷推若全量跑 GeckoView 极易 OOM。我们采用轻量本地阅读器，并在代码层面针对系统 Chromium 66 老内核做严格纯 ES5 规范约束与渲染剪裁，实现超低内存占用与秒开体验。
    - **大屏长文排版引擎**：针对 X Article 结构化内容重排，支持等宽两列/自适应阅读视口。
    - **视频播放无缝续播算法**：在分辨率切换与倍速变更时做到进度与状态毫秒级无感知接力。
    - **工程化质量底座**：271 项端到端 Playwright 自动化测试保障。
@@ -214,10 +217,13 @@ If you've ever tried sideloading the mobile X app or browsing x.com using Androi
    - Menu Button: Cycle resolutions (360p, 720p, 1080p) without stopping playback!
 5. **Author Profile**: Clean two-column split view with bio and paginated history tweets.
 
-### Technical & Compatibility:
-- **Requirements**: Android 9.0+ (API 28+), supports `armeabi-v7a`. Tested on 1080p smart projectors (Dangbei DBD5X Pro) and smart TVs.
-- **Open Source**: Licensed and fully open on GitHub.
-- **Tested**: Covered by 271 Playwright automated end-to-end regression tests.
+### Technical Architecture:
+- **Dual-Engine Architecture**:
+  - **GeckoView Engine**: An isolated modern Gecko session handles official X authentication, modern web security challenges, and Google sign-in popups reliably.
+  - **Native Lightweight Reader**: High-frequency reading and video playback run in an optimized local reader (system WebView), keeping RAM usage ultra-low and startup instantaneous.
+  - **Backwards Compatibility**: The reader is strictly baseline-compatible with older TV systems down to Chromium 66 via pure ES5 standards and tailored performance pruning.
+- **Requirements**: Android 9.0+ (API 28+), supports `armeabi-v7a`. Tested on 1080p smart projectors (Dangbei DBD5X Pro) and Android TVs.
+- **Quality Assurance**: Fully covered by 271 Playwright automated end-to-end regression tests.
 
 - **GitHub Repo**: https://github.com/winter-loo/x-tv
 - **Download APK (Releases)**: https://github.com/winter-loo/x-tv/releases
