@@ -6,12 +6,35 @@
 (function(scope) {
 'use strict';
 var ZOOMS = [1, 2, 4], IDLE_MS = 3000, SEEK_SECONDS = 10;
+var SPEEDS = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
 var viewer = null, host = null;
 
 function esc(value) {
     return String(value == null ? '' : value).replace(/[&<>"']/g, function(c) {
         return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;'}[c];
     });
+}
+function qualityLabel(variant) {
+    if (!variant) return '标清';
+    var b = variant.bitrate || 0;
+    if (b >= 1500000) return '1080p 超清';
+    if (b >= 600000) return '720p 高清';
+    return '360p 标清';
+}
+function qualityShort(variant) {
+    if (!variant) return '360p';
+    var b = variant.bitrate || 0;
+    if (b >= 1500000) return '1080p';
+    if (b >= 600000) return '720p';
+    return '360p';
+}
+function currentVariantIndex(item) {
+    if (!item || !item.variants || !item.variants.length) return -1;
+    if (!item.video) return 0;
+    for (var i = 0; i < item.variants.length; i++) {
+        if (item.variants[i].url === item.video) return i;
+    }
+    return 0;
 }
 /** Clock time the way a viewer reads it; an unknown length has no honest rendering. */
 function time(seconds) {
@@ -96,9 +119,100 @@ function resetView() {
 
 function controlsHtml(item) {
     if (!playable(item)) return '';
+    var badges = '';
+    if (item.type === 'video') {
+        var rate = SPEEDS[viewer ? viewer.speedIndex : 2];
+        badges += '<span class="speed-badge' + (rate !== 1 ? ' active' : '') + '">' + rate + 'x</span>';
+        if (item.variants && item.variants.length > 1) {
+            var vIdx = (viewer && viewer.variantIndex >= 0) ? viewer.variantIndex : currentVariantIndex(item);
+            var v = item.variants[vIdx] || item.variants[0];
+            badges += '<span class="quality-badge">' + esc(qualityShort(v)) + '</span>';
+        }
+    }
     return '<div class="controls"><span class="elapsed">0:00</span>' +
         '<span class="bar"><span class="buffered"></span><span class="played"></span></span>' +
-        '<span class="total"></span></div>';
+        '<span class="total"></span>' +
+        badges +
+        '</div>';
+}
+function updateSpeedBadge() {
+    if (!viewer || !viewer.node) return;
+    var badge = viewer.node.querySelector('.speed-badge');
+    if (!badge) return;
+    var rate = SPEEDS[viewer.speedIndex];
+    badge.textContent = rate + 'x';
+    if (rate !== 1) badge.classList.add('active');
+    else badge.classList.remove('active');
+}
+function updateQualityBadge() {
+    if (!viewer || !viewer.node) return;
+    var badge = viewer.node.querySelector('.quality-badge');
+    if (!badge) return;
+    var item = viewer.items[viewer.index];
+    if (!item || !item.variants) return;
+    var vIdx = viewer.variantIndex >= 0 ? viewer.variantIndex : currentVariantIndex(item);
+    var v = item.variants[vIdx] || item.variants[0];
+    badge.textContent = qualityShort(v);
+}
+function changeSpeed(delta) {
+    if (!viewer || !viewer.video) return;
+    var next = Math.max(0, Math.min(SPEEDS.length - 1, viewer.speedIndex + delta));
+    if (next === viewer.speedIndex) {
+        if (host && host.notice) host.notice('倍速已达限制：' + SPEEDS[viewer.speedIndex] + 'x');
+        return;
+    }
+    viewer.speedIndex = next;
+    var rate = SPEEDS[viewer.speedIndex];
+    viewer.video.playbackRate = rate;
+    updateSpeedBadge();
+    showControls();
+    if (host && host.notice) host.notice('播放倍速：' + rate + 'x');
+}
+function cycleQuality() {
+    if (!viewer || !viewer.video) return;
+    var item = viewer.items[viewer.index];
+    if (!item.variants || item.variants.length < 2) {
+        if (host && host.notice) host.notice('当前已是最佳画质');
+        return;
+    }
+    var currentIdx = viewer.variantIndex >= 0 ? viewer.variantIndex : currentVariantIndex(item);
+    var nextIdx = (currentIdx + 1) % item.variants.length;
+    switchQuality(nextIdx);
+}
+function switchQuality(index) {
+    var item = viewer.items[viewer.index];
+    if (!item || !item.variants || !item.variants[index]) return;
+    viewer.variantIndex = index;
+    var variant = item.variants[index];
+    var video = viewer.video;
+    var cur = video.currentTime;
+    var wasPaused = video.paused;
+    var rate = SPEEDS[viewer.speedIndex];
+
+    var onLoaded = function() {
+        video.removeEventListener('loadedmetadata', onLoaded);
+        try {
+            if (cur > 0) video.currentTime = cur;
+        } catch (_) {}
+        try {
+            video.defaultPlaybackRate = rate;
+            video.playbackRate = rate;
+        } catch (_) {}
+    };
+    video.addEventListener('loadedmetadata', onLoaded);
+    video.src = variant.url;
+    try {
+        video.currentTime = cur;
+    } catch (_) {}
+    video.defaultPlaybackRate = rate;
+    video.playbackRate = rate;
+    if (!wasPaused) {
+        video.play().catch(function() {});
+    }
+    updateQualityBadge();
+    showControls();
+    var label = qualityLabel(variant);
+    if (host && host.notice) host.notice('清晰度：' + label);
 }
 /** Renders whatever the element currently reports; an unseekable stream loses its bar. */
 function describe(video) {
@@ -140,6 +254,7 @@ function showControls() {
 
 function render() {
     var item = viewer.items[viewer.index], total = viewer.items.length;
+    var hasQuality = item && item.type === 'video' && item.variants && item.variants.length > 1;
     viewer.node.innerHTML =
         (playable(item) ?
              '<video src="' + esc(item.video) + '" poster="' + esc(item.image) + '" playsinline' +
@@ -151,8 +266,9 @@ function render() {
                      '') +
         controlsHtml(item) +
         '<div class="hint">' +
-        (playable(item) ? '确认 播放 / 暂停　 ←→ 快退快进 10 秒' :
-                          '确认 缩放　 ←→ ' + (total > 1 ? '切换图片' : '平移') + '　 ↑↓ 平移') +
+        (playable(item) ?
+            ('确认 播放 / 暂停　 ←→ 快退快进 10 秒' + (item.type === 'video' ? '　 ↑↓ 倍速' + (hasQuality ? '　 菜单 画质' : '') : '')) :
+            ('确认 缩放　 ←→ ' + (total > 1 ? '切换图片' : '平移') + '　 ↑↓ 平移')) +
         '　 返回 关闭</div>';
     viewer.image = viewer.node.querySelector('img');
     viewer.video = viewer.node.querySelector('video');
@@ -173,6 +289,27 @@ function render() {
 }
 function bindVideo(video) {
     video.style.objectFit = 'contain';
+    if (viewer && viewer.speedIndex !== undefined) {
+        var rate = SPEEDS[viewer.speedIndex];
+        video.defaultPlaybackRate = rate;
+        video.playbackRate = rate;
+    }
+    if (viewer && viewer.node) {
+        var speedBadge = viewer.node.querySelector('.speed-badge');
+        if (speedBadge) {
+            speedBadge.onclick = function(e) {
+                e.stopPropagation();
+                changeSpeed(1);
+            };
+        }
+        var qualityBadge = viewer.node.querySelector('.quality-badge');
+        if (qualityBadge) {
+            qualityBadge.onclick = function(e) {
+                e.stopPropagation();
+                cycleQuality();
+            };
+        }
+    }
     ['loadedmetadata', 'timeupdate', 'progress', 'durationchange'].forEach(function(name) {
         video.addEventListener(name, function() {
             describe(video);
@@ -201,14 +338,18 @@ function bindVideo(video) {
 function open(items, index, hooks) {
     close();
     host = hooks || {};
+    var initIndex = Math.max(0, Math.min(items.length - 1, index || 0));
+    var initItem = items[initIndex];
     viewer = {
         node: document.createElement('div'),
         items: items,
-        index: Math.max(0, Math.min(items.length - 1, index || 0)),
+        index: initIndex,
         scale: 1,
         x: 0,
         y: 0,
-        idle: 0
+        idle: 0,
+        speedIndex: 2,
+        variantIndex: (initItem && initItem.variants) ? currentVariantIndex(initItem) : -1
     };
     viewer.node.className = 'viewer';
     document.body.appendChild(viewer.node);
@@ -248,6 +389,8 @@ function isOpen() {
 function step(index) {
     if (!viewer || viewer.items.length < 2) return;
     viewer.index = (index + viewer.items.length) % viewer.items.length;
+    var nextItem = viewer.items[viewer.index];
+    viewer.variantIndex = (nextItem && nextItem.variants) ? currentVariantIndex(nextItem) : -1;
     render();
 }
 
@@ -263,6 +406,12 @@ function key(name) {
             else viewer.video.pause();
         } else if (name === 'left' || name === 'right') {
             seekBy(name === 'right' ? SEEK_SECONDS : -SEEK_SECONDS);
+        } else if (name === 'up') {
+            changeSpeed(1);
+        } else if (name === 'down') {
+            changeSpeed(-1);
+        } else if (name === 'menu') {
+            cycleQuality();
         }
         return true;
     }
@@ -408,6 +557,20 @@ scope.TvXMedia = {
     close: close,
     back: back,
     key: key,
-    isOpen: isOpen
+    isOpen: isOpen,
+    SPEEDS: SPEEDS,
+    speed: function() {
+        return viewer ? SPEEDS[viewer.speedIndex] : 1.0;
+    },
+    changeSpeed: changeSpeed,
+    cycleQuality: cycleQuality,
+    switchQuality: switchQuality,
+    quality: function() {
+        if (!viewer) return null;
+        var item = viewer.items[viewer.index];
+        if (!item || !item.variants) return null;
+        var vIdx = viewer.variantIndex >= 0 ? viewer.variantIndex : currentVariantIndex(item);
+        return item.variants[vIdx] || null;
+    }
 };
 })(typeof window === 'undefined' ? globalThis : window);

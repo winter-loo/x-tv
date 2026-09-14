@@ -439,3 +439,143 @@ test('leaving the player stops it and puts the reader back', async ({page}) => {
     await expect(page.locator('#position')).toHaveText('1 / 2');
     await expect(page.locator('.media')).toHaveClass(/focus/);
 });
+
+function videoWithVariants(seconds = 83) {
+    return {
+        type: 'video',
+        media_url_https: 'https://pbs.twimg.com/poster.jpg',
+        video_info: {
+            duration_millis: seconds * 1000,
+            variants: [
+                {content_type: 'video/mp4', bitrate: 288000, url: 'https://video.twimg.com/360p.mp4'},
+                {content_type: 'video/mp4', bitrate: 832000, url: 'https://video.twimg.com/720p.mp4'},
+                {content_type: 'video/mp4', bitrate: 2176000, url: 'https://video.twimg.com/1080p.mp4'}
+            ]
+        }
+    };
+}
+
+test('up and down keys adjust video playback speed', async ({page}) => {
+    await mount(page);
+    await receive(page, 'r0', payload([post('101', [video(100)])]));
+    await key(page, 'right');
+    await key(page, 'ok');
+
+    const badge = page.locator('.viewer .speed-badge');
+    await expect(badge).toBeVisible();
+    await expect(badge).toHaveText('1x');
+    await expect(badge).not.toHaveClass(/active/);
+
+    // Speed up to 1.25x
+    const notice125 = await page.evaluate(() => {
+        TvXReader.key('up');
+        return {
+            notice: document.getElementById('notice').textContent,
+            rate: document.querySelector('.viewer video').playbackRate
+        };
+    });
+    expect(notice125.notice).toContain('1.25x');
+    expect(notice125.rate).toBe(1.25);
+    await expect(badge).toHaveText('1.25x');
+    await expect(badge).toHaveClass(/active/);
+
+    // Speed up to 1.5x and 2.0x
+    await key(page, 'up');
+    expect(await page.evaluate(() => document.querySelector('.viewer video').playbackRate)).toBe(1.5);
+    await key(page, 'up');
+    expect(await page.evaluate(() => document.querySelector('.viewer video').playbackRate)).toBe(2);
+
+    // Beyond limit
+    const limitNotice = await page.evaluate(() => {
+        TvXReader.key('up');
+        return document.getElementById('notice').textContent;
+    });
+    expect(limitNotice).toContain('倍速已达限制：2x');
+
+    // Slow down to 1.0x (should remove active class)
+    await key(page, 'down'); // 1.5x
+    await key(page, 'down'); // 1.25x
+    await key(page, 'down'); // 1.0x
+    expect(await page.evaluate(() => document.querySelector('.viewer video').playbackRate)).toBe(1);
+    await expect(badge).not.toHaveClass(/active/);
+
+    // Slow down to 0.5x minimum limit
+    await key(page, 'down'); // 0.75x
+    await key(page, 'down'); // 0.5x
+    expect(await page.evaluate(() => document.querySelector('.viewer video').playbackRate)).toBe(0.5);
+    const minLimitNotice = await page.evaluate(() => {
+        TvXReader.key('down');
+        return document.getElementById('notice').textContent;
+    });
+    expect(minLimitNotice).toContain('倍速已达限制：0.5x');
+
+    // Click on speed badge increases speed
+    await badge.click();
+    await expect(badge).toHaveText('0.75x');
+    expect(await page.evaluate(() => document.querySelector('.viewer video').playbackRate)).toBe(0.75);
+});
+
+test('menu key and quality badge cycle video resolution variants preserving time and speed', async ({page}) => {
+    await mount(page);
+    await receive(page, 'r0', payload([post('101', [videoWithVariants(120)])]));
+    await key(page, 'right');
+    await key(page, 'ok');
+
+    const qualityBadge = page.locator('.viewer .quality-badge');
+    await expect(qualityBadge).toBeVisible();
+    // Default selected variant by bitrate >= 800000 is 720p
+    await expect(qualityBadge).toHaveText('720p');
+
+    // Adjust speed and position
+    await key(page, 'up'); // 1.25x
+    await page.evaluate(() => {
+        document.querySelector('.viewer video').currentTime = 42;
+    });
+
+    // Cycle quality via menu key -> 1080p
+    const switch1 = await page.evaluate(() => {
+        TvXReader.key('menu');
+        const v = document.querySelector('.viewer video');
+        return {
+            notice: document.getElementById('notice').textContent,
+            src: v.src,
+            currentTime: v.currentTime,
+            rate: v.playbackRate
+        };
+    });
+    expect(switch1.notice).toContain('1080p 超清');
+    expect(switch1.src).toContain('1080p.mp4');
+    expect(switch1.currentTime).toBe(42);
+    expect(switch1.rate).toBe(1.25);
+    await expect(qualityBadge).toHaveText('1080p');
+
+    // Cycle again via badge click -> 360p
+    await qualityBadge.click();
+    await expect(qualityBadge).toHaveText('360p');
+    const switch2 = await page.evaluate(() => {
+        const v = document.querySelector('.viewer video');
+        return {
+            src: v.src,
+            currentTime: v.currentTime,
+            rate: v.playbackRate
+        };
+    });
+    expect(switch2.src).toContain('360p.mp4');
+    expect(switch2.currentTime).toBe(42);
+    expect(switch2.rate).toBe(1.25);
+});
+
+test('single variant video has no quality badge and menu reports current is best', async ({page}) => {
+    await mount(page);
+    await receive(page, 'r0', payload([post('101', [video(60)])]));
+    await key(page, 'right');
+    await key(page, 'ok');
+
+    await expect(page.locator('.viewer .quality-badge')).toHaveCount(0);
+    const notice = await page.evaluate(() => {
+        TvXReader.key('menu');
+        return document.getElementById('notice').textContent;
+    });
+    expect(notice).toContain('当前已是最佳画质');
+});
+

@@ -176,10 +176,17 @@ function tweet(value) {
             return v.bitrate >= 800000;
         }) ||
             videos[0];
+        var variants = videos.map(function(v) {
+            return {
+                url: https(v.url),
+                bitrate: v.bitrate || 0
+            };
+        });
         return {
             type: m.type,
             image: https(m.media_url_https),
             video: video ? https(video.url) : '',
+            variants: variants,
             alt: m.ext_alt_text || '',
             // An animated gif has no length worth showing, so it is not given one.
             duration: m.type === 'video' ? count(at(m, 'video_info.duration_millis')) : null

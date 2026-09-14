@@ -54,6 +54,9 @@
 .viewer img{transform-origin:50% 50%;will-change:transform}
 .viewer .count{position:absolute;left:2vw;top:3vh;padding:.6vh 1vw;border-radius:.4vw;background:rgba(5,8,13,.72);color:#e8ebed;font-size:1.3vw}
 .viewer .controls{position:absolute;left:8vw;right:8vw;bottom:9vh;display:flex;align-items:center;color:#e8ebed;font-size:1.3vw;transition:opacity .2s}
+.viewer .speed-badge,.viewer .quality-badge{margin-left:1vw;padding:.3vh .7vw;border-radius:.35vw;background:rgba(232,235,237,.15);color:#e8ebed;font-size:1.15vw;font-weight:600;white-space:nowrap;user-select:none;cursor:pointer}
+.viewer .speed-badge.active{background:#1d9bf0;color:#fff}
+.viewer .quality-badge{background:rgba(105,201,250,.18);color:#69c9fa}
 .viewer .hint{transition:opacity .2s}
 .viewer.idle .controls,.viewer.idle .hint{opacity:0}
 .viewer .bar{position:relative;flex:1;height:.6vh;margin:0 1.2vw;border-radius:.3vh;background:rgba(232,235,237,.24);cursor:pointer}
