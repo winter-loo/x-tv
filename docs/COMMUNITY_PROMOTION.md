@@ -88,21 +88,22 @@
 
 ---
 
-## 三、X (Twitter) 官方中英双语推文串 (Thread)
+## 三、X (Twitter) 社区宣发推文 (Thread)
 
-### 📌 中文版本 Thread
+### 📌 精简版主推文（推荐，Vibe Coding 极客风）
 
-**Tweet 1 (主推文，附带 GitHub 链接与总览动图)**:
-> 📺 隆重推出 **TvXBrowser** —— 专为智能电视与投影仪打造的开源 X 大屏客户端！
+> vibe coded an open-source X client for my projector: TvXBrowser 📺
 > 
-> 厌倦了在电视上用遥控器笨拙地挪动鼠标指针？
-> 现在，你可以躺在沙发上，用普通遥控器丝滑刷推、看深度长文、倍速刷高清视频！
+> 做这个主要是为了让自己能躺在床上/沙发上用遥控器舒服刷推：
+> • 纯遥控器 D-pad 原生焦点导航
+> • 手机扫码局域网辅助打字登录
+> • X Article 深度长文大屏沉浸重排版
+> • 视频 10s 快进、0.5x~2.0x 倍速与清晰度无缝切换
 > 
-> 🔗 开源项目：https://github.com/winter-loo/x-tv
-> ⏬ APK 下载：https://github.com/winter-loo/x-tv/releases
-> 
-> 展开线程看演示 👇 🧵
-> (配图：fullscreen_reading.gif)
+> 源码与 APK：https://github.com/winter-loo/x-tv
+> (配图：docs/assets/video_playback.gif)
+
+### 📌 扩展 Thread (可选跟帖)
 
 **Tweet 2 (手机辅助登录)**:
 > 🔑 **痛点终结者：手机扫码辅助登录**
